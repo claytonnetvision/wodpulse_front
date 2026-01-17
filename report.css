@@ -1,0 +1,166 @@
+body {
+    background: #101010;
+    color: #EAEAEA;
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #444;
+    padding-bottom: 15px;
+}
+
+h1 {
+    color: #FF9800;
+    margin: 0;
+}
+
+button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    margin-left: 10px;
+}
+
+button:hover {
+    background: #1976D2;
+}
+
+.filter-section {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-item label {
+    font-weight: bold;
+    color: #FF9800;
+}
+
+.filter-item input,
+.filter-item select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #252525;
+    color: white;
+    font-size: 1rem;
+}
+
+.filter-btn {
+    background: #4CAF50;
+    padding: 12px 30px;
+    align-self: flex-end;
+}
+
+.filter-btn:hover {
+    background: #388E3C;
+}
+
+section {
+    margin: 30px 0;
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+h2 {
+    color: #FF9800;
+    margin-top: 0;
+}
+
+h3 {
+    color: #FF9800;
+    margin: 20px 0 10px;
+}
+
+h4 {
+    color: #81C784;
+    margin: 15px 0 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background: #252525;
+    color: #FF9800;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background: #222;
+}
+
+tr:hover {
+    background: #333;
+}
+
+.aula-item {
+    background: #252525;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.graph-btn {
+    background: #FF5722;
+    padding: 8px 16px;
+    margin-top: 10px;
+}
+
+.graph-btn:hover {
+    background: #E64A19;
+}
+
+#grafico-section {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+#hrChart {
+    background: #000;
+    border-radius: 8px;
+    max-height: 500px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V6 WODPulse - Leaderboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Dexie.js CDN (mantido por enquanto como fallback) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
+</head>
+<body>
+
+    <!-- Tela de Login -->
+    <div id="login-screen">
+        <h1>V6 WODPulse - Login</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Box (slug):</label>
+                <select name="slug" required>
+                    <option value="">Selecione seu box</option>
+                    <option value="v6">V6 CrossFit</option>
+                    <option value="uranium">CrossFit Uranium</option>
+                    <option value="apolo">CrossFit Apolo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Usuário:</label>
+                <input type="text" name="username" placeholder="ex: adminv6" required />
+            </div>
+
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" name="password" required />
+            </div>
+
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+
+        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
+    </div>
+
+    <!-- Conteúdo principal (escondido até login) -->
+    <div id="app-content" class="hidden">
+
+        <div id="setup">
+            <h1>V6 WODPulse - Configurar Aula</h1>
+            <button onclick="logout()" class="btn-logout">Sair</button>
+            
+            <div id="addParticipant">
+                <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                <input type="number" id="ageInput" placeholder="Idade">
+                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                <input type="number" id="heightInput" placeholder="Altura (cm)">
+                <select id="genderInput">
+                    <option value="">Gênero</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                    <option value="O">Outro</option>
+                </select>
+                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
+                <input type="email" id="emailInput" placeholder="Email (opcional)">
+                <label>
+                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                </label>
+                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
+            </div>
+
+            <div id="participantListContainer">
+                <h2>Alunos Cadastrados</h2>
+                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
+                <ul id="participantList"></ul>
+            </div>
+
+            <div id="last-class-summary" class="hidden">
+                <h2>Última Aula Finalizada</h2>
+                <div id="summary-content"></div>
+            </div>
+
+            <div id="checkins-section">
+                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
+                <p>Alunos com check-in hoje aparecerão aqui.</p>
+                <ul id="checkinsList">
+                    <li>(Integração pendente)</li>
+                </ul>
+            </div>
+
+            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
+
+            <div id="main-container">
+                <div id="monitor-panel">
+                    <div id="header">
+                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
+                        
+                        <div class="header-info">
+                            <div id="current-class-name">Aula: --</div>
+                            <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
+                            <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
+                        </div>
+                        
+                        <div id="timer">00:00</div>
+                        
+                        <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
+
+                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
+                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                        <button id="reportsBtn">📅 Relatórios</button>
+                    </div>
+
+                    <div id="weekly-rankings">
+                        <div class="ranking-block pontos">
+                            <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
+                            <div id="queima-ranking-top5" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-block calorias">
+                            <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
+                            <div id="calorias-ranking-top5" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-block vo2ZoneActive">
+                            <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
+                            <div id="vo2ZoneActive" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-actions">
+                            <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
+                            <button id="fullRankingBtn">📊 Ranking Completo</button>
+                            <button id="exportPdfBtn">📄 Exportar PDF</button>
+                        </div>
+                    </div>
+
+                    <div id="participants"></div>
+                </div>
+            </div>
+            
+            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
+            <button id="backBtn">🏁 Finalizar</button>
+        </div>
+
+        <!-- Modal Ranking Completo -->
+        <div id="full-ranking-modal">
+            <div>
+                <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
+                <h2>Ranking Completo da Semana</h2>
+                <div id="full-ranking-content"></div>
+            </div>
+        </div>
+
+      
+    </div>
+
+    <script src="db.js"></script>
+    <script src="script.js"></script>
+
+    <!-- Script de autenticação com logs detalhados -->
+    <script>
+        // NÃO declarar variáveis globais aqui novamente – já estão no script.js
+        function showLoginScreen() {
+            console.log('[LOGIN] Mostrando tela de login');
+            document.getElementById('login-screen')?.classList.remove('hidden');
+            document.getElementById('app-content')?.classList.add('hidden');
+        }
+
+        function showAppContent() {
+            console.log('[LOGIN] Mostrando conteúdo principal');
+            document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('app-content')?.classList.remove('hidden');
+        }
+
+        function logout() {
+            console.log('[LOGOUT] Limpando sessão');
+            localStorage.removeItem('wodpulse_token');
+            localStorage.removeItem('wodpulse_box');
+            authToken = null;
+            currentBox = null;
+            showLoginScreen();
+        }
+
+        async function loadParticipantsFromBackend() {
+            if (!authToken) {
+                console.warn('[LOAD] Sem token – abortando carregamento');
+                return;
+            }
+
+            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
+
+            try {
+                const response = await fetch('http://localhost:3001/api/participants', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('[LOAD] Resposta recebida. Status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('[LOAD] Dados recebidos do backend:', data);
+
+                participants = data.participants.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    age: p.age,
+                    weight: p.weight,
+                    heightCm: p.height_cm,
+                    gender: p.gender,
+                    restingHR: p.resting_hr,
+                    email: p.email,
+                    useTanaka: p.use_tanaka,
+                    maxHR: p.max_hr,
+                    historicalMaxHR: p.historical_max_hr,
+                    deviceId: p.device_id,
+                    deviceName: p.device_name,
+                    hr: 0,
+                    connected: false,
+                    lastUpdate: 0,
+                    lastZone: 'gray',
+                    queimaPoints: 0,
+                    trimpPoints: 0,
+                    lastSampleTime: null,
+                    calories: 0,
+                    minOrange: 0,
+                    minRed: 0,
+                    epocEstimated: 0,
+                    redStartTime: null,
+                    vo2ZoneActive: false,
+                    vo2GraceStart: null,
+                    vo2StartTime: null,
+                    vo2TimeSeconds: 0,
+                    vo2LastUpdate: 0
+                }));
+
+                console.log('[LOAD] Sucesso! Alunos carregados:', participants.length);
+                renderParticipantList();
+            } catch (err) {
+                console.error('[LOAD] Erro ao carregar alunos:', err.message, err.stack);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[INIT] DOM carregado. Verificando token...');
+            const savedToken = localStorage.getItem('wodpulse_token');
+            if (savedToken) {
+                console.log('[INIT] Token encontrado no localStorage. Carregando app...');
+                authToken = savedToken;
+                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
+                showAppContent();
+                loadParticipantsFromBackend();
+            } else {
+                console.log('[INIT] Nenhum token → mostrando login');
+                showLoginScreen();
+            }
+
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                console.log('[INIT] Form de login encontrado. Adicionando evento submit...');
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    console.log('[LOGIN] Submit detectado – preventDefault ok');
+
+                    const formData = new FormData(loginForm);
+                    const data = {
+                        slug: formData.get('slug'),
+                        username: formData.get('username'),
+                        password: formData.get('password')
+                    };
+                    console.log('[LOGIN] Dados enviados:', data);
+
+                    const resultDiv = document.getElementById('login-result');
+                    resultDiv.innerHTML = '<p style="color:#ff9800;">Conectando ao servidor...</p>';
+
+                    try {
+                        console.log('[LOGIN] Fazendo POST para /api/auth/login...');
+                        const response = await fetch('http://localhost:3001/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        console.log('[LOGIN] Resposta recebida. Status:', response.status);
+
+                        const json = await response.json();
+                        console.log('[LOGIN] Resposta JSON:', json);
+
+                        if (!response.ok) {
+                            throw new Error(json.error || `Erro HTTP ${response.status}`);
+                        }
+
+                        console.log('[LOGIN] Login OK! Salvando token...');
+                        authToken = json.token;
+                        currentBox = json.user.box;
+
+                        localStorage.setItem('wodpulse_token', authToken);
+                        localStorage.setItem('wodpulse_box', JSON.stringify(currentBox));
+
+                        resultDiv.innerHTML = `<p class="success">Login realizado! Bem-vindo, ${json.user.username}</p>`;
+
+                        setTimeout(() => {
+                            console.log('[LOGIN] Transição para tela principal');
+                            showAppContent();
+                            loadParticipantsFromBackend();
+                        }, 1500);
+
+                    } catch (err) {
+                        console.error('[LOGIN] Erro completo:', err);
+                        resultDiv.innerHTML = `<p class="error">Erro: ${err.message}</p>`;
+                    }
+                });
+            } else {
+                console.error('[INIT] Elemento #loginForm NÃO encontrado!');
+            }
+        });
+    </script>
+</body>
+</html>
