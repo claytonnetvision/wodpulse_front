@@ -137,6 +137,12 @@
         </section>
     </div>
 
-    <script src="report.js"></script>
+    <!-- Importação dos arquivos como módulos (type="module" permite await e imports) -->
+    <script type="module">
+        // Importa os arquivos na pasta reports
+        import './reports/report-data.js';
+        import './reports/report-ui.js';
+        import './report.js';
+    </script>
 </body>
 </html>
