@@ -62,13 +62,14 @@ async function getLastSessionSummary() {
     };
 }
 
-// Ranking com suporte a métrica e gênero (única versão!)
+// Ranking com suporte a métrica e gênero (sem week_start fixo)
 async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
     try {
         let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
         if (gender) url += '&gender=' + gender;
-        // Temporário para testar com semana que tem dados (remova ou ajuste depois)
-        url += '&week_start=2026-01-12';
+        // Removido o week_start fixo → usa a semana atual automaticamente (como o backend)
+        // Se quiser testar com semana específica, descomente abaixo:
+        // url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
@@ -91,11 +92,15 @@ async function getParticipantHistory(participantId, limit = 5) {
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
         className: h.class_name || 'Aula',
-        calorias: h.calories || 0,
+        calorias: h.calories_total || 0,           // campo correto
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
         maxHR: h.max_hr_reached || 0,
-        minRed: h.min_red || 0
+        minRed: h.min_red || 0,
+        queimaPoints: h.queima_points || 0,
+        trimpTotal: h.trimp_total || 0,
+        epocEstimated: h.epoc_estimated || 0,
+        realRestingHR: h.real_resting_hr || '--'   // FC repouso (se não tiver, mostra --)
     }));
 }
 

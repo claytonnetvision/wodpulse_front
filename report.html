@@ -184,7 +184,9 @@
                         <th>VO2 Time</th>
                         <th>FC Média</th>
                         <th>FC Máx</th>
-                        <th>Tempo Vermelho</th>
+                        <th>Zona Vermelha</th>
+                        <th>Queima Points</th>
+                        <th>EPOC</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -202,8 +204,8 @@
         window.getParticipantHistory = dataModule.getParticipantHistory;
         window.renderTop5Table = uiModule.renderTop5Table;
         window.formatTime = uiModule.formatTime;
-        window.renderSessionsList = uiModule.renderSessionsList;
-        window.showHRGraph = uiModule.showHRGraph;
+        window.renderSessionsList = uiModule.renderSessionsList || function() {};
+        window.showHRGraph = uiModule.showHRGraph || function() {};
 
         console.log('Módulos carregados com sucesso');
     </script>
@@ -282,7 +284,7 @@
             }
         };
 
-        // Detalhes do aluno
+        // Detalhes do aluno (com todas as métricas boas)
         async function loadAlunoDetails(participantId) {
             const detailsDiv = document.getElementById('aluno-details');
             detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
@@ -294,38 +296,48 @@
                     return;
                 }
 
+                // Resumo agregado
                 const avgCalories = (history.reduce((sum, h) => sum + h.calorias, 0) / history.length).toFixed(0);
                 const avgVO2Sec = history.reduce((sum, h) => sum + h.vo2Time, 0) / history.length;
                 const avgHR = (history.reduce((sum, h) => sum + (h.avgHR || 0), 0) / history.length).toFixed(0);
                 const maxHR = Math.max(...history.map(h => h.maxHR || 0));
+                const totalRedMin = history.reduce((sum, h) => sum + h.minRed, 0);
+                const avgTrimp = (history.reduce((sum, h) => sum + h.queimaPoints, 0) / history.length).toFixed(0);
+                const avgEpoc = (history.reduce((sum, h) => sum + h.epocEstimated, 0) / history.length).toFixed(0);
+                const restingHR = history[0]?.realRestingHR || '--';
 
                 detailsDiv.innerHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
                         <div>
                             <strong>Calorias médias por aula:</strong> ${avgCalories} kcal<br>
                             <strong>Tempo médio em VO2:</strong> ${Math.floor(avgVO2Sec / 60)} min ${Math.round(avgVO2Sec % 60)} s<br>
                             <strong>FC média média:</strong> ${avgHR} bpm<br>
+                            <strong>FC máxima atingida (melhor):</strong> ${maxHR} bpm<br>
                         </div>
                         <div>
-                            <strong>FC máxima atingida:</strong> ${maxHR} bpm<br>
-                            <strong>FC repouso (última):</strong> -- bpm (pendente)<br>
-                            <strong>Tempo médio em zona vermelha:</strong> -- min (pendente)
+                            <strong>FC repouso (mais recente):</strong> ${restingHR} bpm<br>
+                            <strong>Tempo total em zona vermelha (últimas aulas):</strong> ${totalRedMin.toFixed(0)} min<br>
+                            <strong>Queima points médio (TRIMP):</strong> ${avgTrimp} pts<br>
+                            <strong>EPOC médio estimado:</strong> ${avgEpoc} kcal pós-treino<br>
                         </div>
                     </div>
                 `;
 
+                // Tabela de histórico
                 const tbody = document.getElementById('historico-table').querySelector('tbody');
                 tbody.innerHTML = '';
                 history.forEach(h => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${h.date}</td>
-                        <td>${h.className || 'Aula'}</td>
+                        <td>${h.className}</td>
                         <td>${h.calorias} kcal</td>
                         <td>${Math.floor(h.vo2Time / 60)}:${(h.vo2Time % 60).toString().padStart(2, '0')}</td>
                         <td>${h.avgHR || '--'} bpm</td>
                         <td>${h.maxHR || '--'} bpm</td>
                         <td>${h.minRed || 0} min</td>
+                        <td>${h.queimaPoints || 0} pts</td>
+                        <td>${h.epocEstimated || 0} kcal</td>
                     `;
                     tbody.appendChild(tr);
                 });
