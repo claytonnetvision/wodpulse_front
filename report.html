@@ -165,10 +165,18 @@
         <div id="fcmax" class="report-section">
             <h2>FC Máxima Geral (Top 5)</h2>
             <table id="fcmax-table">
-                <thead><tr><th>Pos</th><th>Nome</th><th>FC Máxima Atingida</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Nome</th>
+                        <th>FC Máxima Atingida</th>
+                        <th>Treino Iniciante</th>
+                        <th>Treino Atleta</th>
+                        <th>Pontos totais</th>
+                    </tr>
+                </thead>
                 <tbody></tbody>
             </table>
-            <p style="color:#aaa; margin-top:20px;">(Em desenvolvimento - precisa de endpoint agregado)</p>
         </div>
 
         <div id="aluno" class="report-section">
@@ -253,6 +261,20 @@
             }
         }
 
+        // Exportar PDF (corrigido e funcional)
+        function exportReportToPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 1,
+                filename: 'Relatorio_WODPulse_' + new Date().toLocaleDateString('pt-BR') + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
         // Load principal
         window.loadReport = async function() {
             const loading = document.getElementById('loading');
@@ -270,7 +292,9 @@
                 const mulheres = await getGlobalRankings('hoje', 'calories', 'F');
                 renderTop5Table('mulheres-calorias-table', mulheres.calorias || [], false, 'kcal');
 
-                document.getElementById('fcmax-table').querySelector('tbody').innerHTML = '<tr><td colspan="3">Em desenvolvimento</td></tr>';
+                // FC Máxima Geral (real, usando nova métrica)
+                const fcmax = await getGlobalRankings('hoje', 'maxhr');
+                renderTop5Table('fcmax-table', fcmax.maxHR || [], false, 'bpm');
 
                 const alunoId = document.getElementById('filter-aluno').value;
                 if (alunoId && document.getElementById('aluno').classList.contains('active')) {
@@ -284,7 +308,7 @@
             }
         };
 
-        // Detalhes do aluno (com todas as métricas boas)
+        // Detalhes do aluno (com todas as métricas)
         async function loadAlunoDetails(participantId) {
             const detailsDiv = document.getElementById('aluno-details');
             detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
@@ -296,7 +320,6 @@
                     return;
                 }
 
-                // Resumo agregado
                 const avgCalories = (history.reduce((sum, h) => sum + h.calorias, 0) / history.length).toFixed(0);
                 const avgVO2Sec = history.reduce((sum, h) => sum + h.vo2Time, 0) / history.length;
                 const avgHR = (history.reduce((sum, h) => sum + (h.avgHR || 0), 0) / history.length).toFixed(0);
@@ -323,7 +346,6 @@
                     </div>
                 `;
 
-                // Tabela de histórico
                 const tbody = document.getElementById('historico-table').querySelector('tbody');
                 tbody.innerHTML = '';
                 history.forEach(h => {

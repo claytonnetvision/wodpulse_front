@@ -67,9 +67,8 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
     try {
         let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
         if (gender) url += '&gender=' + gender;
-        // Removido o week_start fixo → usa a semana atual automaticamente (como o backend)
-        // Se quiser testar com semana específica, descomente abaixo:
-        // url += '&week_start=2026-01-12';
+        // Usa semana atual automaticamente (backend calcula)
+        // Se quiser forçar uma semana com dados para teste: url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
@@ -78,11 +77,14 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
             return { calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })) };
         } else if (metric === 'vo2') {
             return { vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 })) };
+        } else if (metric === 'maxhr') {
+            // Novo: ranking por FC máxima
+            return { maxHR: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.max_hr_reached || 0 })) };
         }
         return { pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })) };
     } catch (err) {
         console.warn('Ranking semanal falhou:', err.message);
-        return { calorias: [], vo2Time: [], pontos: [] };
+        return { calorias: [], vo2Time: [], pontos: [], maxHR: [] };
     }
 }
 
@@ -92,7 +94,7 @@ async function getParticipantHistory(participantId, limit = 5) {
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
         className: h.class_name || 'Aula',
-        calorias: h.calories_total || 0,           // campo correto
+        calorias: h.calories_total || 0,
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
         maxHR: h.max_hr_reached || 0,
@@ -100,7 +102,7 @@ async function getParticipantHistory(participantId, limit = 5) {
         queimaPoints: h.queima_points || 0,
         trimpTotal: h.trimp_total || 0,
         epocEstimated: h.epoc_estimated || 0,
-        realRestingHR: h.real_resting_hr || '--'   // FC repouso (se não tiver, mostra --)
+        realRestingHR: h.real_resting_hr || '--'
     }));
 }
 
