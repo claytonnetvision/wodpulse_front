@@ -819,48 +819,62 @@ async function autoEndClass() {
     // EPOC melhorado (kcal) - modelo aproximado baseado em literatura
     participants.forEach(p => {
         const timeHighZone = (p.minOrange || 0) + (p.minRed || 0); // minutos > ~85%
-        const intensityFactor = (p.avg_hr / p.maxHR) || 0.8; // intensidade relativa
+        const intensityFactor = p.maxHR ? (p.avg_hr / p.maxHR) : 0.8; // intensidade relativa
         const baseEPOC = timeHighZone * 6 * intensityFactor; // ~6 kcal/min em zona alta
         const trimpBonus = (p.trimpPoints || 0) * 0.15; // bônus por carga TRIMP
         const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15; // 15 kcal por minuto VO2
 
         p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
-        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
+        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal (base: ${Math.round(baseEPOC)}, TRIMP bonus: ${Math.round(trimpBonus)}, VO2 bonus: ${Math.round(vo2Bonus)})`);
     });
 
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
 
-    const participantsData = participants.map(p => ({
-        participantId: p.id,
-        avg_hr: p.avg_hr,
-        min_gray: Math.round(p.minGray || 0),
-        min_green: Math.round(p.minGreen || 0),
-        min_blue: Math.round(p.minBlue || 0),
-        min_yellow: Math.round(p.minYellow || 0),
-        min_orange: Math.round(p.minOrange || 0),
-        min_red: Math.round(p.minRed || 0),
-        trimp_total: Math.round(p.trimpPoints || 0),
-        calories_total: Math.round(p.calories || 0),
-        vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
-        epoc_estimated: p.epocEstimated || 0,
-        max_hr_reached: p.maxHRReached || null   // FC máxima atingida
-    }));
+    const participantsData = participants.map(p => {
+        console.log(`[DEBUG PARTICIPANT] ${p.name}: connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
+        return {
+            participantId: p.id,
+            avg_hr: p.avg_hr,
+            min_gray: Math.round(p.minGray || 0),
+            min_green: Math.round(p.minGreen || 0),
+            min_blue: Math.round(p.minBlue || 0),
+            min_yellow: Math.round(p.minYellow || 0),
+            min_orange: Math.round(p.minOrange || 0),
+            min_red: Math.round(p.minRed || 0),
+            trimp_total: Math.round(p.trimpPoints || 0),
+            calories_total: Math.round(p.calories || 0),
+            vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
+            epoc_estimated: p.epocEstimated || 0,
+            max_hr_reached: p.maxHRReached || null
+        };
+    });
 
     const sessionData = {
-        class_name: currentActiveClassName,
-        date_start: sessionStart.toISOString(),
-        date_end: sessionEnd.toISOString(),
+        class_name: currentActiveClassName || 'Aula Manual (fallback)',
+        date_start: sessionStart.toISOString() || new Date().toISOString(),
+        date_end: sessionEnd.toISOString() || new Date().toISOString(),
         duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,
         box_id: 1,
         participantsData
     };
 
+    // Validação extra antes de enviar
+    if (!sessionData.class_name || !sessionData.date_start || !sessionData.date_end || !sessionData.participantsData) {
+        console.error('[SESSION DEBUG] Dados incompletos detectados ANTES de enviar:');
+        console.error('class_name:', sessionData.class_name);
+        console.error('date_start:', sessionData.date_start);
+        console.error('date_end:', sessionData.date_end);
+        console.error('participantsData length:', sessionData.participantsData?.length);
+        alert('Erro: Dados da aula incompletos. Verifique se há alunos conectados com HR > 0.');
+        return;
+    }
+
     // LOG DETALHADO ANTES DE ENVIAR
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
     console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
-    console.log('participantsData length:', participantsData.length);
+    console.log('participantsData length:', sessionData.participantsData.length);
     console.log('duration_minutes enviado:', durationMinutes);
 
     try {
