@@ -790,6 +790,7 @@ async function autoEndClass() {
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
+    // Atualiza FC média e EPOC estimado
     participants.forEach(p => {
         p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
         p.epocEstimated = Math.round((p.minOrange * 3.5) + (p.minRed * 8.0));
@@ -833,14 +834,15 @@ async function autoEndClass() {
         trimp_total: Math.round(p.trimpPoints || 0),
         calories_total: Math.round(p.calories || 0),
         vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
-        epoc_estimated: p.epocEstimated || 0
+        epoc_estimated: p.epocEstimated || 0,
+        max_hr_reached: p.maxHRReached || null   // ← FC máxima atingida
     }));
 
     const sessionData = {
         class_name: currentActiveClassName,
         date_start: sessionStart.toISOString(),
         date_end: sessionEnd.toISOString(),
-        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,  // força número válido
+        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,
         box_id: 1,
         participantsData
     };
