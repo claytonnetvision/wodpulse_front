@@ -13,6 +13,7 @@ let reconnectInterval = null;
 let autoClassInterval = null;
 let currentActiveClassName = "";
 let isManualClass = false;
+let autoClassMonitorActive = true;  // ← nova variável para pausar o monitor automático
 
 // Controle de sessão e amostras HR
 let currentSessionId = null;
@@ -71,9 +72,11 @@ window.addEventListener('load', async () => {
     isManualClass = false;
     stopAllTimersAndLoops();
 
+    autoClassMonitorActive = true;  // garante que está ativo ao carregar
     startAutoClassMonitor();
 
     document.getElementById('startScanBtn')?.addEventListener('click', () => {
+        autoClassMonitorActive = true;  // reativa ao iniciar manual
         autoStartClass("Aula Manual");
     });
 
@@ -543,6 +546,10 @@ window.addParticipantDuringClass = async function() {
 
 // ── MONITORAMENTO AUTOMÁTICO ────────────────────────────────────────────────────
 function startAutoClassMonitor() {
+    if (!autoClassMonitorActive) {
+        console.log("Monitor automático pausado manualmente");
+        return;
+    }
     console.log("Monitor de aulas automático iniciado...");
     checkCurrentClassTime();
     autoClassInterval = setInterval(checkCurrentClassTime, 30000);
@@ -918,6 +925,14 @@ async function autoEndClass() {
         document.getElementById('setup').classList.remove('hidden');
         renderTiles();
         updateReconnectButtonVisibility();
+
+        // Pausa o monitor automático após sair da aula
+        autoClassMonitorActive = false;
+        if (autoClassInterval) {
+            clearInterval(autoClassInterval);
+            autoClassInterval = null;
+            console.log("Monitor automático pausado após sair da aula");
+        }
 
         alert('Aula finalizada e salva no banco com sucesso!');
     } catch (err) {
