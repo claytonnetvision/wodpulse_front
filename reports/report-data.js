@@ -1,162 +1,107 @@
-// report-data.js - Lógica de consulta e agregação de dados para relatórios
+// report-data.js - Lógica de consulta via API backend (sem Dexie por enquanto)
 
-const db = new Dexie('V6WodPulseDB');
-db.version(1).stores({
-    sessions: '++id, className, dateStart, dateEnd',
-    participants: '++id, name, gender',
-    hr_samples: '++id, participantId, sessionId, timestamp, hr'
-});
+const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // ajuste para localhost:3001 em dev se preferir
 
-// Função auxiliar: converte data ISO para objeto Date local
-function parseDateLocal(isoString) {
-    return new Date(isoString);
+async function apiGet(endpoint) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+    if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Sem detalhes');
+        throw new Error(`Erro ao buscar ${endpoint}: ${response.status} - ${errorText}`);
+    }
+    return response.json();
 }
 
 // 1. Busca sessões com filtros
 async function getSessions(filters = {}) {
-    let sessions = await db.sessions.toArray();
-
+    let url = '/api/sessions?';
     if (filters.date) {
-        const start = parseDateLocal(filters.date + 'T00:00:00.000Z');
-        const end = parseDateLocal(filters.date + 'T23:59:59.999Z');
-        sessions = sessions.filter(s => {
-            const d = parseDateLocal(s.dateStart);
-            return d >= start && d <= end;
-        });
+        url += `start_date=${filters.date}&end_date=${filters.date}`;
     }
-
-    if (filters.type && filters.type !== 'todas') {
-        const isManual = filters.type === 'manuais';
-        sessions = sessions.filter(s => {
-            const manual = s.className === 'Aula Manual';
-            return isManual ? manual : !manual;
-        });
-    }
-
     if (filters.participantId) {
-        const pid = Number(filters.participantId);
-        const filtered = [];
-        for (const s of sessions) {
-            const participants = await db.session_participants.where('session_id').equals(s.id).toArray();
-            if (participants.some(p => p.participantId === pid)) {
-                filtered.push(s);
-            }
-        }
-        sessions = filtered;
+        url += `&participant_id=${filters.participantId}`;
     }
+    // limit padrão 50, mas pode passar ?limit=100 se quiser
 
-    return sessions.sort((a,b) => new Date(b.dateStart) - new Date(a.dateStart));
+    const data = await apiGet(url);
+    return (data.sessions || []).map(s => ({
+        id: s.id,
+        className: s.class_name,
+        dateStart: s.date_start,
+        dateEnd: s.date_end,
+        durationMinutes: s.duration_minutes,
+        participant_count: s.participant_count || 0
+    }));
 }
 
 // 2. Resumo de um aluno em uma sessão específica
 async function getParticipantSummary(sessionId, participantId) {
-    const sp = await db.session_participants
-        .where('[session_id+participant_id]')
-        .equals([sessionId, Number(participantId)])
-        .first();
-
+    const data = await apiGet(`/api/sessions/${sessionId}`);
+    const sp = data.participants?.find(p => p.participant_id === Number(participantId));
     if (!sp) return null;
 
-    const p = await db.participants.get(Number(participantId));
-    const s = await db.sessions.get(sessionId);
+    const session = data.session;
 
     return {
         ...sp,
-        name: p?.name || 'Aluno removido',
-        gender: p?.gender,
-        className: s?.className,
-        dateStart: s?.dateStart,
-        dateEnd: s?.dateEnd,
-        durationMinutes: s?.duration_minutes
+        name: sp.name || 'Aluno removido',
+        gender: sp.gender,
+        className: session.class_name,
+        dateStart: session.date_start,
+        dateEnd: session.date_end,
+        durationMinutes: session.duration_minutes
     };
 }
 
-// 3. Resumo da última aula (para email ou dashboard)
+// 3. Resumo da última aula (para dashboard ou email)
 async function getLastSessionSummary() {
-    const lastSession = await db.sessions.orderBy('dateStart').reverse().first();
-    if (!lastSession) return null;
+    const sessions = await getSessions({ limit: 1 });
+    if (!sessions.length) return null;
 
-    const participantsData = await db.session_participants
-        .where('session_id')
-        .equals(lastSession.id)
-        .toArray();
+    const last = sessions[0];
+    const details = await apiGet(`/api/sessions/${last.id}`);
 
     return {
-        session: lastSession,
-        participants: participantsData
+        session: details.session,
+        participants: details.participants || []
     };
 }
 
-// 4. Rankings globais (top 5 pontos/calorias/VO2)
+// 4. Rankings globais (por enquanto usamos o ranking semanal como base - ajuste depois)
 async function getGlobalRankings(period = 'hoje') {
-    let sessions = await db.sessions.toArray();
-
+    // Por enquanto vamos usar o weekly como fallback - melhore depois
+    let url = '/api/rankings/weekly?metric=queima_points&limit=5';
     if (period === 'hoje') {
-        const todayStart = new Date().toISOString().split('T')[0] + 'T00:00:00.000Z';
-        sessions = sessions.filter(s => s.dateStart >= todayStart);
+        const today = new Date().toISOString().split('T')[0];
+        url += `&week_start=${today}`; // hack temporário - depois crie endpoint diário
     }
 
-    const totals = {
-        pontos: {},
-        calorias: {},
-        vo2Time: {}
-    };
+    const data = await apiGet(url);
 
-    for (const sess of sessions) {
-        const participants = await db.session_participants
-            .where('session_id')
-            .equals(sess.id)
-            .toArray();
-
-        for (const p of participants) {
-            const name = (await db.participants.get(p.participantId))?.name || `Aluno ${p.participantId}`;
-            totals.pontos[name] = (totals.pontos[name] || 0) + (p.queima_points || 0);
-            totals.calorias[name] = (totals.calorias[name] || 0) + (p.calories_total || 0);
-            totals.vo2Time[name] = (totals.vo2Time[name] || 0) + (p.vo2_time_seconds || 0);
-        }
-    }
-
-    // Ordena e retorna top 5
-    function getTop5(obj) {
-        return Object.entries(obj)
-            .sort((a,b) => b[1] - a[1])
-            .slice(0,5)
-            .map(([name, value]) => ({ name, value }));
-    }
+    const rankings = data.rankings || [];
 
     return {
-        pontos: getTop5(totals.pontos),
-        calorias: getTop5(totals.calorias),
-        vo2Time: getTop5(totals.vo2Time)
+        pontos: rankings.map(r => ({ name: r.name, value: r.total_queima_points || 0 })),
+        calorias: rankings.map(r => ({ name: r.name, value: r.total_calories || 0 })),
+        vo2Time: rankings.map(r => ({ name: r.name, value: r.total_vo2_seconds || 0 }))
     };
 }
 
-// 5. Histórico de um aluno (para comparação e email)
+// 5. Histórico de um aluno (para comparação e relatório individual)
 async function getParticipantHistory(participantId, limit = 5) {
-    const summaries = await db.session_participants
-        .where('participant_id')
-        .equals(Number(participantId))
-        .sortBy('created_at');
-
-    const history = [];
-    for (const sp of summaries.reverse().slice(0, limit)) {
-        const s = await db.sessions.get(sp.session_id);
-        history.push({
-            sessionId: sp.session_id,
-            date: parseDateLocal(s?.dateStart || sp.created_at).toLocaleDateString('pt-BR'),
-            pontos: sp.queima_points || 0,
-            calorias: sp.calories_total || 0,
-            vo2Time: sp.vo2_time_seconds || 0,
-            avgHR: sp.avg_hr || 0,
-            maxHR: sp.max_hr_reached || 0,
-            minRed: sp.min_red || 0
-        });
-    }
-
-    return history;
+    const data = await apiGet(`/api/participants/${participantId}/history?limit=${limit}`);
+    return (data.history || []).map(h => ({
+        sessionId: h.session_id,
+        date: new Date(h.date_start).toLocaleDateString('pt-BR'),
+        pontos: h.queima_points || 0,
+        calorias: h.calories || 0,
+        vo2Time: h.vo2_time_seconds || 0,
+        avgHR: h.avg_hr || 0,
+        maxHR: h.max_hr_reached || 0,
+        minRed: h.min_red || 0
+    }));
 }
 
-// Exporta as funções para usar em report.js
+// Exporta para report.js
 window.getSessions = getSessions;
 window.getParticipantSummary = getParticipantSummary;
 window.getLastSessionSummary = getLastSessionSummary;
