@@ -12,7 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* Estilos do menu (adicione ao report.css depois se quiser) */
         .report-menu {
             display: flex;
             flex-wrap: wrap;
@@ -194,12 +193,18 @@
 
     <!-- Imports dos módulos -->
     <script type="module">
-        import './reports/report-data.js';
-        import './reports/report-ui.js';
+        const { getGlobalRankings, getParticipantHistory } = await import('./reports/report-data.js');
+        const { renderTop5Table, formatTime } = await import('./reports/report-ui.js');
+
+        // Agora as funções estão disponíveis aqui
+        window.getGlobalRankings = getGlobalRankings;
+        window.getParticipantHistory = getParticipantHistory;
+        window.renderTop5Table = renderTop5Table;
+        window.formatTime = formatTime;
     </script>
 
     <script>
-        const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // Definição global
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
 
         // Alternar seções
         function showSection(sectionId) {
@@ -226,7 +231,7 @@
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/participants`);
-                if (!response.ok) throw new Error('Erro ao carregar alunos');
+                if (!response.ok) throw new Error('Erro ao carregar alunos: ' + response.status);
                 const data = await response.json();
                 const alunos = data.participants || [];
                 alunos.sort((a,b) => a.name.localeCompare(b.name)).forEach(aluno => {
@@ -237,7 +242,7 @@
                 });
             } catch (err) {
                 console.error('Erro ao popular alunos:', err);
-                select.innerHTML += '<option value="">Erro ao carregar</option>';
+                select.innerHTML += '<option value="">Erro ao carregar alunos</option>';
             }
         }
 
@@ -250,13 +255,13 @@
 
             try {
                 const rankings = await getGlobalRankings();
-                renderTop5Table('geral-calorias-table', rankings.calorias, false, 'kcal');
-                renderTop5Table('geral-vo2-table', rankings.vo2Time, false, '', true);
+                renderTop5Table('geral-calorias-table', rankings.calorias || [], false, 'kcal');
+                renderTop5Table('geral-vo2-table', rankings.vo2Time || [], false, '', true);
 
                 const homens = await getGlobalRankings('hoje', 'calories', 'M');
-                renderTop5Table('homens-calorias-table', homens.calorias, false, 'kcal');
+                renderTop5Table('homens-calorias-table', homens.calorias || [], false, 'kcal');
                 const mulheres = await getGlobalRankings('hoje', 'calories', 'F');
-                renderTop5Table('mulheres-calorias-table', mulheres.calorias, false, 'kcal');
+                renderTop5Table('mulheres-calorias-table', mulheres.calorias || [], false, 'kcal');
 
                 document.getElementById('fcmax-table').querySelector('tbody').innerHTML = '<tr><td colspan="3">Em desenvolvimento</td></tr>';
 
@@ -272,6 +277,7 @@
             }
         };
 
+        // Detalhes do aluno
         async function loadAlunoDetails(participantId) {
             const detailsDiv = document.getElementById('aluno-details');
             detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
