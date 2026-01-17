@@ -6,9 +6,79 @@
     <title>V6 WODPulse - Relatórios</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
     <link rel="stylesheet" href="report.css">
+    <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* Estilos do menu e seções (adicione ao report.css depois se preferir) */
+        .report-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 30px;
+            padding: 12px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .menu-btn {
+            padding: 12px 24px;
+            background: #333;
+            color: #EAEAEA;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.active {
+            background: #FF5722;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255,87,34,0.4);
+        }
+
+        .report-section {
+            display: none;
+        }
+
+        .report-section.active {
+            display: block;
+        }
+
+        #aluno-details {
+            background: #252525;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #FF9800;
+        }
+
+        #aluno-details ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #aluno-details li {
+            margin: 12px 0;
+            font-size: 1.1rem;
+        }
+
+        #aluno-details strong {
+            color: #FF9800;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -22,13 +92,13 @@
 
         <!-- Menu de Navegação -->
         <nav class="report-menu">
-            <button class="menu-btn active" onclick="showSection('geral')">Rankings Gerais</button>
-            <button class="menu-btn" onclick="showSection('genero')">Rankings por Gênero</button>
-            <button class="menu-btn" onclick="showSection('fcmax')">FC Máxima Geral</button>
-            <button class="menu-btn" onclick="showSection('aluno')">Detalhes do Aluno</button>
+            <button class="menu-btn active" data-section="geral">Rankings Gerais</button>
+            <button class="menu-btn" data-section="genero">Rankings por Gênero</button>
+            <button class="menu-btn" data-section="fcmax">FC Máxima Geral</button>
+            <button class="menu-btn" data-section="aluno">Detalhes do Aluno</button>
         </nav>
 
-        <!-- Filtros (comum a todas as seções) -->
+        <!-- Filtros -->
         <section class="filter-section">
             <div class="filter-item">
                 <label>Data da aula:</label>
@@ -51,7 +121,11 @@
             <button class="filter-btn" onclick="loadReport()">Filtrar</button>
         </section>
 
-        <!-- Seções (mostra uma por vez) -->
+        <!-- Loading e Erro -->
+        <div id="loading" style="text-align:center; padding:30px; display:none; color:#FF9800;">Carregando dados...</div>
+        <div id="error-msg" style="color:#FF5252; text-align:center; padding:20px; display:none;"></div>
+
+        <!-- Seções -->
         <div id="geral" class="report-section active">
             <h2>Rankings Gerais</h2>
             <div class="ranking-group">
@@ -94,57 +168,65 @@
                 <thead><tr><th>Pos</th><th>Nome</th><th>FC Máxima Atingida</th></tr></thead>
                 <tbody></tbody>
             </table>
+            <p style="color:#aaa; margin-top:20px;">(Em desenvolvimento - precisa de endpoint ou cálculo agregado)</p>
         </div>
 
         <div id="aluno" class="report-section">
             <h2>Detalhes do Aluno Selecionado</h2>
-            <div id="aluno-details">
-                <p>Selecione um aluno no filtro acima para ver os dados completos.</p>
-            </div>
-            <div id="aluno-historico">
-                <h3>Últimas Aulas</h3>
-                <table id="historico-table">
-                    <thead><tr><th>Data</th><th>Aula</th><th>Calorias</th><th>VO2 Time</th><th>FC Média</th><th>FC Máx</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+            <div id="aluno-details" style="background:#252525; padding:20px; border-radius:10px; margin-bottom:30px; border-left:5px solid #FF9800;"></div>
+            <h3>Últimas Aulas</h3>
+            <table id="historico-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Aula</th>
+                        <th>Calorias</th>
+                        <th>VO2 Time</th>
+                        <th>FC Média</th>
+                        <th>FC Máx</th>
+                        <th>Tempo Vermelho</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
-
-        <!-- Loading e Erro -->
-        <div id="loading" style="text-align:center; padding:20px; display:none;">Carregando...</div>
-        <div id="error-msg" style="color:red; display:none;"></div>
     </div>
 
     <script type="module">
-        import './report-data.js';
-        import './report-ui.js';
-        // Importe report.js se ainda usar, ou coloque a lógica aqui
+        // Imports corretos da pasta reports/
+        import './reports/report-data.js';
+        import './reports/report-ui.js';
+        import './report.js';  // lógica de loadReport, populateAlunoFilter, etc.
     </script>
 
     <script>
-        function showSection(sectionId) {
-            document.querySelectorAll('.report-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
+        // Alternar seções ao clicar no menu
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sectionId = btn.dataset.section;
+                document.querySelectorAll('.report-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
 
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+                document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
-            // Se mudou para "aluno", carrega detalhes se houver aluno selecionado
-            if (sectionId === 'aluno') {
-                const alunoId = document.getElementById('filter-aluno').value;
-                if (alunoId) loadAlunoDetails(alunoId);
-            }
-        }
+                // Se mudou para detalhes do aluno e tem aluno selecionado
+                if (sectionId === 'aluno') {
+                    const alunoId = document.getElementById('filter-aluno').value;
+                    if (alunoId) loadAlunoDetails(alunoId);
+                }
+            });
+        });
 
-        // Chama loadReport ao filtrar
+        // Função loadReport (chamada pelo botão Filtrar)
         window.loadReport = async function() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('error-msg').style.display = 'none';
-
-            const alunoId = document.getElementById('filter-aluno').value;
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('error-msg');
+            loading.style.display = 'block';
+            errorMsg.style.display = 'none';
 
             try {
-                // Carrega rankings gerais sempre
+                // Carrega rankings gerais (calorias + VO2)
                 const rankings = await getGlobalRankings();
                 renderTop5Table('geral-calorias-table', rankings.calorias, false, 'kcal');
                 renderTop5Table('geral-vo2-table', rankings.vo2Time, false, '', true);
@@ -155,50 +237,56 @@
                 const mulheres = await getGlobalRankings('hoje', 'calories', 'F');
                 renderTop5Table('mulheres-calorias-table', mulheres.calorias, false, 'kcal');
 
-                // FC Máxima Geral (você precisará de um endpoint ou cálculo novo - placeholder por agora)
+                // FC Máxima (placeholder)
                 document.getElementById('fcmax-table').querySelector('tbody').innerHTML = '<tr><td colspan="3">Em desenvolvimento</td></tr>';
 
-                // Se aluno selecionado e aba "aluno" ativa → carrega detalhes
+                // Se aluno selecionado e aba aluno ativa → carrega detalhes
+                const alunoId = document.getElementById('filter-aluno').value;
                 if (alunoId && document.getElementById('aluno').classList.contains('active')) {
                     await loadAlunoDetails(alunoId);
                 }
             } catch (err) {
-                document.getElementById('error-msg').textContent = 'Erro ao carregar: ' + err.message;
-                document.getElementById('error-msg').style.display = 'block';
+                errorMsg.textContent = 'Erro ao carregar relatório: ' + err.message;
+                errorMsg.style.display = 'block';
             } finally {
-                document.getElementById('loading').style.display = 'none';
+                loading.style.display = 'none';
             }
         };
 
+        // Carrega detalhes do aluno selecionado
         async function loadAlunoDetails(participantId) {
             const detailsDiv = document.getElementById('aluno-details');
             detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
 
             try {
-                const history = await getParticipantHistory(participantId, 10);
-                let html = '<h3>Resumo Geral do Aluno</h3>';
-
-                // Placeholder - você precisará de um endpoint que retorne médias agregadas
-                // Por agora, usa o histórico recente para mostrar médias aproximadas
-                if (history.length > 0) {
-                    const avgCalories = history.reduce((sum, h) => sum + h.calorias, 0) / history.length;
-                    const avgVO2 = history.reduce((sum, h) => sum + h.vo2Time, 0) / history.length;
-                    const avgHR = history.reduce((sum, h) => sum + h.avgHR, 0) / history.length;
-
-                    html += `
-                        <ul>
-                            <li><strong>Calorias médias por aula:</strong> ${Math.round(avgCalories)} kcal</li>
-                            <li><strong>Tempo médio em VO2:</strong> ${formatTime(Math.round(avgVO2))}</li>
-                            <li><strong>FC média média:</strong> ${Math.round(avgHR)} bpm</li>
-                        </ul>
-                    `;
-                } else {
-                    html += '<p>Nenhum dado disponível para este aluno.</p>';
+                const history = await getParticipantHistory(participantId, 5);
+                if (history.length === 0) {
+                    detailsDiv.innerHTML = '<p>Nenhum dado disponível para este aluno.</p>';
+                    return;
                 }
 
-                detailsDiv.innerHTML = html;
+                // Resumo simples (médias aproximadas do histórico)
+                const avgCalories = (history.reduce((sum, h) => sum + h.calorias, 0) / history.length).toFixed(0);
+                const avgVO2Sec = history.reduce((sum, h) => sum + h.vo2Time, 0) / history.length;
+                const avgHR = (history.reduce((sum, h) => sum + (h.avgHR || 0), 0) / history.length).toFixed(0);
+                const maxHR = Math.max(...history.map(h => h.maxHR || 0));
 
-                // Histórico de aulas
+                detailsDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div>
+                            <strong>Calorias médias por aula:</strong> ${avgCalories} kcal<br>
+                            <strong>Tempo médio em VO2:</strong> ${Math.floor(avgVO2Sec / 60)}:${(avgVO2Sec % 60).toString().padStart(2, '0')}<br>
+                            <strong>FC média média:</strong> ${avgHR} bpm<br>
+                        </div>
+                        <div>
+                            <strong>FC máxima atingida:</strong> ${maxHR} bpm<br>
+                            <strong>FC repouso (última):</strong> -- bpm (pendente)<br>
+                            <strong>Tempo em zona vermelha (média):</strong> -- min (pendente)
+                        </div>
+                    </div>
+                `;
+
+                // Histórico recente
                 const tbody = document.getElementById('historico-table').querySelector('tbody');
                 tbody.innerHTML = '';
                 history.forEach(h => {
@@ -207,21 +295,22 @@
                         <td>${h.date}</td>
                         <td>${h.className || 'Aula'}</td>
                         <td>${h.calorias} kcal</td>
-                        <td>${formatTime(h.vo2Time)}</td>
+                        <td>${Math.floor(h.vo2Time / 60)}:${(h.vo2Time % 60).toString().padStart(2, '0')}</td>
                         <td>${h.avgHR || '--'} bpm</td>
                         <td>${h.maxHR || '--'} bpm</td>
+                        <td>${h.minRed || 0} min</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (err) {
-                detailsDiv.innerHTML = '<p style="color:red;">Erro ao carregar detalhes: ' + err.message + '</p>';
+                detailsDiv.innerHTML = '<p style="color:#FF5252;">Erro ao carregar detalhes: ' + err.message + '</p>';
             }
         }
 
-        // Inicializa
+        // Inicialização
         window.addEventListener('load', async () => {
-            await populateAlunoFilter();
-            showSection('geral'); // abre na aba geral por default
+            await populateAlunoFilter(); // do report.js ou mova para cá se precisar
+            showSection('geral');
             await loadReport();
         });
     </script>

@@ -100,11 +100,6 @@ h3 {
     margin: 20px 0 10px;
 }
 
-h4 {
-    color: #81C784;
-    margin: 15px 0 8px;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -163,4 +158,71 @@ tr:hover {
 .header-buttons {
     display: flex;
     gap: 10px;
+}
+
+/* Estilos do menu e seções */
+.report-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0 30px;
+    padding: 12px;
+    background: #1e1e1e;
+    border-radius: 12px;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.menu-btn {
+    padding: 12px 24px;
+    background: #333;
+    color: #EAEAEA;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.05rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+    background: #444;
+    transform: translateY(-2px);
+}
+
+.menu-btn.active {
+    background: #FF5722;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255,87,34,0.4);
+}
+
+.report-section {
+    display: none;
+}
+
+.report-section.active {
+    display: block;
+}
+
+#aluno-details {
+    background: #252525;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border-left: 5px solid #FF9800;
+}
+
+#aluno-details ul {
+    list-style: none;
+    padding: 0;
+}
+
+#aluno-details li {
+    margin: 12px 0;
+    font-size: 1.1rem;
+}
+
+#aluno-details strong {
+    color: #FF9800;
 }
