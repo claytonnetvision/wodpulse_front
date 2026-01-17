@@ -783,11 +783,13 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
 
 // ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
 async function autoEndClass() {
-    console.log(`Finalizando aula: ${currentActiveClassName}`);
+    console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
     
     const sessionStart = new Date(wodStartTime || Date.now()); // fallback se wodStartTime não setado
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
+
+    console.log(`[DEBUG FINALIZAR] wodStartTime: ${wodStartTime}, duration: ${durationMinutes} min`);
 
     // Atualiza FC média
     participants.forEach(p => {
@@ -810,7 +812,7 @@ async function autoEndClass() {
                 if (validHRs.length > 0) {
                     const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
                     p.real_resting_hr = avgResting;
-                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (baseado em ${validHRs.length} medições)`);
+                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições)`);
                 }
             }
         }
@@ -832,8 +834,8 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
-    const participantsData = participants.map(p => {
-        console.log(`[DEBUG PARTICIPANT] ${p.name}: connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
+    const participantsData = participants.filter(p => p.id).map(p => {
+        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
         return {
             participantId: p.id,
             avg_hr: p.avg_hr,
@@ -853,28 +855,22 @@ async function autoEndClass() {
 
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
-        date_start: sessionStart.toISOString() || new Date().toISOString(),
-        date_end: sessionEnd.toISOString() || new Date().toISOString(),
-        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,
+        date_start: sessionStart.toISOString(),
+        date_end: sessionEnd.toISOString(),
+        duration_minutes: durationMinutes,
         box_id: 1,
         participantsData
     };
 
-    // Validação extra antes de enviar
-    if (!sessionData.class_name || !sessionData.date_start || !sessionData.date_end || !sessionData.participantsData) {
-        console.error('[SESSION DEBUG] Dados incompletos detectados ANTES de enviar:');
-        console.error('class_name:', sessionData.class_name);
-        console.error('date_start:', sessionData.date_start);
-        console.error('date_end:', sessionData.date_end);
-        console.error('participantsData length:', sessionData.participantsData?.length);
-        alert('Erro: Dados da aula incompletos. Verifique se há alunos conectados com HR > 0.');
-        return;
+    // Validação extra + aviso se vazio
+    if (participantsData.length === 0) {
+        console.warn('[SESSION DEBUG] Nenhum aluno com dados válidos na finalização');
+        alert('Aviso: Nenhum aluno conectado com dados de HR. Aula salva sem participantes.');
     }
 
-    // LOG DETALHADO ANTES DE ENVIAR
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
     console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
-    console.log('participantsData length:', sessionData.participantsData.length);
+    console.log('participantsData length:', participantsData.length);
     console.log('duration_minutes enviado:', durationMinutes);
 
     try {
