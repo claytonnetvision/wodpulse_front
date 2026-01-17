@@ -1,9 +1,7 @@
-// script.js - Frontend WODPulse (modificado para Vercel)
-// Use caminhos RELATIVOS para API (/api/...) 
-// Assim funciona tanto local quanto no Vercel (mesmo domínio)
-// Se quiser usar backend separado (ex: Render), preencha API_BASE_URL abaixo
+// script.js - Frontend WODPulse (modificado para Vercel + Render)
+// Use API_BASE_URL para o domínio do backend (Render)
 
-const API_BASE_URL = 'https://wodpulse-back.onrender.com'; 
+const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // seu backend no Render
 
 let participants = [];
 let tecnofitEnabled = false;
@@ -350,7 +348,7 @@ async function pairDeviceToParticipant(p) {
         console.log("Scanner cancelado ou erro:", e);
         alert("Pulseira não pareada.");
     }
-}
+};
 
 // ── EDITAR ALUNO COM GERENCIAMENTO DE PULSEIRA ──────────────────────────────────
 async function editParticipant(id) {
@@ -440,6 +438,36 @@ async function editParticipant(id) {
         alert("Opção inválida. Edição cancelada.");
     }
 }
+
+// ── EXCLUIR ALUNO ──────────────────────────────────────────────────────────────
+window.deleteParticipant = async function(id) {
+    if (!confirm(`Tem certeza que deseja excluir o aluno com ID ${id}? Essa ação não pode ser desfeita.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Erro ao excluir aluno');
+        }
+
+        // Remove do array local
+        participants = participants.filter(p => p.id !== id);
+
+        // Atualiza a lista na tela
+        renderParticipantList();
+
+        alert('Aluno excluído com sucesso!');
+    } catch (err) {
+        console.error('Erro ao excluir aluno:', err);
+        alert('Erro ao excluir aluno: ' + err.message);
+    }
+};
 
 // ── ADICIONAR DURANTE AULA ──────────────────────────────────────────────────────
 window.addParticipantDuringClass = async function() {
@@ -769,8 +797,8 @@ async function autoEndClass() {
 
     const sessionData = {
         class_name: currentActiveClassName,
-        start_time: sessionStart.toISOString(),
-        end_time: sessionEnd.toISOString(),
+        date_start: sessionStart.toISOString(),  // ← corrigido
+        date_end: sessionEnd.toISOString(),      // ← corrigido
         duration_minutes: durationMinutes,
         box_id: 1,
         participantsData
@@ -1343,35 +1371,7 @@ function getCurrentWeekStart() {
 function getTodayDate() {
     return new Date().toISOString().split('T')[0];
 }
-// ── EXCLUIR ALUNO ──────────────────────────────────────────────────────────────
-window.deleteParticipant = async function(id) {
-    if (!confirm(`Tem certeza que deseja excluir o aluno com ID ${id}? Essa ação não pode ser desfeita.`)) {
-        return;
-    }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'Erro ao excluir aluno');
-        }
-
-        // Remove do array local
-        participants = participants.filter(p => p.id !== id);
-
-        // Atualiza a lista na tela
-        renderParticipantList();
-
-        alert('Aluno excluído com sucesso!');
-    } catch (err) {
-        console.error('Erro ao excluir aluno:', err);
-        alert('Erro ao excluir aluno: ' + err.message);
-    }
-};
 // Placeholders Tecnofit
 async function checkTecnofitStatus() { console.log("Buscando check-ins..."); }
 async function fetchDailyWorkout() { console.log("Buscando WOD..."); }
