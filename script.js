@@ -764,6 +764,7 @@ function updateVO2Time() {
 }
 
 // ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
+// ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName}`);
     
@@ -797,12 +798,18 @@ async function autoEndClass() {
 
     const sessionData = {
         class_name: currentActiveClassName,
-        date_start: sessionStart.toISOString(),  // ← corrigido
-        date_end: sessionEnd.toISOString(),      // ← corrigido
-        duration_minutes: durationMinutes,
+        date_start: sessionStart.toISOString(),
+        date_end: sessionEnd.toISOString(),
+        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,  // ← força número válido
         box_id: 1,
         participantsData
     };
+
+    // LOG DETALHADO ANTES DE ENVIAR (essencial para debug)
+    console.log('[SESSION DEBUG] Enviando sessão para o backend:');
+    console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
+    console.log('participantsData length:', participantsData.length);
+    console.log('duration_minutes enviado:', durationMinutes);
 
     try {
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
@@ -813,6 +820,7 @@ async function autoEndClass() {
 
         if (!res.ok) {
             const errText = await res.text();
+            console.error('[SESSION DEBUG] Erro na resposta do backend:', errText);
             throw new Error(`Erro ao salvar sessão: ${errText}`);
         }
 
