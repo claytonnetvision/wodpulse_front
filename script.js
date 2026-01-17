@@ -789,10 +789,9 @@ async function autoEndClass() {
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
-    // Atualiza FC média e EPOC estimado
+    // Atualiza FC média
     participants.forEach(p => {
         p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
-        p.epocEstimated = Math.round((p.minOrange * 3.5) + (p.minRed * 8.0));
     });
 
     // Calcular FC de repouso dinâmica para cada aluno
@@ -816,6 +815,18 @@ async function autoEndClass() {
             }
         }
     }
+
+    // EPOC melhorado (kcal) - modelo aproximado baseado em literatura
+    participants.forEach(p => {
+        const timeHighZone = (p.minOrange || 0) + (p.minRed || 0); // minutos > ~85%
+        const intensityFactor = (p.avg_hr / p.maxHR) || 0.8; // intensidade relativa
+        const baseEPOC = timeHighZone * 6 * intensityFactor; // ~6 kcal/min em zona alta
+        const trimpBonus = (p.trimpPoints || 0) * 0.15; // bônus por carga TRIMP
+        const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15; // 15 kcal por minuto VO2
+
+        p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
+        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
+    });
 
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
