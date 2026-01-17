@@ -107,7 +107,27 @@ async function getParticipantHistory(participantId, limit = 5) {
         minRed: h.min_red || 0
     }));
 }
+// Ranking com filtro de gênero (calorias)
+async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
+    try {
+        let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
+        if (gender) url += '&gender=' + gender;
+        url += '&week_start=2026-01-12'; // ajuste para semana com dados
 
+        const data = await apiGet(url);
+        const rankings = data.rankings || [];
+
+        if (metric === 'calories') {
+            return { calorias: rankings.map(r => ({ name: r.name, value: r.total_calories || 0 })) };
+        } else if (metric === 'vo2') {
+            return { vo2Time: rankings.map(r => ({ name: r.name, value: r.total_vo2_seconds || 0 })) };
+        }
+        return { pontos: rankings.map(r => ({ name: r.name, value: r.total_queima_points || 0 })) };
+    } catch (err) {
+        console.warn(err);
+        return { calorias: [], vo2Time: [], pontos: [] };
+    }
+}
 // Exporta para report.js
 window.getSessions = getSessions;
 window.getParticipantSummary = getParticipantSummary;
