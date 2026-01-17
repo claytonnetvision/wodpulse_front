@@ -6,8 +6,8 @@
     <title>V6 WODPulse - Leaderboard</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Dexie.js CDN (mantido por enquanto como fallback) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
 </head>
 <body>
@@ -154,7 +154,6 @@
             </div>
         </div>
 
-      
     </div>
 
     <script src="db.js"></script>
@@ -162,7 +161,10 @@
 
     <!-- Script de autenticação com logs detalhados -->
     <script>
-        // NÃO declarar variáveis globais aqui novamente – já estão no script.js
+        // Variáveis globais necessárias (se não estiverem no script.js)
+        let authToken = null;
+        let currentBox = null;
+
         function showLoginScreen() {
             console.log('[LOGIN] Mostrando tela de login');
             document.getElementById('login-screen')?.classList.remove('hidden');
@@ -193,7 +195,7 @@
             console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
 
             try {
-                const response = await fetch('http://wodpulse-back.onrender.com:3001/api/participants', {
+                const response = await fetch(`${API_BASE_URL}/api/participants`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -285,7 +287,7 @@
 
                     try {
                         console.log('[LOGIN] Fazendo POST para /api/auth/login...');
-                        const response = await fetch('http://wodpulse-back.onrender.com:3001/api/auth/login', {
+                        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(data)
