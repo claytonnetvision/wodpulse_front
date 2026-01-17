@@ -2,7 +2,7 @@
 
 // Função auxiliar: formata segundos em mm:ss
 function formatTime(seconds) {
-    if (!seconds) return '--';
+    if (!seconds && seconds !== 0) return '--';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -10,11 +10,17 @@ function formatTime(seconds) {
 
 // 1. Renderiza tabela Top 5 (pontos, calorias ou VO2)
 function renderTop5Table(tableId, data, isPoints = false, unit = '', isTime = false) {
-    const tbody = document.querySelector(`#${tableId} tbody`);
+    const table = document.querySelector(`#${tableId}`);
+    if (!table) {
+        console.warn(`Tabela ${tableId} não encontrada`);
+        return;
+    }
+
+    const tbody = table.querySelector('tbody');
     tbody.innerHTML = '';
 
-    if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">Nenhum dado ainda</td></tr>';
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">Nenhum dado ainda</td></tr>';
         return;
     }
 
@@ -26,17 +32,18 @@ function renderTop5Table(tableId, data, isPoints = false, unit = '', isTime = fa
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${index + 1}º</td>
-            <td>${item.name}</td>
+            <td>${item.name || 'Desconhecido'}</td>
             <td>${value}</td>
-            <td></td> <!-- espaço para botão gráfico se quiser -->
         `;
         tbody.appendChild(tr);
     });
 }
 
-// 2. Renderiza lista de aulas encontradas
+// 2. Renderiza lista de aulas encontradas (se você ainda usar)
 function renderSessionsList(sessions) {
     const container = document.getElementById('today-list');
+    if (!container) return;
+
     container.innerHTML = '';
 
     if (sessions.length === 0) {
@@ -60,45 +67,17 @@ function renderSessionsList(sessions) {
     });
 }
 
-// 3. Mostra gráfico e relatório individual de uma aula
+// 3. Mostra gráfico e relatório individual de uma aula (placeholder - pode expandir depois)
 async function showHRGraph(sessionId) {
-    const session = await db.sessions.get(sessionId);
-    if (!session) return alert("Aula não encontrada");
-
-    document.getElementById('grafico-nome').textContent = `${session.className} - ${new Date(session.dateStart).toLocaleString('pt-BR')}`;
-    document.getElementById('grafico-section').classList.remove('hidden');
-
-    // Renderiza relatório individual (exemplo com 1 aluno - expanda para todos)
-    const html = await window.renderIndividualReportHTML(sessionId);
-    document.getElementById('grafico-metricas').innerHTML = html;
-
-    // Gráfico de HR (exemplo com dados mock - substitua por hr_samples reais)
-    const ctx = document.getElementById('hrChart').getContext('2d');
-    if (hrChart) hrChart.destroy();
-
-    hrChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['0min', '5min', '10min', '15min', '20min'], // substitua por timestamps reais
-            datasets: [{
-                label: 'Frequência Cardíaca (bpm)',
-                data: [80, 120, 150, 140, 110], // substitua por dados reais de hr_samples
-                borderColor: '#FF5722',
-                backgroundColor: 'rgba(255,87,34,0.2)',
-                tension: 0.1,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: false, suggestedMin: 40, suggestedMax: 220 }
-            }
-        }
-    });
+    alert(`Gráfico de HR da sessão ${sessionId} (em desenvolvimento)`);
+    // Se quiser implementar depois, use Chart.js aqui
 }
 
-// Exporta funções para report.js
+// Exporta para uso em module (import)
+export { renderTop5Table, formatTime, renderSessionsList, showHRGraph };
+
+// Expõe no window para uso direto no HTML (botão Filtrar e onclick)
 window.renderTop5Table = renderTop5Table;
+window.formatTime = formatTime;
 window.renderSessionsList = renderSessionsList;
 window.showHRGraph = showHRGraph;

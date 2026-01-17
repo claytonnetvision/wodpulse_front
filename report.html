@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
+        /* Estilos do menu */
         .report-menu {
             display: flex;
             flex-wrap: wrap;
@@ -191,16 +192,20 @@
         </div>
     </div>
 
-    <!-- Imports dos módulos -->
+    <!-- Imports dos módulos + exposição global -->
     <script type="module">
-        const { getGlobalRankings, getParticipantHistory } = await import('./reports/report-data.js');
-        const { renderTop5Table, formatTime } = await import('./reports/report-ui.js');
+        // Importa e expõe funções
+        const dataModule = await import('./reports/report-data.js');
+        const uiModule = await import('./reports/report-ui.js');
 
-        // Agora as funções estão disponíveis aqui
-        window.getGlobalRankings = getGlobalRankings;
-        window.getParticipantHistory = getParticipantHistory;
-        window.renderTop5Table = renderTop5Table;
-        window.formatTime = formatTime;
+        window.getGlobalRankings = dataModule.getGlobalRankings;
+        window.getParticipantHistory = dataModule.getParticipantHistory;
+        window.renderTop5Table = uiModule.renderTop5Table;
+        window.formatTime = uiModule.formatTime;
+        window.renderSessionsList = uiModule.renderSessionsList;
+        window.showHRGraph = uiModule.showHRGraph;
+
+        console.log('Módulos carregados com sucesso');
     </script>
 
     <script>
