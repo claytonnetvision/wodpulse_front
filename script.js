@@ -1343,7 +1343,35 @@ function getCurrentWeekStart() {
 function getTodayDate() {
     return new Date().toISOString().split('T')[0];
 }
+// ── EXCLUIR ALUNO ──────────────────────────────────────────────────────────────
+window.deleteParticipant = async function(id) {
+    if (!confirm(`Tem certeza que deseja excluir o aluno com ID ${id}? Essa ação não pode ser desfeita.`)) {
+        return;
+    }
 
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Erro ao excluir aluno');
+        }
+
+        // Remove do array local
+        participants = participants.filter(p => p.id !== id);
+
+        // Atualiza a lista na tela
+        renderParticipantList();
+
+        alert('Aluno excluído com sucesso!');
+    } catch (err) {
+        console.error('Erro ao excluir aluno:', err);
+        alert('Erro ao excluir aluno: ' + err.message);
+    }
+};
 // Placeholders Tecnofit
 async function checkTecnofitStatus() { console.log("Buscando check-ins..."); }
 async function fetchDailyWorkout() { console.log("Buscando WOD..."); }
