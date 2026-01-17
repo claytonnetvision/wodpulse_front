@@ -3,8 +3,7 @@
 // Assim funciona tanto local quanto no Vercel (mesmo domínio)
 // Se quiser usar backend separado (ex: Render), preencha API_BASE_URL abaixo
 
-const API_BASE_URL = '';  // deixe vazio para relativo (/api/...)
-// Exemplo temporário se usar Render: 'https://wodpulse-back.onrender.com'
+const API_BASE_URL = 'https://wodpulse-back.onrender.com'; 
 
 let participants = [];
 let tecnofitEnabled = false;
