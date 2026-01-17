@@ -768,7 +768,6 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
     if (!currentSessionId) return;
 
     try {
-        // Salva na Dexie (IndexedDB local do navegador)
         await db.restingHrMeasurements.add({
             participantId,
             sessionId,
@@ -835,7 +834,7 @@ async function autoEndClass() {
         calories_total: Math.round(p.calories || 0),
         vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
         epoc_estimated: p.epocEstimated || 0,
-        max_hr_reached: p.maxHRReached || null   // ← FC máxima atingida
+        max_hr_reached: p.maxHRReached || null   // FC máxima atingida
     }));
 
     const sessionData = {
