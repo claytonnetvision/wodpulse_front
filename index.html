@@ -161,7 +161,7 @@
 
     <!-- Script de autenticação com logs detalhados -->
     <script>
-        // Variáveis globais necessárias (se não estiverem no script.js)
+        // Variáveis globais necessárias
         let authToken = null;
         let currentBox = null;
 
@@ -286,7 +286,7 @@
                     resultDiv.innerHTML = '<p style="color:#ff9800;">Conectando ao servidor...</p>';
 
                     try {
-                        console.log('[LOGIN] Fazendo POST para /api/auth/login...');
+                        console.log('[LOGIN] Fazendo POST para ' + API_BASE_URL + '/api/auth/login...');
                         const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
