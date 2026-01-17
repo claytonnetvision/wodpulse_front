@@ -9,23 +9,26 @@
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
+
+    <!-- Estilos adicionais para responsividade e botões fixos -->
     <style>
-        /* Estilos responsivos e simplificados para a página inicial */
         body {
             margin: 0;
+            padding: 0;
             font-family: 'Roboto', sans-serif;
             background: #0f0f0f;
             color: #e0e0e0;
             min-height: 100vh;
         }
 
+        /* Top bar fixa com logo, sair e relatórios */
         .top-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             background: #1a1a1a;
-            padding: 12px 20px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -38,62 +41,36 @@
         }
 
         .top-bar button {
-            padding: 10px 16px;
-            background: #333;
-            color: white;
+            padding: 8px 16px;
+            margin-left: 10px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
         }
 
-        .top-bar button:hover {
-            background: #444;
-        }
-
-        .main-content {
-            padding-top: 70px; /* espaço para top-bar fixa */
-            padding-bottom: 100px; /* espaço para botão fixo embaixo */
-            min-height: 100vh;
-        }
-
-        #setup, #dashboard {
-            padding: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: #1e1e1e;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-
-        .add-btn {
-            background: #4CAF50;
+        .btn-logout {
+            background: #D32F2F;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
         }
 
-        .add-btn:hover {
-            background: #388E3C;
+        #reportsBtn {
+            background: #2196F3;
+            color: white;
         }
 
-        #addParticipant {
-            display: none; /* começa escondido - abre ao clicar + Adicionar */
+        /* Espaço para não sobrepor conteúdo */
+        .main-content {
+            padding-top: 70px; /* altura da top-bar */
+            padding-bottom: 100px; /* espaço para botão fixo embaixo */
         }
 
+        /* Lista de alunos com scroll interno */
         #participantListContainer {
-            max-height: 50vh;
+            max-height: 60vh;
             overflow-y: auto;
             padding-right: 10px;
+            margin-bottom: 20px;
         }
 
         #participantList {
@@ -112,20 +89,7 @@
             align-items: center;
         }
 
-        .action-btn {
-            background: #FF5722;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .action-btn.delete {
-            background: #D32F2F;
-        }
-
-        /* Botão Iniciar Aula sempre visível */
+        /* Botão Iniciar Aula sempre visível (fixo na parte inferior) */
         #startScanBtn {
             position: fixed;
             bottom: 20px;
@@ -149,28 +113,30 @@
             background: #E64A19;
         }
 
-        #reportsBtn {
-            background: #2196F3;
-            margin-left: 10px;
-        }
-
+        /* Responsividade */
         @media (max-width: 768px) {
             .top-bar {
                 flex-direction: column;
                 gap: 10px;
+                padding: 12px;
             }
 
             #startScanBtn {
                 width: 90%;
                 left: 5%;
                 transform: none;
+                bottom: 15px;
+            }
+
+            #participantListContainer {
+                max-height: 50vh;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Tela de Login (mantida igual) -->
+    <!-- Tela de Login (mantida exatamente igual) -->
     <div id="login-screen">
         <h1>V6 WODPulse - Login</h1>
         
@@ -201,7 +167,7 @@
         <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
     </div>
 
-    <!-- Conteúdo principal -->
+    <!-- Conteúdo principal (escondido até login) -->
     <div id="app-content" class="hidden">
         <div class="top-bar">
             <img src="logo-v6.png" alt="V6 CrossFit" style="height:40px;">
@@ -213,43 +179,39 @@
 
         <div class="main-content">
             <div id="setup">
-                <div class="card">
-                    <h2>Configurar Aula</h2>
-                    <button class="add-btn" onclick="document.getElementById('addParticipant').style.display = document.getElementById('addParticipant').style.display === 'block' ? 'none' : 'block'">
-                        + Adicionar Aluno
-                    </button>
+                <h1>V6 WODPulse - Configurar Aula</h1>
 
-                    <div id="addParticipant" style="display:none;">
-                        <input type="text" id="nameInput" placeholder="Nome do Aluno">
-                        <input type="number" id="ageInput" placeholder="Idade">
-                        <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                        <input type="number" id="heightInput" placeholder="Altura (cm)">
-                        <select id="genderInput">
-                            <option value="">Gênero</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Feminino</option>
-                            <option value="O">Outro</option>
-                        </select>
-                        <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
-                        <input type="email" id="emailInput" placeholder="Email (opcional)">
-                        <label>
-                            <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
-                        </label>
-                        <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
-                    </div>
+                <div id="addParticipant">
+                    <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                    <input type="number" id="ageInput" placeholder="Idade">
+                    <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                    <input type="number" id="heightInput" placeholder="Altura (cm)">
+                    <select id="genderInput">
+                        <option value="">Gênero</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                        <option value="O">Outro</option>
+                    </select>
+                    <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
+                    <input type="email" id="emailInput" placeholder="Email (opcional)">
+                    <label>
+                        <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                    </label>
+                    <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
                 </div>
 
-                <div class="card" id="participantListContainer">
+                <div id="participantListContainer">
                     <h2>Alunos Cadastrados</h2>
+                    <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
                     <ul id="participantList"></ul>
                 </div>
 
-                <div id="last-class-summary" class="hidden card">
+                <div id="last-class-summary" class="hidden">
                     <h2>Última Aula Finalizada</h2>
                     <div id="summary-content"></div>
                 </div>
 
-                <div id="checkins-section" class="card">
+                <div id="checkins-section">
                     <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
                     <p>Alunos com check-in hoje aparecerão aqui.</p>
                     <ul id="checkinsList">
@@ -259,21 +221,60 @@
             </div>
 
             <div id="dashboard" class="hidden">
-                <!-- Dashboard mantido como você tem, mas com botão iniciar já fixo acima -->
                 <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
 
                 <div id="main-container">
                     <div id="monitor-panel">
-                        <!-- Seu conteúdo atual do dashboard aqui -->
-                        <!-- ... mantenha tudo igual ... -->
+                        <div id="header">
+                            <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
+                            
+                            <div class="header-info">
+                                <div id="current-class-name">Aula: --</div>
+                                <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
+                                <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
+                            </div>
+                            
+                            <div id="timer">00:00</div>
+                            
+                            <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
+
+                            <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
+                            <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                            <button id="reportsBtn">📅 Relatórios</button>
+                        </div>
+
+                        <div id="weekly-rankings">
+                            <div class="ranking-block pontos">
+                                <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
+                                <div id="queima-ranking-top5" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-block calorias">
+                                <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
+                                <div id="calorias-ranking-top5" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-block vo2ZoneActive">
+                                <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
+                                <div id="vo2ZoneActive" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-actions">
+                                <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
+                                <button id="fullRankingBtn">📊 Ranking Completo</button>
+                                <button id="exportPdfBtn">📄 Exportar PDF</button>
+                            </div>
+                        </div>
+
+                        <div id="participants"></div>
                     </div>
                 </div>
-
+                
                 <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
                 <button id="backBtn">🏁 Finalizar</button>
             </div>
 
-            <!-- Modal Ranking Completo (mantido) -->
+            <!-- Modal Ranking Completo -->
             <div id="full-ranking-modal">
                 <div>
                     <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
@@ -284,16 +285,16 @@
         </div>
 
         <!-- Botão Iniciar Aula sempre visível -->
-        <button id="startScanBtn" onclick="autoStartClass('Aula Manual')">🚀 Iniciar Aula / Escaneamento</button>
+        <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
     </div>
 
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Seu script de autenticação (mantido igual) -->
+    <!-- Seu script de autenticação (mantido exatamente igual) -->
     <script>
-        // ... todo o seu script de login e loadParticipantsFromBackend ...
-        // (não alterei nada aqui, só adicionei o botão fixo no HTML)
+        // ... todo o seu código de login que você enviou ...
+        // (não alterei nada aqui)
     </script>
 </body>
 </html>
