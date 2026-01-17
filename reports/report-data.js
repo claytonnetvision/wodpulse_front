@@ -20,7 +20,6 @@ async function getSessions(filters = {}) {
     if (filters.participantId) {
         url += `&participant_id=${filters.participantId}`;
     }
-    // limit padrão 50, mas pode passar ?limit=100 se quiser
 
     const data = await apiGet(url);
     return (data.sessions || []).map(s => ({
@@ -66,29 +65,37 @@ async function getLastSessionSummary() {
     };
 }
 
-// 4. Rankings globais (por enquanto usamos o ranking semanal como base - ajuste depois)
+// 4. Rankings globais – agora com o path correto /api/sessions/rankings/weekly
 async function getGlobalRankings(period = 'hoje') {
-    // Por enquanto vamos usar o weekly como fallback - melhore depois
-    let url = '/api/rankings/weekly?metric=queima_points&limit=5';
-    if (period === 'hoje') {
-        const today = new Date().toISOString().split('T')[0];
-        url += `&week_start=${today}`; // hack temporário - depois crie endpoint diário
+    try {
+        let url = '/api/sessions/rankings/weekly?metric=queima_points&limit=5';
+        
+        // Temporário: use uma semana com dados reais (ajuste a data conforme suas sessões salvas)
+        // Exemplo: semana de 13/01/2026 (mude para a data das suas aulas)
+        url += '&week_start=2026-01-13';  // <-- ajuste aqui se quiser ver dados reais
+
+        const data = await apiGet(url);
+        const rankings = data.rankings || [];
+
+        return {
+            pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })),
+            calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })),
+            vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 }))
+        };
+    } catch (err) {
+        console.warn('Ranking semanal falhou (pode ser semana vazia):', err.message);
+        // Retorna vazio para não quebrar o relatório
+        return {
+            pontos: [],
+            calorias: [],
+            vo2Time: []
+        };
     }
-
-    const data = await apiGet(url);
-
-    const rankings = data.rankings || [];
-
-    return {
-        pontos: rankings.map(r => ({ name: r.name, value: r.total_queima_points || 0 })),
-        calorias: rankings.map(r => ({ name: r.name, value: r.total_calories || 0 })),
-        vo2Time: rankings.map(r => ({ name: r.name, value: r.total_vo2_seconds || 0 }))
-    };
 }
 
 // 5. Histórico de um aluno (para comparação e relatório individual)
 async function getParticipantHistory(participantId, limit = 5) {
-    const data = await apiGet(`/api/participants/${participantId}/history?limit=${limit}`);
+    const data = await apiGet(`/api/sessions/participants/${participantId}/history?limit=${limit}`);
     return (data.history || []).map(h => ({
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
