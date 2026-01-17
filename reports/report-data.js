@@ -1,6 +1,6 @@
-// report-data.js - Lógica de consulta via API backend (sem Dexie por enquanto)
+// report-data.js - Lógica de consulta via API backend
 
-const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // ajuste para localhost:3001 em dev se preferir
+const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // ou localhost:3001 em dev
 
 async function apiGet(endpoint) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -11,7 +11,6 @@ async function apiGet(endpoint) {
     return response.json();
 }
 
-// 1. Busca sessões com filtros
 async function getSessions(filters = {}) {
     let url = '/api/sessions?';
     if (filters.date) {
@@ -32,7 +31,6 @@ async function getSessions(filters = {}) {
     }));
 }
 
-// 2. Resumo de um aluno em uma sessão específica
 async function getParticipantSummary(sessionId, participantId) {
     const data = await apiGet(`/api/sessions/${sessionId}`);
     const sp = data.participants?.find(p => p.participant_id === Number(participantId));
@@ -51,7 +49,6 @@ async function getParticipantSummary(sessionId, participantId) {
     };
 }
 
-// 3. Resumo da última aula (para dashboard ou email)
 async function getLastSessionSummary() {
     const sessions = await getSessions({ limit: 1 });
     if (!sessions.length) return null;
@@ -65,41 +62,35 @@ async function getLastSessionSummary() {
     };
 }
 
-// 4. Rankings globais – agora com o path correto /api/sessions/rankings/weekly
-async function getGlobalRankings(period = 'hoje') {
+// Ranking com suporte a métrica e gênero (única versão!)
+async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
     try {
-        let url = '/api/sessions/rankings/weekly?metric=queima_points&limit=5';
-        
-        // Temporário: use uma semana com dados reais (ajuste a data conforme suas sessões salvas)
-        // Exemplo: semana de 13/01/2026 (mude para a data das suas aulas)
-        url += '&week_start=2026-01-13';  // <-- ajuste aqui se quiser ver dados reais
+        let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
+        if (gender) url += '&gender=' + gender;
+        // Temporário para testar com semana que tem dados (remova ou ajuste depois)
+        url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
 
-        return {
-            pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })),
-            calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })),
-            vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 }))
-        };
+        if (metric === 'calories') {
+            return { calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })) };
+        } else if (metric === 'vo2') {
+            return { vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 })) };
+        }
+        return { pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })) };
     } catch (err) {
-        console.warn('Ranking semanal falhou (pode ser semana vazia):', err.message);
-        // Retorna vazio para não quebrar o relatório
-        return {
-            pontos: [],
-            calorias: [],
-            vo2Time: []
-        };
+        console.warn('Ranking semanal falhou:', err.message);
+        return { calorias: [], vo2Time: [], pontos: [] };
     }
 }
 
-// 5. Histórico de um aluno (para comparação e relatório individual)
 async function getParticipantHistory(participantId, limit = 5) {
     const data = await apiGet(`/api/sessions/participants/${participantId}/history?limit=${limit}`);
     return (data.history || []).map(h => ({
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
-        pontos: h.queima_points || 0,
+        className: h.class_name || 'Aula',
         calorias: h.calories || 0,
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
@@ -107,30 +98,6 @@ async function getParticipantHistory(participantId, limit = 5) {
         minRed: h.min_red || 0
     }));
 }
-// Ranking com filtro de gênero (calorias)
-async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
-    try {
-        let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
-        if (gender) url += '&gender=' + gender;
-        url += '&week_start=2026-01-12'; // ajuste para semana com dados
 
-        const data = await apiGet(url);
-        const rankings = data.rankings || [];
-
-        if (metric === 'calories') {
-            return { calorias: rankings.map(r => ({ name: r.name, value: r.total_calories || 0 })) };
-        } else if (metric === 'vo2') {
-            return { vo2Time: rankings.map(r => ({ name: r.name, value: r.total_vo2_seconds || 0 })) };
-        }
-        return { pontos: rankings.map(r => ({ name: r.name, value: r.total_queima_points || 0 })) };
-    } catch (err) {
-        console.warn(err);
-        return { calorias: [], vo2Time: [], pontos: [] };
-    }
-}
-// Exporta para report.js
-window.getSessions = getSessions;
-window.getParticipantSummary = getParticipantSummary;
-window.getLastSessionSummary = getLastSessionSummary;
-window.getGlobalRankings = getGlobalRankings;
-window.getParticipantHistory = getParticipantHistory;
+// Exporta funções para uso em module
+export { getSessions, getParticipantSummary, getLastSessionSummary, getGlobalRankings, getParticipantHistory };
