@@ -763,7 +763,25 @@ function updateVO2Time() {
     });
 }
 
-// ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
+// ── SALVAR MEDIÇÃO DE FC REPOUSO (primeiros 3 minutos) ─────────────────────────
+async function saveRestingHRSample(participantId, sessionId, hrValue) {
+    if (!currentSessionId) return;
+
+    try {
+        // Salva na Dexie (IndexedDB local do navegador)
+        await db.restingHrMeasurements.add({
+            participantId,
+            sessionId,
+            measuredAt: new Date().toISOString(),
+            hrValue,
+            isValid: hrValue >= 30 && hrValue <= 120  // filtro simples
+        });
+        console.log(`[RESTING HR] Medição salva: ${hrValue} bpm (participante ${participantId})`);
+    } catch (err) {
+        console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
+    }
+}
+
 // ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName}`);
@@ -776,6 +794,28 @@ async function autoEndClass() {
         p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
         p.epocEstimated = Math.round((p.minOrange * 3.5) + (p.minRed * 8.0));
     });
+
+    // Calcular FC de repouso dinâmica para cada aluno
+    for (const p of participants) {
+        if (p.id && currentSessionId) {
+            const restingSamples = await db.restingHrMeasurements
+                .where('[participantId+sessionId]')
+                .equals([p.id, currentSessionId])
+                .toArray();
+
+            if (restingSamples.length >= 3) {
+                const validHRs = restingSamples
+                    .map(s => s.hrValue)
+                    .filter(v => v >= 30 && v <= 120);  // filtro de plausibilidade
+
+                if (validHRs.length > 0) {
+                    const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
+                    p.real_resting_hr = avgResting;
+                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (baseado em ${validHRs.length} medições)`);
+                }
+            }
+        }
+    }
 
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
@@ -800,12 +840,12 @@ async function autoEndClass() {
         class_name: currentActiveClassName,
         date_start: sessionStart.toISOString(),
         date_end: sessionEnd.toISOString(),
-        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,  // ← força número válido
+        duration_minutes: isNaN(durationMinutes) ? 0 : durationMinutes,  // força número válido
         box_id: 1,
         participantsData
     };
 
-    // LOG DETALHADO ANTES DE ENVIAR (essencial para debug)
+    // LOG DETALHADO ANTES DE ENVIAR
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
     console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
     console.log('participantsData length:', participantsData.length);
@@ -1125,6 +1165,11 @@ async function connectDevice(device, isReconnect = false) {
 
             if (!p.lastSampleTime) {
                 p.lastSampleTime = Date.now();
+            }
+
+            // Salvar medição de repouso nos primeiros 3 minutos da aula
+            if (currentSessionId && (Date.now() - wodStartTime) <= 180000) {  // 180 segundos = 3 minutos
+                saveRestingHRSample(p.id, currentSessionId, hr);
             }
 
             renderTiles();
