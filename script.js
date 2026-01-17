@@ -13,7 +13,7 @@ let reconnectInterval = null;
 let autoClassInterval = null;
 let currentActiveClassName = "";
 let isManualClass = false;
-let autoClassMonitorActive = true;  // ← nova variável para pausar o monitor automático
+let autoClassMonitorActive = true;  // ← controla se o monitor automático está ativo
 
 // Controle de sessão e amostras HR
 let currentSessionId = null;
@@ -130,6 +130,8 @@ async function loadParticipantsFromBackend() {
         }
 
         const data = await response.json();
+        console.log('[LOAD DEBUG] Dados brutos do backend:', data);  // log extra para ver o que chega
+
         participants = data.participants.map(p => ({
             id: p.id,
             name: p.name,
