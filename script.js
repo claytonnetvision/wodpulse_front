@@ -495,36 +495,8 @@ window.addParticipantDuringClass = async function() {
 
             const estimatedMaxHR = useTanaka ? (208 - 0.7 * age) : (220 - age);
 
-            // Cadastro no backend para ganhar ID real
-            const data = {
-                name: name.trim(),
-                age,
-                weight,
-                height_cm: heightCm,
-                gender,
-                resting_hr: restingHR,
-                email,
-                use_tanaka: useTanaka,
-                max_hr: Math.round(estimatedMaxHR),
-                historical_max_hr: 0,
-                device_id: null,
-                device_name: null
-            };
-
-            const response = await fetch(`${API_BASE_URL}/api/participants`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao cadastrar aluno durante aula');
-            }
-
-            const json = await response.json();
             p = {
-                id: json.participant.id,  // ID real do banco
-                name: json.participant.name,
+                name: name.trim(),
                 age,
                 weight,
                 heightCm,
@@ -532,7 +504,7 @@ window.addParticipantDuringClass = async function() {
                 restingHR,
                 email,
                 useTanaka,
-                maxHR: json.participant.max_hr,
+                maxHR: Math.round(estimatedMaxHR),
                 historicalMaxHR: 0,
                 todayMaxHR: 0,
                 hr: 0,
@@ -555,11 +527,7 @@ window.addParticipantDuringClass = async function() {
                 vo2GraceStart: null,
                 vo2StartTime: null,
                 vo2TimeSeconds: 0,
-                vo2LastUpdate: 0,
-                minGray: 0,
-                minGreen: 0,
-                minBlue: 0,
-                minYellow: 0
+                vo2LastUpdate: 0
             };
             participants.push(p);
         }
@@ -570,7 +538,6 @@ window.addParticipantDuringClass = async function() {
         renderTiles();
     } catch (e) {
         console.log("Cancelado ou erro:", e);
-        alert("Erro ao adicionar aluno durante aula: " + e.message);
     }
 };
 
@@ -818,7 +785,7 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName}`);
     
-    const sessionStart = new Date(wodStartTime);
+    const sessionStart = new Date(wodStartTime || Date.now()); // fallback se wodStartTime não setado
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
@@ -838,7 +805,7 @@ async function autoEndClass() {
             if (restingSamples.length >= 3) {
                 const validHRs = restingSamples
                     .map(s => s.hrValue)
-                    .filter(v => v >= 30 && v <= 120);  // filtro de plausibilidade
+                    .filter(v => v >= 30 && v <= 120);
 
                 if (validHRs.length > 0) {
                     const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
@@ -858,33 +825,31 @@ async function autoEndClass() {
         const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15; // 15 kcal por minuto VO2
 
         p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
-        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal (base: ${Math.round(baseEPOC)}, TRIMP bonus: ${Math.round(trimpBonus)}, VO2 bonus: ${Math.round(vo2Bonus)})`);
+        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
     });
 
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
 
-    const participantsData = participants
-        .filter(p => p.id)  // ← PULA alunos sem ID (evita null no participant_id)
-        .map(p => {
-            console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
-            return {
-                participantId: p.id,
-                avg_hr: p.avg_hr,
-                min_gray: Math.round(p.minGray || 0),
-                min_green: Math.round(p.minGreen || 0),
-                min_blue: Math.round(p.minBlue || 0),
-                min_yellow: Math.round(p.minYellow || 0),
-                min_orange: Math.round(p.minOrange || 0),
-                min_red: Math.round(p.minRed || 0),
-                trimp_total: Math.round(p.trimpPoints || 0),
-                calories_total: Math.round(p.calories || 0),
-                vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
-                epoc_estimated: p.epocEstimated || 0,
-                max_hr_reached: p.maxHRReached || null
-            };
-        });
+    const participantsData = participants.map(p => {
+        console.log(`[DEBUG PARTICIPANT] ${p.name}: connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
+        return {
+            participantId: p.id,
+            avg_hr: p.avg_hr,
+            min_gray: Math.round(p.minGray || 0),
+            min_green: Math.round(p.minGreen || 0),
+            min_blue: Math.round(p.minBlue || 0),
+            min_yellow: Math.round(p.minYellow || 0),
+            min_orange: Math.round(p.minOrange || 0),
+            min_red: Math.round(p.minRed || 0),
+            trimp_total: Math.round(p.trimpPoints || 0),
+            calories_total: Math.round(p.calories || 0),
+            vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
+            epoc_estimated: p.epocEstimated || 0,
+            max_hr_reached: p.maxHRReached || null
+        };
+    });
 
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
@@ -904,11 +869,6 @@ async function autoEndClass() {
         console.error('participantsData length:', sessionData.participantsData?.length);
         alert('Erro: Dados da aula incompletos. Verifique se há alunos conectados com HR > 0.');
         return;
-    }
-
-    if (sessionData.participantsData.length === 0) {
-        console.warn('[SESSION] Nenhum aluno com ID válido para salvar. Enviando array vazio.');
-        alert('Aviso: Nenhum aluno válido para salvar na sessão (verifique IDs).');
     }
 
     // LOG DETALHADO ANTES DE ENVIAR
