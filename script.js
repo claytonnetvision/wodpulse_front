@@ -1,3 +1,11 @@
+// script.js - Frontend WODPulse (modificado para Vercel)
+// Use caminhos RELATIVOS para API (/api/...) 
+// Assim funciona tanto local quanto no Vercel (mesmo domínio)
+// Se quiser usar backend separado (ex: Render), preencha API_BASE_URL abaixo
+
+const API_BASE_URL = '';  // deixe vazio para relativo (/api/...)
+// Exemplo temporário se usar Render: 'https://wodpulse-back.onrender.com'
+
 let participants = [];
 let tecnofitEnabled = false;
 let connectedDevices = new Map();
@@ -45,6 +53,12 @@ const classTimes = [
 
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
+    // Verifica se estamos em HTTPS (importante para Web Bluetooth)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.warn("A página não está em HTTPS. Web Bluetooth pode não funcionar.");
+        alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
+    }
+
     participants = await loadParticipantsFromDB();
     
     loadWeeklyHistory();
@@ -109,7 +123,7 @@ function stopAllTimersAndLoops() {
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
 async function loadParticipantsFromBackend() {
     try {
-        const response = await fetch('http://localhost:3001/api/participants');
+        const response = await fetch(`${API_BASE_URL}/api/participants`);
 
         if (!response.ok) {
             throw new Error(`Erro HTTP ${response.status}`);
@@ -198,7 +212,7 @@ window.addNewParticipantFromSetup = async function() {
     };
 
     try {
-        const response = await fetch('http://localhost:3001/api/participants', {
+        const response = await fetch(`${API_BASE_URL}/api/participants`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -293,7 +307,7 @@ async function pairDeviceToParticipant(p) {
 
             // Desvincula do aluno antigo
             try {
-                await fetch(`http://localhost:3001/api/participants/${alreadyRegistered.id}`, {
+                await fetch(`${API_BASE_URL}/api/participants/${alreadyRegistered.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -315,7 +329,7 @@ async function pairDeviceToParticipant(p) {
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
 
-        const response = await fetch(`http://localhost:3001/api/participants/${p.id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -382,7 +396,7 @@ async function editParticipant(id) {
         };
 
         try {
-            const res = await fetch(`http://localhost:3001/api/participants/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -401,7 +415,7 @@ async function editParticipant(id) {
             const remove = confirm(`O aluno ${p.name} tem uma pulseira cadastrada (${p.deviceName || p.deviceId}).\nDeseja remover a pulseira atual?`);
             if (remove) {
                 try {
-                    await fetch(`http://localhost:3001/api/participants/${id}`, {
+                    await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -764,7 +778,7 @@ async function autoEndClass() {
     };
 
     try {
-        const res = await fetch('http://localhost:3001/api/sessions', {
+        const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(sessionData)
@@ -851,7 +865,7 @@ function renderLastSessionSummary() {
         html += `<li>${i+1}º ${p.name} - ${p.queimaPoints} pts</li>`;
     });
     html += `</ul>
-        <h3>Top 3 Calorias:</h3>
+        <h3 style="margin-top:30px;">Top 3 Calorias:</h3>
         <ul style="margin:5px 0 15px 20px; color:#ccc;">
     `;
     lastSessionSummary.topCalories.forEach((p, i) => {
