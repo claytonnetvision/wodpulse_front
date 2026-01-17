@@ -193,7 +193,7 @@
             console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
 
             try {
-                const response = await fetch('http://localhost:3001/api/participants', {
+                const response = await fetch('http://wodpulse-back.onrender.com:3001/api/participants', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -285,7 +285,7 @@
 
                     try {
                         console.log('[LOGIN] Fazendo POST para /api/auth/login...');
-                        const response = await fetch('http://localhost:3001/api/auth/login', {
+                        const response = await fetch('http://wodpulse-back.onrender.com:3001/api/auth/login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(data)
