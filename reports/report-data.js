@@ -21,6 +21,7 @@ async function getSessions(filters = {}) {
     }
 
     const data = await apiGet(url);
+    console.log('[DEBUG getSessions] Dados retornados:', data);
     return (data.sessions || []).map(s => ({
         id: s.id,
         className: s.class_name,
@@ -70,6 +71,7 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
         // Usa semana atual automaticamente (backend calcula)
 
         const data = await apiGet(url);
+        console.log('[DEBUG getGlobalRankings] Retorno do backend:', data);
         const rankings = data.rankings || [];
 
         if (metric === 'calories') {
@@ -88,6 +90,7 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
 
 async function getParticipantHistory(participantId, limit = 5) {
     const data = await apiGet(`/api/sessions/participants/${participantId}/history?limit=${limit}`);
+    console.log('[DEBUG getParticipantHistory] Retorno do backend:', data);
     return (data.history || []).map(h => ({
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
@@ -100,7 +103,8 @@ async function getParticipantHistory(participantId, limit = 5) {
         queimaPoints: h.queima_points || 0,
         trimpTotal: h.trimp_total || 0,
         epocEstimated: h.epoc_estimated || 0,
-        realRestingHR: h.real_resting_hr || '--'
+        realRestingHR: h.real_resting_hr || '--',
+        duracaoMin: h.duration_minutes || 0        // tempo da aula
     }));
 }
 

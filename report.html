@@ -195,6 +195,7 @@
                         <th>Zona Vermelha</th>
                         <th>Queima Points</th>
                         <th>EPOC</th>
+                        <th>Tempo Aula</th> <!-- Nova coluna -->
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -284,6 +285,7 @@
 
             try {
                 const rankings = await getGlobalRankings();
+                console.log('[DEBUG loadReport] Rankings retornados:', rankings);
                 renderTop5Table('geral-calorias-table', rankings.calorias || [], false, 'kcal');
                 renderTop5Table('geral-vo2-table', rankings.vo2Time || [], false, '', true);
 
@@ -308,13 +310,14 @@
             }
         };
 
-        // Detalhes do aluno (com todas as métricas boas)
+        // Detalhes do aluno (com todas as métricas boas + nova coluna Tempo Aula)
         async function loadAlunoDetails(participantId) {
             const detailsDiv = document.getElementById('aluno-details');
             detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
 
             try {
                 const history = await getParticipantHistory(participantId, 5);
+                console.log('[DEBUG loadAlunoDetails] Histórico retornado:', history);
                 if (history.length === 0) {
                     detailsDiv.innerHTML = '<p>Nenhum dado disponível para este aluno.</p>';
                     return;
@@ -360,6 +363,7 @@
                         <td>${h.minRed || 0} min</td>
                         <td>${h.queimaPoints || 0} pts</td>
                         <td>${h.epocEstimated || 0} kcal</td>
+                        <td>${h.duracaoMin || 0} min</td>
                     `;
                     tbody.appendChild(tr);
                 });

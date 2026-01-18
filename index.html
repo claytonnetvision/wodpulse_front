@@ -3,323 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Leaderboard</title>
+    <title>V6 WODPulse - Relatórios</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="logo-v6.png" type="image/png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="report.css">
+    <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* Estilos do menu (mantido) */
+        .report-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 30px;
+            padding: 12px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .menu-btn {
+            padding: 12px 24px;
+            background: #333;
+            color: #EAEAEA;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.active {
+            background: #FF5722;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255,87,34,0.4);
+        }
+
+        .report-section {
+            display: none;
+        }
+
+        .report-section.active {
+            display: block;
+        }
+
+        #aluno-details {
+            background: #252525;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #FF9800;
+        }
+
+        #aluno-details ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #aluno-details li {
+            margin: 12px 0;
+            font-size: 1.1rem;
+        }
+
+        #aluno-details strong {
+            color: #FF9800;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>V6 WODPulse - Relatórios</h1>
+            <div class="header-buttons">
+                <button onclick="exportReportToPDF()">Exportar PDF</button>
+                <button onclick="window.close()">Fechar</button>
+            </div>
+        </header>
 
-    <!-- Tela de Login -->
-    <div id="login-screen">
-        <h1>V6 WODPulse - Login</h1>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Box (slug):</label>
-                <select name="slug" required>
-                    <option value="">Selecione seu box</option>
-                    <option value="v6">V6 CrossFit</option>
-                    <option value="uranium">CrossFit Uranium</option>
-                    <option value="apolo">CrossFit Apolo</option>
+        <!-- Menu de Navegação -->
+        <nav class="report-menu">
+            <button class="menu-btn active" data-section="geral">Rankings Gerais</button>
+            <button class="menu-btn" data-section="genero">Rankings por Gênero</button>
+            <button class="menu-btn" data-section="fcmax">FC Máxima Geral</button>
+            <button class="menu-btn" data-section="aluno">Detalhes do Aluno</button>
+        </nav>
+
+        <!-- Filtros -->
+        <section class="filter-section">
+            <div class="filter-item">
+                <label>Data da aula:</label>
+                <input type="date" id="filter-date">
+            </div>
+            <div class="filter-item">
+                <label>Tipo de aula:</label>
+                <select id="filter-type">
+                    <option value="todas">Todas</option>
+                    <option value="automaticas">Apenas automáticas</option>
+                    <option value="manuais">Apenas manuais</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" name="username" placeholder="ex: adminv6" required />
-            </div>
-
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" name="password" required />
-            </div>
-
-            <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-
-        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
-    </div>
-
-    <!-- Conteúdo principal (escondido até login) -->
-    <div id="app-content" class="hidden">
-
-        <div id="setup">
-            <h1>V6 WODPulse - Configurar Aula</h1>
-            <button onclick="logout()" class="btn-logout">Sair</button>
-            
-            <div id="addParticipant">
-                <input type="text" id="nameInput" placeholder="Nome do Aluno">
-                <input type="number" id="ageInput" placeholder="Idade">
-                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                <input type="number" id="heightInput" placeholder="Altura (cm)">
-                <select id="genderInput">
-                    <option value="">Gênero</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                    <option value="O">Outro</option>
+            <div class="filter-item">
+                <label>Aluno:</label>
+                <select id="filter-aluno">
+                    <option value="">Todos / Selecione</option>
                 </select>
-                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
-                <input type="email" id="emailInput" placeholder="Email (opcional)">
-                <label>
-                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
-                </label>
-                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
+            <button class="filter-btn" onclick="loadReport()">Filtrar</button>
+        </section>
 
-            <div id="participantListContainer">
-                <h2>Alunos Cadastrados</h2>
-                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
-                <ul id="participantList"></ul>
+        <!-- Loading e Erro -->
+        <div id="loading" style="text-align:center; padding:30px; display:none; color:#FF9800;">Carregando dados...</div>
+        <div id="error-msg" style="color:#FF5252; text-align:center; padding:20px; display:none;"></div>
+
+        <!-- Seções -->
+        <div id="geral" class="report-section active">
+            <h2>Rankings Gerais</h2>
+            <div class="ranking-group">
+                <h3>Calorias (Top 5 Geral)</h3>
+                <table id="geral-calorias-table">
+                    <thead><tr><th>Pos</th><th>Nome</th><th>Calorias</th></tr></thead>
+                    <tbody></tbody>
+                </table>
             </div>
-
-            <div id="last-class-summary" class="hidden">
-                <h2>Última Aula Finalizada</h2>
-                <div id="summary-content"></div>
-            </div>
-
-            <div id="checkins-section">
-                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
-                <p>Alunos com check-in hoje aparecerão aqui.</p>
-                <ul id="checkinsList">
-                    <li>(Integração pendente)</li>
-                </ul>
-            </div>
-
-            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
-        </div>
-
-        <div id="dashboard" class="hidden">
-            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
-
-            <div id="main-container">
-                <div id="monitor-panel">
-                    <div id="header">
-                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
-                        
-                        <div class="header-info">
-                            <div id="current-class-name">Aula: --</div>
-                            <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
-                            <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
-                        </div>
-                        
-                        <div id="timer">00:00</div>
-                        
-                        <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
-
-                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
-                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
-                        <button id="reportsBtn">📅 Relatórios</button>
-                    </div>
-
-                    <div id="weekly-rankings">
-                        <div class="ranking-block pontos">
-                            <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
-                            <div id="queima-ranking-top5" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-block calorias">
-                            <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
-                            <div id="calorias-ranking-top5" class="ranking-list"></div>
-                        </div>
-
-                            <div class="ranking-actions">
-                            <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
-                            <button id="fullRankingBtn">📊 Ranking Completo</button>
-                            <button id="exportPdfBtn">📄 Exportar PDF</button>
-                        </div>
-                    </div>
-
-                    <div id="participants"></div>
-                </div>
-            </div>
-            
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
-            <button id="backBtn">🏁 Finalizar</button>
-        </div>
-
-        <!-- Modal Ranking Completo -->
-        <div id="full-ranking-modal">
-            <div>
-                <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
-                <h2>Ranking Completo da Semana</h2>
-                <div id="full-ranking-content"></div>
+            <div class="ranking-group">
+                <h3>VO2 Time (Top 5 Geral)</h3>
+                <table id="geral-vo2-table">
+                    <thead><tr><th>Pos</th><th>Nome</th><th>Tempo VO2</th></tr></thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
+        <div id="genero" class="report-section">
+            <h2>Rankings por Gênero (Calorias)</h2>
+            <div class="ranking-group">
+                <h3>Homens - Calorias (Top 5)</h3>
+                <table id="homens-calorias-table">
+                    <thead><tr><th>Pos</th><th>Nome</th><th>Calorias</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="ranking-group">
+                <h3>Mulheres - Calorias (Top 5)</h3>
+                <table id="mulheres-calorias-table">
+                    <thead><tr><th>Pos</th><th>Nome</th><th>Calorias</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="fcmax" class="report-section">
+            <h2>FC Máxima Geral (Top 5)</h2>
+            <table id="fcmax-table">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Nome</th>
+                        <th>FC Máxima Atingida</th>
+                        <th>Treino Iniciante</th>
+                        <th>Treino Atleta</th>
+                        <th>Pontos totais</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="aluno" class="report-section">
+            <h2>Detalhes do Aluno Selecionado</h2>
+            <div id="aluno-details" style="background:#252525; padding:20px; border-radius:10px; margin-bottom:30px; border-left:5px solid #FF9800;"></div>
+            <h3>Últimas Aulas</h3>
+            <table id="historico-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Aula</th>
+                        <th>Calorias</th>
+                        <th>VO2 Time</th>
+                        <th>FC Média</th>
+                        <th>FC Máx</th>
+                        <th>Zona Vermelha</th>
+                        <th>Queima Points</th>
+                        <th>EPOC</th>
+                        <th>Tempo Aula</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-    <script src="db.js"></script>
-    <script src="script.js"></script>
+    <!-- Imports dos módulos + exposição global -->
+    <script type="module">
+        // Importa e expõe funções
+        const dataModule = await import('./reports/report-data.js');
+        const uiModule = await import('./reports/report-ui.js');
 
-    <!-- Script de autenticação com logs detalhados -->
+        window.getGlobalRankings = dataModule.getGlobalRankings;
+        window.getParticipantHistory = dataModule.getParticipantHistory;
+        window.renderTop5Table = uiModule.renderTop5Table;
+        window.formatTime = uiModule.formatTime;
+        window.renderSessionsList = uiModule.renderSessionsList || function() {};
+        window.showHRGraph = uiModule.showHRGraph || function() {};
+
+        console.log('Módulos carregados com sucesso');
+    </script>
+
     <script>
-        // Variáveis globais necessárias
-        let authToken = null;
-        let currentBox = null;
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
 
-        function showLoginScreen() {
-            console.log('[LOGIN] Mostrando tela de login');
-            document.getElementById('login-screen')?.classList.remove('hidden');
-            document.getElementById('app-content')?.classList.add('hidden');
-        }
+        // Alternar seções
+        function showSection(sectionId) {
+            document.querySelectorAll('.report-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
 
-        function showAppContent() {
-            console.log('[LOGIN] Mostrando conteúdo principal');
-            document.getElementById('login-screen')?.classList.add('hidden');
-            document.getElementById('app-content')?.classList.remove('hidden');
-        }
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
 
-        function logout() {
-            console.log('[LOGOUT] Limpando sessão');
-            localStorage.removeItem('wodpulse_token');
-            localStorage.removeItem('wodpulse_box');
-            authToken = null;
-            currentBox = null;
-            showLoginScreen();
-        }
-
-        async function loadParticipantsFromBackend() {
-            if (!authToken) {
-                console.warn('[LOAD] Sem token – abortando carregamento');
-                return;
+            if (sectionId === 'aluno') {
+                const alunoId = document.getElementById('filter-aluno').value;
+                if (alunoId) loadAlunoDetails(alunoId);
             }
+        }
 
-            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', () => showSection(btn.dataset.section));
+        });
+
+        // Popular select de alunos
+        async function populateAlunoFilter() {
+            const select = document.getElementById('filter-aluno');
+            select.innerHTML = '<option value="">Todos / Selecione</option>';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/participants`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                console.log('[LOAD] Resposta recebida. Status:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Erro ${response.status}: ${errorText}`);
-                }
-
+                const response = await fetch(`${API_BASE_URL}/api/participants`);
+                if (!response.ok) throw new Error('Erro ao carregar alunos: ' + response.status);
                 const data = await response.json();
-                console.log('[LOAD] Dados recebidos do backend:', data);
-
-                participants = data.participants.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    age: p.age,
-                    weight: p.weight,
-                    heightCm: p.height_cm,
-                    gender: p.gender,
-                    restingHR: p.resting_hr,
-                    email: p.email,
-                    useTanaka: p.use_tanaka,
-                    maxHR: p.max_hr,
-                    historicalMaxHR: p.historical_max_hr,
-                    deviceId: p.device_id,
-                    deviceName: p.device_name,
-                    hr: 0,
-                    connected: false,
-                    lastUpdate: 0,
-                    lastZone: 'gray',
-                    queimaPoints: 0,
-                    trimpPoints: 0,
-                    lastSampleTime: null,
-                    calories: 0,
-                    minOrange: 0,
-                    minRed: 0,
-                    epocEstimated: 0,
-                    redStartTime: null,
-                    vo2ZoneActive: false,
-                    vo2GraceStart: null,
-                    vo2StartTime: null,
-                    vo2TimeSeconds: 0,
-                    vo2LastUpdate: 0
-                }));
-
-                console.log('[LOAD] Sucesso! Alunos carregados:', participants.length);
-                renderParticipantList();
+                const alunos = data.participants || [];
+                alunos.sort((a,b) => a.name.localeCompare(b.name)).forEach(aluno => {
+                    const opt = document.createElement('option');
+                    opt.value = aluno.id;
+                    opt.textContent = aluno.name;
+                    select.appendChild(opt);
+                });
             } catch (err) {
-                console.error('[LOAD] Erro ao carregar alunos:', err.message, err.stack);
+                console.error('Erro ao popular alunos:', err);
+                select.innerHTML += '<option value="">Erro ao carregar alunos</option>';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[INIT] DOM carregado. Verificando token...');
-            const savedToken = localStorage.getItem('wodpulse_token');
-            if (savedToken) {
-                console.log('[INIT] Token encontrado no localStorage. Carregando app...');
-                authToken = savedToken;
-                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
-                showAppContent();
-                loadParticipantsFromBackend();
-            } else {
-                console.log('[INIT] Nenhum token → mostrando login');
-                showLoginScreen();
+        // Exportar PDF (corrigido)
+        function exportReportToPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 1,
+                filename: 'Relatorio_WODPulse_' + new Date().toLocaleDateString('pt-BR') + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Load principal
+        window.loadReport = async function() {
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('error-msg');
+            loading.style.display = 'block';
+            errorMsg.style.display = 'none';
+
+            try {
+                const rankings = await getGlobalRankings();
+                console.log('[DEBUG loadReport] Rankings retornados:', rankings);
+                renderTop5Table('geral-calorias-table', rankings.calorias || [], false, 'kcal');
+                renderTop5Table('geral-vo2-table', rankings.vo2Time || [], false, '', true);
+
+                const homens = await getGlobalRankings('hoje', 'calories', 'M');
+                renderTop5Table('homens-calorias-table', homens.calorias || [], false, 'kcal');
+                const mulheres = await getGlobalRankings('hoje', 'calories', 'F');
+                renderTop5Table('mulheres-calorias-table', mulheres.calorias || [], false, 'kcal');
+
+                // FC Máxima Geral (real)
+                const fcmax = await getGlobalRankings('hoje', 'maxhr');
+                renderTop5Table('fcmax-table', fcmax.maxHR || [], false, 'bpm');
+
+                const alunoId = document.getElementById('filter-aluno').value;
+                if (alunoId && document.getElementById('aluno').classList.contains('active')) {
+                    await loadAlunoDetails(alunoId);
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Erro ao carregar relatório: ' + err.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
             }
+        };
 
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                console.log('[INIT] Form de login encontrado. Adicionando evento submit...');
-                loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    console.log('[LOGIN] Submit detectado – preventDefault ok');
+        // Detalhes do aluno (com todas as métricas boas + nova coluna Tempo Aula)
+        async function loadAlunoDetails(participantId) {
+            const detailsDiv = document.getElementById('aluno-details');
+            detailsDiv.innerHTML = '<p>Carregando detalhes...</p>';
 
-                    const formData = new FormData(loginForm);
-                    const data = {
-                        slug: formData.get('slug'),
-                        username: formData.get('username'),
-                        password: formData.get('password')
-                    };
-                    console.log('[LOGIN] Dados enviados:', data);
+            try {
+                const history = await getParticipantHistory(participantId, 5);
+                console.log('[DEBUG loadAlunoDetails] Histórico retornado:', history);
+                if (history.length === 0) {
+                    detailsDiv.innerHTML = '<p>Nenhum dado disponível para este aluno.</p>';
+                    return;
+                }
 
-                    const resultDiv = document.getElementById('login-result');
-                    resultDiv.innerHTML = '<p style="color:#ff9800;">Conectando ao servidor...</p>';
+                const avgCalories = (history.reduce((sum, h) => sum + h.calorias, 0) / history.length).toFixed(0);
+                const avgVO2Sec = history.reduce((sum, h) => sum + h.vo2Time, 0) / history.length;
+                const avgHR = (history.reduce((sum, h) => sum + (h.avgHR || 0), 0) / history.length).toFixed(0);
+                const maxHR = Math.max(...history.map(h => h.maxHR || 0));
+                const totalRedMin = history.reduce((sum, h) => sum + h.minRed, 0);
+                const avgTrimp = (history.reduce((sum, h) => sum + h.queimaPoints, 0) / history.length).toFixed(0);
+                const avgEpoc = (history.reduce((sum, h) => sum + h.epocEstimated, 0) / history.length).toFixed(0);
+                const restingHR = history[0]?.realRestingHR || '--';
 
-                    try {
-                        console.log('[LOGIN] Fazendo POST para ' + API_BASE_URL + '/api/auth/login...');
-                        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
+                detailsDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        <div>
+                            <strong>Calorias médias por aula:</strong> ${avgCalories} kcal<br>
+                            <strong>Tempo médio em VO2:</strong> ${Math.floor(avgVO2Sec / 60)} min ${Math.round(avgVO2Sec % 60)} s<br>
+                            <strong>FC média média:</strong> ${avgHR} bpm<br>
+                            <strong>FC máxima atingida (melhor):</strong> ${maxHR} bpm<br>
+                        </div>
+                        <div>
+                            <strong>FC repouso (mais recente):</strong> ${restingHR} bpm<br>
+                            <strong>Tempo total em zona vermelha (últimas aulas):</strong> ${totalRedMin.toFixed(0)} min<br>
+                            <strong>Queima points médio (TRIMP):</strong> ${avgTrimp} pts<br>
+                            <strong>EPOC médio estimado:</strong> ${avgEpoc} kcal pós-treino<br>
+                        </div>
+                    </div>
+                `;
 
-                        console.log('[LOGIN] Resposta recebida. Status:', response.status);
-
-                        const json = await response.json();
-                        console.log('[LOGIN] Resposta JSON:', json);
-
-                        if (!response.ok) {
-                            throw new Error(json.error || `Erro HTTP ${response.status}`);
-                        }
-
-                        console.log('[LOGIN] Login OK! Salvando token...');
-                        authToken = json.token;
-                        currentBox = json.user.box;
-
-                        localStorage.setItem('wodpulse_token', authToken);
-                        localStorage.setItem('wodpulse_box', JSON.stringify(currentBox));
-
-                        resultDiv.innerHTML = `<p class="success">Login realizado! Bem-vindo, ${json.user.username}</p>`;
-
-                        setTimeout(() => {
-                            console.log('[LOGIN] Transição para tela principal');
-                            showAppContent();
-                            loadParticipantsFromBackend();
-                        }, 1500);
-
-                    } catch (err) {
-                        console.error('[LOGIN] Erro completo:', err);
-                        resultDiv.innerHTML = `<p class="error">Erro: ${err.message}</p>`;
-                    }
+                const tbody = document.getElementById('historico-table').querySelector('tbody');
+                tbody.innerHTML = '';
+                history.forEach(h => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${h.date}</td>
+                        <td>${h.className}</td>
+                        <td>${h.calorias} kcal</td>
+                        <td>${Math.floor(h.vo2Time / 60)}:${(h.vo2Time % 60).toString().padStart(2, '0')}</td>
+                        <td>${h.avgHR || '--'} bpm</td>
+                        <td>${h.maxHR || '--'} bpm</td>
+                        <td>${h.minRed || 0} min</td>
+                        <td>${h.queimaPoints || 0} pts</td>
+                        <td>${h.epocEstimated || 0} kcal</td>
+                        <td>${h.duracaoMin || 0} min</td>
+                    `;
+                    tbody.appendChild(tr);
                 });
-            } else {
-                console.error('[INIT] Elemento #loginForm NÃO encontrado!');
+            } catch (err) {
+                detailsDiv.innerHTML = '<p style="color:#FF5252;">Erro ao carregar: ' + err.message + '</p>';
             }
+        }
+
+        // Inicialização
+        window.addEventListener('load', async () => {
+            await populateAlunoFilter();
+            showSection('geral');
+            await loadReport();
         });
     </script>
 </body>
