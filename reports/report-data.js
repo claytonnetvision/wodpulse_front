@@ -62,11 +62,13 @@ async function getLastSessionSummary() {
     };
 }
 
-// Ranking com métrica e gênero
+// Ranking com suporte a métrica e gênero (sem week_start fixo)
 async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
     try {
         let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
         if (gender) url += '&gender=' + gender;
+        // Usa semana atual automaticamente (backend calcula)
+        // Se quiser forçar semana específica para teste: url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
@@ -75,11 +77,13 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
             return { calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })) };
         } else if (metric === 'vo2') {
             return { vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 })) };
+        } else if (metric === 'maxhr') {
+            return { maxHR: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.max_hr_reached || 0 })) };
         }
         return { pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })) };
     } catch (err) {
-        console.warn('Ranking falhou:', err.message);
-        return { calorias: [], vo2Time: [], pontos: [] };
+        console.warn('Ranking semanal falhou:', err.message);
+        return { calorias: [], vo2Time: [], pontos: [], maxHR: [] };
     }
 }
 
@@ -89,7 +93,7 @@ async function getParticipantHistory(participantId, limit = 5) {
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
         className: h.class_name || 'Aula',
-        calorias: h.calories_total || 0,
+        calorias: h.calories_total || 0,           // corrigido: usa calories_total
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
         maxHR: h.max_hr_reached || 0,
@@ -101,4 +105,5 @@ async function getParticipantHistory(participantId, limit = 5) {
     }));
 }
 
+// Exporta funções para uso em module
 export { getSessions, getParticipantSummary, getLastSessionSummary, getGlobalRankings, getParticipantHistory };

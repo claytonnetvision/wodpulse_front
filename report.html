@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* Estilos do menu */
+        /* Estilos do menu (mantido) */
         .report-menu {
             display: flex;
             flex-wrap: wrap;
@@ -261,7 +261,7 @@
             }
         }
 
-        // Exportar PDF (corrigido e funcional)
+        // Exportar PDF (corrigido)
         function exportReportToPDF() {
             const element = document.querySelector('.container');
             const opt = {
@@ -292,7 +292,7 @@
                 const mulheres = await getGlobalRankings('hoje', 'calories', 'F');
                 renderTop5Table('mulheres-calorias-table', mulheres.calorias || [], false, 'kcal');
 
-                // FC Máxima Geral (real, usando nova métrica)
+                // FC Máxima Geral (real)
                 const fcmax = await getGlobalRankings('hoje', 'maxhr');
                 renderTop5Table('fcmax-table', fcmax.maxHR || [], false, 'bpm');
 
