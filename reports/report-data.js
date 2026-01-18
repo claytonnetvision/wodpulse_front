@@ -1,6 +1,6 @@
 // report-data.js - Lógica de consulta via API backend
 
-const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // ou localhost:3001 em dev
+const API_BASE_URL = 'https://wodpulse-back.onrender.com';
 
 async function apiGet(endpoint) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`);
@@ -62,13 +62,11 @@ async function getLastSessionSummary() {
     };
 }
 
-// Ranking com suporte a métrica e gênero (sem week_start fixo)
+// Ranking com métrica e gênero
 async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gender = null) {
     try {
         let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
         if (gender) url += '&gender=' + gender;
-        // Usa semana atual automaticamente (backend calcula)
-        // Se quiser forçar uma semana com dados para teste: url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
@@ -77,14 +75,11 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
             return { calorias: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_calories || 0 })) };
         } else if (metric === 'vo2') {
             return { vo2Time: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_vo2_seconds || 0 })) };
-        } else if (metric === 'maxhr') {
-            // Novo: ranking por FC máxima
-            return { maxHR: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.max_hr_reached || 0 })) };
         }
         return { pontos: rankings.map(r => ({ name: r.name || 'Desconhecido', value: r.total_queima_points || 0 })) };
     } catch (err) {
-        console.warn('Ranking semanal falhou:', err.message);
-        return { calorias: [], vo2Time: [], pontos: [], maxHR: [] };
+        console.warn('Ranking falhou:', err.message);
+        return { calorias: [], vo2Time: [], pontos: [] };
     }
 }
 
@@ -106,5 +101,4 @@ async function getParticipantHistory(participantId, limit = 5) {
     }));
 }
 
-// Exporta funções para uso em module
 export { getSessions, getParticipantSummary, getLastSessionSummary, getGlobalRankings, getParticipantHistory };

@@ -500,7 +500,31 @@ window.addParticipantDuringClass = async function() {
 
             const estimatedMaxHR = useTanaka ? (208 - 0.7 * age) : (220 - age);
 
+            // NOVO: Salva no backend como aluno real
+            const response = await fetch(`${API_BASE_URL}/api/participants`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    age,
+                    weight,
+                    height_cm: heightCm,
+                    gender,
+                    resting_hr: restingHR,
+                    email,
+                    use_tanaka: useTanaka,
+                    max_hr: Math.round(estimatedMaxHR),
+                    historical_max_hr: 0,
+                    device_id: null,
+                    device_name: null
+                })
+            });
+
+            if (!response.ok) throw new Error('Erro ao cadastrar aluno no backend');
+
+            const json = await response.json();
             p = {
+                id: json.participant.id,  // ID real do banco
                 name: name.trim(),
                 age,
                 weight,
@@ -534,15 +558,29 @@ window.addParticipantDuringClass = async function() {
                 vo2TimeSeconds: 0,
                 vo2LastUpdate: 0
             };
-            participants.push(p);
+            participants.push(p);  // adiciona na lista local
         }
+
         p.device = device;
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
+
+        // Vincula pulseira no backend
+        await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                device_id: p.deviceId,
+                device_name: p.deviceName
+            })
+        });
+
         await connectDevice(device, false);
         renderTiles();
+        alert(`Aluno ${p.name} adicionado e pulseira pareada!`);
     } catch (e) {
         console.log("Cancelado ou erro:", e);
+        alert("Erro ao adicionar aluno durante aula.");
     }
 };
 
@@ -617,6 +655,16 @@ async function autoStartClass(className) {
     await tryAutoReconnectSavedDevices();
     
     startReconnectLoop();
+
+    // NOVO: Força reconexão imediata para todos os dispositivos salvos (resolve lentidão)
+    for (const p of participants) {
+        if (p.deviceId && !p.connected) {
+            console.log(`Forçando reconexão imediata para ${p.name} (${p.deviceName})`);
+            await connectDevice({ id: p.deviceId, name: p.deviceName }, true).catch(e => {
+                console.log(`Falha na reconexão imediata de ${p.name}:`, e);
+            });
+        }
+    }
 
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
@@ -731,6 +779,9 @@ function calculateTRIMPIncrement() {
 
         p.trimpPoints += increment;
         p.queimaPoints = Math.round(p.trimpPoints);
+
+        // NOVO: Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
+        p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
         p.lastSampleTime = now;
     });
@@ -1131,7 +1182,7 @@ function renderTiles() {
 
             <div class="max-bpm">Máx hoje: ${p.todayMaxHR || '--'} | Hist: ${p.historicalMaxHR || '--'}</div>
             <div class="percent">${percent}%</div>
-            <div class="queima-points">${Math.round(p.queimaPoints || 0)} PTS</div>
+            <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div> <!-- ← arredondado para 2 casas -->
             <div class="calories">${Math.round(p.calories || 0)} kcal</div>
 
             ${p.vo2TimeSeconds > 0 ? `
