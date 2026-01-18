@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V6 WODPulse - Relatórios Avançado</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
-    <link rel="stylesheet" href="report.css"> <!-- reuse seu css existente, se quiser -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -15,6 +14,7 @@
             color: #e0e0e0;
             margin: 0;
             padding: 20px;
+            line-height: 1.6;
         }
         .container {
             max-width: 1400px;
@@ -60,7 +60,7 @@
             color: white;
             font-size: 1rem;
         }
-        .filter-btn {
+        .filter-btn, .export-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -68,18 +68,13 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 1.1rem;
+            transition: background 0.3s;
         }
-        .filter-btn:hover {
+        .filter-btn:hover, .export-btn:hover {
             background: #388E3C;
         }
         .export-btn {
             background: #2196F3;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1rem;
         }
         .export-btn:hover {
             background: #1976D2;
@@ -89,18 +84,22 @@
             background: #1e1e1e;
             padding: 20px;
             border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         h2 {
             color: #FF9800;
             margin-top: 0;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            font-size: 0.95rem;
         }
         th, td {
-            padding: 12px;
+            padding: 12px 10px;
             text-align: center;
             border-bottom: 1px solid #444;
         }
@@ -119,17 +118,27 @@
             background: #2e4a2e !important;
             font-weight: bold;
         }
-        .top1 { background: #FFD70033 !important; }
+        .top1 { background: #FFD70033 !important; font-weight: bold; }
         .top2 { background: #C0C0C033 !important; }
         .top3 { background: #CD7F3233 !important; }
         #loading {
             text-align: center;
-            padding: 50px;
-            font-size: 1.3rem;
+            padding: 60px 0;
+            font-size: 1.4rem;
             color: #FF9800;
             display: none;
         }
+        .no-data {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
         @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
             table, thead, tbody, th, td, tr {
                 display: block;
             }
@@ -139,15 +148,17 @@
                 left: -9999px;
             }
             tr {
-                margin-bottom: 15px;
-                border: 1px solid #444;
+                margin-bottom: 20px;
+                border: 2px solid #444;
                 border-radius: 8px;
+                background: #222;
             }
             td {
                 border: none;
                 border-bottom: 1px solid #444;
                 position: relative;
                 padding-left: 50%;
+                text-align: right;
             }
             td:before {
                 position: absolute;
@@ -158,17 +169,20 @@
                 white-space: nowrap;
                 font-weight: bold;
                 color: #FF9800;
+                text-align: left;
             }
-            td:nth-of-type(1):before { content: "Aluno"; }
-            td:nth-of-type(2):before { content: "Aulas"; }
-            td:nth-of-type(3):before { content: "Total Calorias"; }
-            td:nth-of-type(4):before { content: "Total VO2 (seg)"; }
-            td:nth-of-type(5):before { content: "FC Média Geral"; }
-            td:nth-of-type(6):before { content: "FC Máx Geral"; }
-            td:nth-of-type(7):before { content: "Total Zona Vermelha"; }
-            td:nth-of-type(8):before { content: "Total Queima Points"; }
-            td:nth-of-type(9):before { content: "TRIMP Médio"; }
-            td:nth-of-type(10):before { content: "EPOC Médio"; }
+            /* Labels para mobile */
+            td:nth-of-type(1):before { content: "Pos"; }
+            td:nth-of-type(2):before { content: "Aluno"; }
+            td:nth-of-type(3):before { content: "Aulas"; }
+            td:nth-of-type(4):before { content: "Total Calorias"; }
+            td:nth-of-type(5):before { content: "Total VO2 (seg)"; }
+            td:nth-of-type(6):before { content: "FC Média Geral"; }
+            td:nth-of-type(7):before { content: "FC Máx Geral"; }
+            td:nth-of-type(8):before { content: "Total Zona Vermelha"; }
+            td:nth-of-type(9):before { content: "Total Queima Points"; }
+            td:nth-of-type(10):before { content: "TRIMP Médio"; }
+            td:nth-of-type(11):before { content: "EPOC Médio"; }
         }
     </style>
 </head>
@@ -260,8 +274,9 @@
             const select = document.getElementById('filter-aluno');
             try {
                 const response = await fetch(`${API_BASE_URL}/api/participants`);
+                if (!response.ok) throw new Error('Erro ao carregar alunos');
                 const data = await response.json();
-                const alunos = data.participants || [];
+                const alunos = data.participants || data || [];
                 alunos.sort((a,b) => a.name.localeCompare(b.name)).forEach(aluno => {
                     const opt = document.createElement('option');
                     opt.value = aluno.id;
@@ -285,21 +300,27 @@
             try {
                 // 1. Ranking Acumulado (Top 10)
                 let urlRanking = `${API_BASE_URL}/api/participants/ranking-acumulado`;
-                if (alunoId) urlRanking += `?alunoId=${alunoId}`;
-                if (dataInicio) urlRanking += `${alunoId ? '&' : '?'}inicio=${dataInicio}`;
-                if (dataFim) urlRanking += `${(alunoId || dataInicio) ? '&' : '?'}fim=${dataFim}`;
+                const params = [];
+                if (alunoId) params.push(`alunoId=${alunoId}`);
+                if (dataInicio) params.push(`inicio=${dataInicio}`);
+                if (dataFim) params.push(`fim=${dataFim}`);
+                if (params.length > 0) urlRanking += '?' + params.join('&');
 
                 const rankingRes = await fetch(urlRanking);
+                if (!rankingRes.ok) throw new Error('Erro no ranking acumulado');
                 const ranking = await rankingRes.json();
                 renderRankingGeral(ranking);
 
                 // 2. Histórico Detalhado
                 let urlHistorico = `${API_BASE_URL}/api/sessions/historico`;
-                if (alunoId) urlHistorico += `?alunoId=${alunoId}`;
-                if (dataInicio) urlHistorico += `${alunoId ? '&' : '?'}inicio=${dataInicio}`;
-                if (dataFim) urlHistorico += `${(alunoId || dataInicio) ? '&' : '?'}fim=${dataFim}`;
+                const paramsHist = [];
+                if (alunoId) paramsHist.push(`alunoId=${alunoId}`);
+                if (dataInicio) paramsHist.push(`inicio=${dataInicio}`);
+                if (dataFim) paramsHist.push(`fim=${dataFim}`);
+                if (paramsHist.length > 0) urlHistorico += '?' + paramsHist.join('&');
 
                 const historicoRes = await fetch(urlHistorico);
+                if (!historicoRes.ok) throw new Error('Erro no histórico');
                 const historico = await historicoRes.json();
                 renderHistoricoAulas(historico);
             } catch (err) {
@@ -314,6 +335,11 @@
             const tbody = document.getElementById('ranking-geral').querySelector('tbody');
             tbody.innerHTML = '';
 
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
+                return;
+            }
+
             data.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 if (index === 0) tr.classList.add('top1', 'highlight');
@@ -324,52 +350,49 @@
                     <td>${index + 1}º</td>
                     <td>${item.aluno}</td>
                     <td>${item.qtd_aulas}</td>
-                    <td>${Math.round(item.total_calorias || 0)}</td>
-                    <td>${Math.round(item.total_vo2_seg || 0)}</td>
-                    <td>${Math.round(item.fc_media_geral || 0)}</td>
-                    <td>${Math.round(item.fc_max_geral || 0)}</td>
-                    <td>${Math.round(item.total_tempo_vermelho_min || 0)}</td>
-                    <td>${Math.round(item.total_queima_points || 0)}</td>
-                    <td>${item.trimp_medio ? item.trimp_medio.toFixed(2) : '0.00'}</td>
-                    <td>${item.epoc_medio ? item.epoc_medio.toFixed(2) : '0.00'}</td>
+                    <td>${Math.round(item.total_calorias || 0)} kcal</td>
+                    <td>${Math.round(item.total_vo2_seg || 0)} s</td>
+                    <td>${Math.round(item.fc_media_geral || 0)} bpm</td>
+                    <td>${Math.round(item.fc_max_geral || 0)} bpm</td>
+                    <td>${Math.round(item.total_tempo_vermelho_min || 0)} min</td>
+                    <td>${Math.round(item.total_queima_points || 0)} pts</td>
+                    <td>${item.trimp_medio ? Number(item.trimp_medio).toFixed(2) : '0.00'}</td>
+                    <td>${item.epoc_medio ? Number(item.epoc_medio).toFixed(2) : '0.00'} kcal</td>
                 `;
                 tbody.appendChild(tr);
             });
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11">Nenhum dado encontrado com os filtros.</td></tr>';
-            }
         }
 
         function renderHistoricoAulas(data) {
             const tbody = document.getElementById('historico-aulas').querySelector('tbody');
             tbody.innerHTML = '';
 
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="15" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
+                return;
+            }
+
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.id_sessao}</td>
-                    <td>${item.class_name || item.nome_aula || 'Aula'}</td>
+                    <td>${item.class_name || 'Aula'}</td>
                     <td>${new Date(item.date_start).toLocaleString('pt-BR')}</td>
                     <td>${new Date(item.date_end).toLocaleString('pt-BR')}</td>
                     <td>${item.duration_minutes || 0}</td>
                     <td>${item.aluno}</td>
-                    <td>${Math.round(item.calories_total || 0)}</td>
-                    <td>${Math.round(item.vo2_time_seconds || 0)}</td>
-                    <td>${Math.round(item.avg_hr || 0)}</td>
-                    <td>${Math.round(item.max_hr_reached || 0)}</td>
-                    <td>${Math.round(item.min_red || 0)}</td>
-                    <td>${Math.round(item.queima_points || 0)}</td>
+                    <td>${Math.round(item.calories_total || 0)} kcal</td>
+                    <td>${Math.round(item.vo2_time_seconds || 0)} s</td>
+                    <td>${Math.round(item.avg_hr || 0)} bpm</td>
+                    <td>${Math.round(item.max_hr_reached || 0)} bpm</td>
+                    <td>${Math.round(item.min_red || 0)} min</td>
+                    <td>${Math.round(item.queima_points || 0)} pts</td>
                     <td>${Math.round(item.trimp_total || 0)}</td>
-                    <td>${Math.round(item.epoc_estimated || 0)}</td>
-                    <td>${item.real_resting_hr || '--'}</td>
+                    <td>${Math.round(item.epoc_estimated || 0)} kcal</td>
+                    <td>${item.real_resting_hr || '--'} bpm</td>
                 `;
                 tbody.appendChild(tr);
             });
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="15">Nenhum dado encontrado com os filtros.</td></tr>';
-            }
         }
 
         function exportToPDF() {
@@ -379,7 +402,7 @@
                 filename: 'Relatorio_Avancado_WODPulse_' + new Date().toLocaleDateString('pt-BR') + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
             };
             html2pdf().set(opt).from(element).save();
         }
