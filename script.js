@@ -624,13 +624,12 @@ async function autoStartClass(className) {
 
     document.getElementById('current-class-name').textContent = className;
 
-    // Resetar contadores de todos os alunos
+    // Resetar contadores de todos os alunos (mantém calories intactas para evitar zerar)
     participants.forEach(p => {
         p.todayMaxHR = 0;
         p.queimaPoints = 0;
         p.trimpPoints = 0;
         p.lastSampleTime = Date.now();
-        p.calories = 0;
         p.maxHRReached = 0;
         p.minOrange = 0;
         p.minRed = 0;
@@ -645,6 +644,7 @@ async function autoStartClass(className) {
         p.minGreen = 0;
         p.minBlue = 0;
         p.minYellow = 0;
+        // NÃO resetamos p.calories aqui para manter o valor acumulado
     });
 
     wodStartTime = Date.now();
@@ -894,6 +894,11 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
+    // NOVO: Log debug para verificar calorias antes de enviar
+    participants.forEach(p => {
+        console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
+    });
+
     const participantsData = participants.filter(p => p.id).map(p => {
         console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
         return {
@@ -922,11 +927,35 @@ async function autoEndClass() {
         participantsData
     };
 
-    // Validação extra + aviso se vazio
-    if (participantsData.length === 0) {
-        console.warn('[SESSION DEBUG] Nenhum aluno com dados válidos na finalização');
-        alert('Aviso: Nenhum aluno conectado com dados de HR. Aula salva sem participantes.');
+    // NOVO: Pergunta se quer salvar (evita salvar em testes)
+    const confirmarSalvar = confirm("Aula finalizada. Deseja salvar os dados no banco agora?\n\n(Sim = salva normalmente)\n(Não = descarta esta aula, útil para testes)");
+
+    if (!confirmarSalvar) {
+        console.log("[TEST MODE] Aula descartada pelo usuário - não enviada ao banco");
+        alert("Aula descartada (não salva no banco). Útil para testes!");
+        
+        // Volta para tela de setup sem salvar
+        currentActiveClassName = "";
+        isManualClass = false;
+        document.getElementById('current-class-name').textContent = "Aula: --";
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('setup').classList.remove('hidden');
+        renderTiles();
+        updateReconnectButtonVisibility();
+
+        // Pausa monitor automático
+        autoClassMonitorActive = false;
+        if (autoClassInterval) {
+            clearInterval(autoClassInterval);
+            autoClassInterval = null;
+            console.log("Monitor automático pausado");
+        }
+
+        return;  // Sai da função sem salvar
     }
+
+    // Se chegou aqui, o usuário confirmou → prossegue com o salvamento
+    console.log("[SALVAR] Usuário confirmou salvamento da aula");
 
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
     console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
@@ -1182,7 +1211,7 @@ function renderTiles() {
 
             <div class="max-bpm">Máx hoje: ${p.todayMaxHR || '--'} | Hist: ${p.historicalMaxHR || '--'}</div>
             <div class="percent">${percent}%</div>
-            <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div> <!-- ← arredondado para 2 casas -->
+            <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div>
             <div class="calories">${Math.round(p.calories || 0)} kcal</div>
 
             ${p.vo2TimeSeconds > 0 ? `

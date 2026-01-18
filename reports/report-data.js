@@ -92,7 +92,7 @@ async function getParticipantHistory(participantId, limit = 5) {
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
         className: h.class_name || 'Aula',
-        calorias: h.calories_total || 0,           // corrigido: usa calories_total do banco
+        calorias: h.calories_total || 0,           // corrigido: usa calories_total
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
         maxHR: h.max_hr_reached || 0,
