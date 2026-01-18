@@ -4,7 +4,7 @@
 const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // seu backend no Render
 
 let participants = [];
-let activeParticipants = []; // IDs dos alunos selecionados para a aula atual (novo)
+let activeParticipants = []; // IDs dos alunos selecionados para a aula atual
 let tecnofitEnabled = false;
 let connectedDevices = new Map();
 let wodStartTime = 0;
@@ -612,6 +612,11 @@ function checkCurrentClassTime() {
 }
 
 async function autoStartClass(className) {
+    if (activeParticipants.length === 0) {
+        alert("Selecione pelo menos 1 aluno para iniciar a aula!");
+        return;
+    }
+
     const nowStr = new Date().toTimeString().slice(0,5);
     const scheduled = classTimes.find(c => nowStr >= c.start && nowStr < c.end);
     if (className === "Aula Manual" && scheduled) {
@@ -786,6 +791,7 @@ function calculateTRIMPIncrement() {
         p.trimpPoints += increment;
         p.queimaPoints = Math.round(p.trimpPoints);
 
+        // Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
         p.lastSampleTime = now;
@@ -1094,7 +1100,7 @@ function renderParticipantList() {
     const container = document.getElementById('participantListContainer');
     if (!container) return;
 
-    container.innerHTML = '<h2>Alunos Cadastrados</h2><p>Marque quem vai participar da próxima aula:</p>';
+    container.innerHTML = '<h2>Alunos Cadastrados</h2><p>Marque quem vai participar da próxima aula antes de iniciar:</p>';
 
     const table = document.createElement('table');
     table.id = 'participantTable';
@@ -1147,8 +1153,24 @@ function renderParticipantList() {
                 activeParticipants = activeParticipants.filter(i => i !== id);
             }
             console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
+
+            // Desabilitar botão Iniciar se nenhum aluno marcado
+            const startBtn = document.getElementById('startScanBtn');
+            if (startBtn) {
+                startBtn.disabled = activeParticipants.length === 0;
+                startBtn.style.opacity = activeParticipants.length === 0 ? '0.5' : '1';
+                startBtn.title = activeParticipants.length === 0 ? 'Selecione pelo menos 1 aluno para iniciar' : 'Iniciar Aula / Escaneamento';
+            }
         });
     });
+
+    // Inicializar estado do botão ao carregar a lista
+    const startBtn = document.getElementById('startScanBtn');
+    if (startBtn) {
+        startBtn.disabled = activeParticipants.length === 0;
+        startBtn.style.opacity = activeParticipants.length === 0 ? '0.5' : '1';
+        startBtn.title = activeParticipants.length === 0 ? 'Selecione pelo menos 1 aluno para iniciar' : 'Iniciar Aula / Escaneamento';
+    }
 
     if (participants.length === 0) {
         container.innerHTML += '<p style="color:#888;">Nenhum aluno cadastrado ainda.</p>';
