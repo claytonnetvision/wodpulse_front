@@ -25,8 +25,23 @@
         h2 { color: #FF9800; margin-top: 0; border-bottom: 2px solid #444; padding-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
         th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #444; cursor: pointer; }
-        th { background: #252525; color: #FF9800; font-weight: bold; user-select: none; }
+        th { background: #252525; color: #FF9800; font-weight: bold; user-select: none; position: relative; }
         th:hover { background: #333; }
+        th[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
         tr:nth-child(even) { background: #222; }
         tr:hover { background: #333; }
         .red-zone { background: #ff174433 !important; font-weight: bold; color: #ff1744; }
@@ -37,6 +52,16 @@
         #loading { text-align: center; padding: 60px 0; font-size: 1.4rem; color: #FF9800; display: none; }
         .no-data { text-align: center; color: #888; padding: 40px; font-size: 1.2rem; }
         .chart-container { margin: 30px 0; height: 400px; background: #1e1e1e; padding: 15px; border-radius: 8px; }
+        .metrics-explanation {
+            margin-top: 25px;
+            padding: 15px;
+            background: #252525;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .metrics-explanation ul { margin: 10px 0 0 20px; padding-left: 0; list-style: disc; }
+        .metrics-explanation li { margin-bottom: 8px; }
         @media (max-width: 768px) { /* mobile responsivo */ }
     </style>
 </head>
@@ -75,27 +100,42 @@
         <!-- Loading -->
         <div id="loading">Carregando dados do servidor...</div>
 
-        <!-- Ranking Geral Acumulado (Top 10) + Gráfico Dispersão -->
+        <!-- Ranking Geral Acumulado (Top 10) + Explicações -->
         <div class="section">
             <h2>Ranking Geral Acumulado (Top 10 - Todas as Aulas)</h2>
+
             <table id="ranking-geral">
                 <thead>
                     <tr>
-                        <th data-sort="pos">Pos</th>
-                        <th data-sort="aluno">Aluno</th>
-                        <th data-sort="qtd_aulas">Aulas</th>
-                        <th data-sort="total_calorias">Total Calorias</th>
-                        <th data-sort="total_vo2_seg">Total VO2 (seg)</th>
-                        <th data-sort="fc_media_geral">FC Média Geral</th>
-                        <th data-sort="fc_max_geral">FC Máx Geral</th>
-                        <th data-sort="total_tempo_vermelho_min">Total Zona Vermelha (min)</th>
-                        <th data-sort="total_queima_points">Total Queima Points</th>
-                        <th data-sort="trimp_medio">TRIMP Médio</th>
-                        <th data-sort="epoc_medio">EPOC Médio</th>
+                        <th data-sort="pos" title="Posição no ranking geral acumulado">Pos</th>
+                        <th data-sort="aluno" title="Nome do aluno cadastrado">Aluno</th>
+                        <th data-sort="qtd_aulas" title="Quantidade total de aulas realizadas pelo aluno">Aulas</th>
+                        <th data-sort="total_calorias" title="Soma de todas as calorias queimadas em todas as aulas">Total Calorias</th>
+                        <th data-sort="total_vo2_seg" title="Tempo total acumulado em zona VO2 (FC ≥ 92% da FC máx)">Total VO2 (seg)</th>
+                        <th data-sort="fc_media_geral" title="Média de todas as FC médias das aulas do aluno">FC Média Geral</th>
+                        <th data-sort="fc_max_geral" title="Maior FC atingida em qualquer momento de qualquer aula">FC Máx Geral</th>
+                        <th data-sort="total_tempo_vermelho_min" title="Tempo total acumulado em zona vermelha (FC ≥ 90% da FC máx)">Total Zona Vermelha (min)</th>
+                        <th data-sort="total_queima_points" title="Soma total de pontos de queima (baseado em TRIMP)">Total Queima Points</th>
+                        <th data-sort="trimp_medio" title="Média de TRIMP (carga de treino) por aula">TRIMP Médio</th>
+                        <th data-sort="epoc_medio" title="Média de EPOC estimado (dívida de oxigênio pós-treino)">EPOC Médio</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
+
+            <!-- Seção de explicação das métricas -->
+            <div class="metrics-explanation">
+                <h3>Como são calculadas as métricas</h3>
+                <ul>
+                    <li><strong>Total Calorias</strong>: Fórmula Keytel (baseada em FC, peso, idade) – somatório de todas as aulas.</li>
+                    <li><strong>Total VO2 (seg)</strong>: Tempo em que FC ≥ 92% da FC máx (após 60s de tolerância inicial).</li>
+                    <li><strong>FC Média Geral</strong>: Média simples de todas as FC médias das aulas do aluno.</li>
+                    <li><strong>FC Máx Geral</strong>: Maior FC atingida em qualquer momento de qualquer aula.</li>
+                    <li><strong>Total Zona Vermelha (min)</strong>: Tempo acumulado com FC ≥ 90% da FC máx.</li>
+                    <li><strong>Total Queima Points / TRIMP Médio</strong>: Carga de treino (fórmula Banister/TRIMP) – média e soma de todas as aulas.</li>
+                    <li><strong>EPOC Médio</strong>: Estimativa de dívida de oxigênio pós-treino (baseado em tempo em zona alta + TRIMP + VO2).</li>
+                </ul>
+            </div>
 
             <!-- Gráfico Dispersão FC Máx vs Calorias -->
             <div class="chart-container">
