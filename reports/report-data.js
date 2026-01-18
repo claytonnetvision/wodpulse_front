@@ -68,7 +68,6 @@ async function getGlobalRankings(period = 'hoje', metric = 'queima_points', gend
         let url = '/api/sessions/rankings/weekly?metric=' + metric + '&limit=5';
         if (gender) url += '&gender=' + gender;
         // Usa semana atual automaticamente (backend calcula)
-        // Se quiser forçar semana específica para teste: url += '&week_start=2026-01-12';
 
         const data = await apiGet(url);
         const rankings = data.rankings || [];
@@ -93,7 +92,7 @@ async function getParticipantHistory(participantId, limit = 5) {
         sessionId: h.session_id,
         date: new Date(h.date_start).toLocaleDateString('pt-BR'),
         className: h.class_name || 'Aula',
-        calorias: h.calories_total || 0,           // corrigido: usa calories_total
+        calorias: h.calories_total || 0,           // corrigido: usa calories_total do banco
         vo2Time: h.vo2_time_seconds || 0,
         avgHR: h.avg_hr || 0,
         maxHR: h.max_hr_reached || 0,
