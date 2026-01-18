@@ -4,6 +4,7 @@
 const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // seu backend no Render
 
 let participants = [];
+let activeParticipants = []; // IDs dos alunos selecionados para a aula atual (novo)
 let tecnofitEnabled = false;
 let connectedDevices = new Map();
 let wodStartTime = 0;
@@ -624,27 +625,29 @@ async function autoStartClass(className) {
 
     document.getElementById('current-class-name').textContent = className;
 
-    // Resetar contadores de todos os alunos (mantém calories intactas para evitar zerar)
-    participants.forEach(p => {
-        p.todayMaxHR = 0;
-        p.queimaPoints = 0;
-        p.trimpPoints = 0;
-        p.lastSampleTime = Date.now();
-        p.maxHRReached = 0;
-        p.minOrange = 0;
-        p.minRed = 0;
-        p.epocEstimated = 0;
-        p.redStartTime = null;
-        p.vo2ZoneActive = false;
-        p.vo2GraceStart = null;
-        p.vo2StartTime = null;
-        p.vo2TimeSeconds = 0;
-        p.vo2LastUpdate = 0;
-        p.minGray = 0;
-        p.minGreen = 0;
-        p.minBlue = 0;
-        p.minYellow = 0;
-        // NÃO resetamos p.calories aqui para manter o valor acumulado
+    // Resetar contadores APENAS dos alunos selecionados
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (p) {
+            p.todayMaxHR = 0;
+            p.queimaPoints = 0;
+            p.trimpPoints = 0;
+            p.lastSampleTime = Date.now();
+            p.maxHRReached = 0;
+            p.minOrange = 0;
+            p.minRed = 0;
+            p.epocEstimated = 0;
+            p.redStartTime = null;
+            p.vo2ZoneActive = false;
+            p.vo2GraceStart = null;
+            p.vo2StartTime = null;
+            p.vo2TimeSeconds = 0;
+            p.vo2LastUpdate = 0;
+            p.minGray = 0;
+            p.minGreen = 0;
+            p.minBlue = 0;
+            p.minYellow = 0;
+        }
     });
 
     wodStartTime = Date.now();
@@ -652,13 +655,10 @@ async function autoStartClass(className) {
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
-    await tryAutoReconnectSavedDevices();
-    
-    startReconnectLoop();
-
-    // NOVO: Força reconexão imediata para todos os dispositivos salvos (resolve lentidão)
-    for (const p of participants) {
-        if (p.deviceId && !p.connected) {
+    // Reconexão apenas dos alunos selecionados
+    for (const id of activeParticipants) {
+        const p = participants.find(p => p.id === id);
+        if (p && p.deviceId && !p.connected) {
             console.log(`Forçando reconexão imediata para ${p.name} (${p.deviceName})`);
             await connectDevice({ id: p.deviceId, name: p.deviceName }, true).catch(e => {
                 console.log(`Falha na reconexão imediata de ${p.name}:`, e);
@@ -666,13 +666,16 @@ async function autoStartClass(className) {
         }
     }
 
+    startReconnectLoop();
+
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
         if (!currentSessionId) return;
         console.log("[HR Sample] Tentando salvar amostras...");
         let savedCount = 0;
-        for (const p of participants) {
-            if (p.connected && p.hr > 40 && currentSessionId) {
+        for (const id of activeParticipants) {
+            const p = participants.find(p => p.id === id);
+            if (p && p.connected && p.hr > 40 && currentSessionId) {
                 await saveHRSample(p, currentSessionId);
                 savedCount++;
             }
@@ -691,8 +694,9 @@ async function tryAutoReconnectSavedDevices() {
     console.log("Tentando reconexão automática...");
     let connectedCount = 0;
 
-    for (const p of participants) {
-        if (p.device && !p.connected) {
+    for (const id of activeParticipants) {
+        const p = participants.find(p => p.id === id);
+        if (p && p.device && !p.connected) {
             try {
                 console.log(`Reconectando ${p.name} (${p.deviceName})`);
                 await connectDevice(p.device, true);
@@ -714,8 +718,9 @@ async function reconnectAllSavedDevices() {
     let connectedCount = 0;
     let failedCount = 0;
 
-    for (const p of participants) {
-        if (p.deviceId && !p.connected) {
+    for (const id of activeParticipants) {
+        const p = participants.find(p => p.id === id);
+        if (p && p.deviceId && !p.connected) {
             console.log(`Tentando reconectar ${p.name} (${p.deviceName || p.deviceId})`);
             try {
                 const device = await navigator.bluetooth.requestDevice({
@@ -756,8 +761,9 @@ function updateReconnectButtonVisibility() {
 function calculateTRIMPIncrement() {
     const now = Date.now();
 
-    participants.forEach(p => {
-        if (!p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
 
         const deltaMs = now - p.lastSampleTime;
         if (deltaMs < 5000) return;
@@ -780,7 +786,6 @@ function calculateTRIMPIncrement() {
         p.trimpPoints += increment;
         p.queimaPoints = Math.round(p.trimpPoints);
 
-        // Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
         p.lastSampleTime = now;
@@ -795,8 +800,9 @@ function calculateTRIMPIncrement() {
 function updateVO2Time() {
     const now = Date.now();
 
-    participants.forEach(p => {
-        if (!p.connected || p.hr <= 40 || !p.maxHR) return;
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
 
         const percentMax = (p.hr / p.maxHR) * 100;
         const isInVO2Zone = percentMax >= 92;
@@ -851,14 +857,16 @@ async function autoEndClass() {
 
     console.log(`[DEBUG FINALIZAR] wodStartTime: ${wodStartTime}, duration: ${durationMinutes} min`);
 
-    // Atualiza FC média
-    participants.forEach(p => {
-        p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
+    // Atualiza FC média apenas dos ativos
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (p) p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
 
-    // Calcular FC de repouso dinâmica para cada aluno - RELAXADO PARA ≥1 AMOSTRA VÁLIDA
-    for (const p of participants) {
-        if (p.id && currentSessionId) {
+    // Calcular FC de repouso dinâmica para cada aluno ativo - RELAXADO PARA ≥1 AMOSTRA VÁLIDA
+    for (const id of activeParticipants) {
+        const p = participants.find(p => p.id === id);
+        if (p && p.id && currentSessionId) {
             const restingSamples = await db.restingHrMeasurements
                 .where('[participantId+sessionId]')
                 .equals([p.id, currentSessionId])
@@ -866,7 +874,7 @@ async function autoEndClass() {
 
             console.log(`[DEBUG FC REPOUSO] Aluno ${p.name} (ID ${p.id}): ${restingSamples.length} amostras totais na sessão ${currentSessionId}`);
 
-            if (restingSamples.length >= 1) {  // RELAXADO: ≥1 ao invés de ≥3
+            if (restingSamples.length >= 1) {
                 const validHRs = restingSamples
                     .map(s => s.hrValue)
                     .filter(v => v >= 30 && v <= 120);
@@ -886,16 +894,19 @@ async function autoEndClass() {
         }
     }
 
-    // EPOC melhorado (kcal) - modelo aproximado baseado em literatura
-    participants.forEach(p => {
-        const timeHighZone = (p.minOrange || 0) + (p.minRed || 0); // minutos > ~85%
-        const intensityFactor = p.maxHR ? (p.avg_hr / p.maxHR) : 0.8; // intensidade relativa
-        const baseEPOC = timeHighZone * 6 * intensityFactor; // ~6 kcal/min em zona alta
-        const trimpBonus = (p.trimpPoints || 0) * 0.15; // bônus por carga TRIMP
-        const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15; // 15 kcal por minuto VO2
+    // EPOC apenas para ativos
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (p) {
+            const timeHighZone = (p.minOrange || 0) + (p.minRed || 0);
+            const intensityFactor = p.maxHR ? (p.avg_hr / p.maxHR) : 0.8;
+            const baseEPOC = timeHighZone * 6 * intensityFactor;
+            const trimpBonus = (p.trimpPoints || 0) * 0.15;
+            const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15;
 
-        p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
-        console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
+            p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
+            console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
+        }
     });
 
     if (currentActiveClassName === "Aula Manual") {
@@ -903,11 +914,12 @@ async function autoEndClass() {
     }
 
     // Log debug para verificar calorias antes de enviar
-    participants.forEach(p => {
-        console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (p) console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
     });
 
-    const participantsData = participants.filter(p => p.id).map(p => {
+    const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => {
         console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}, real_resting_hr=${p.real_resting_hr || 'null'}`);
         return {
             participantId: p.id,
@@ -918,12 +930,12 @@ async function autoEndClass() {
             min_yellow: Math.round(p.minYellow || 0),
             min_orange: Math.round(p.minOrange || 0),
             min_red: Math.round(p.minRed || 0),
-            trimp_total: Number(p.trimpPoints.toFixed(2)), // mantido com 2 casas
+            trimp_total: Number(p.trimpPoints.toFixed(2)),
             calories_total: Math.round(p.calories || 0),
             vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
             epoc_estimated: p.epocEstimated || 0,
             max_hr_reached: p.maxHRReached || null,
-            real_resting_hr: p.real_resting_hr || null  // mantido null se não calculou
+            real_resting_hr: p.real_resting_hr || null
         };
     });
 
@@ -936,7 +948,6 @@ async function autoEndClass() {
         participantsData
     };
 
-    // Pergunta se quer salvar (já tem)
     const confirmarSalvar = confirm("Aula finalizada. Deseja salvar os dados no banco agora?\n\n(Sim = salva normalmente)\n(Não = descarta esta aula, útil para testes)");
 
     if (!confirmarSalvar) {
@@ -945,6 +956,7 @@ async function autoEndClass() {
         
         currentActiveClassName = "";
         isManualClass = false;
+        activeParticipants = []; // limpa seleção
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
@@ -1008,6 +1020,7 @@ async function autoEndClass() {
 
         currentActiveClassName = "";
         isManualClass = false;
+        activeParticipants = []; // limpa seleção após finalizar
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
@@ -1078,28 +1091,67 @@ function renderLastSessionSummary() {
 }
 
 function renderParticipantList() {
-    const list = document.getElementById('participantList');
-    if (!list) return;
-    list.innerHTML = '';
+    const container = document.getElementById('participantListContainer');
+    if (!container) return;
 
-    participants.forEach((p, index) => {
-        const emailInfo = p.email ? `<br>📧 ${p.email}` : '';
-        const deviceInfo = p.deviceName ? `📱 ${p.deviceName}` : (p.deviceId ? `📱 ID salvo` : 'Sem pulseira');
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span class="participant-info">
-                ${p.name} (${p.age || '--'} anos, ${p.weight || '--'}kg${p.heightCm ? `, ${p.heightCm}cm` : ''}${p.gender ? `, ${p.gender}` : ''})${emailInfo} — ${deviceInfo}
-            </span>
-            <div class="participant-actions">
-                <button class="edit-btn" onclick="editParticipant(${p.id})">✏️ Editar</button>
-                <button class="delete-btn" onclick="deleteParticipant(${p.id})">🗑️ Excluir</button>
-            </div>
+    container.innerHTML = '<h2>Alunos Cadastrados</h2><p>Marque quem vai participar da próxima aula:</p>';
+
+    const table = document.createElement('table');
+    table.id = 'participantTable';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Participar</th>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Peso (kg)</th>
+                <th>Altura (cm)</th>
+                <th>Gênero</th>
+                <th>Email</th>
+                <th>Pulseira</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    participants.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
+            <td>${p.name}</td>
+            <td>${p.age || '--'}</td>
+            <td>${p.weight || '--'}</td>
+            <td>${p.heightCm || '--'}</td>
+            <td>${p.gender || '--'}</td>
+            <td>${p.email || '--'}</td>
+            <td>${p.deviceName ? `📱 ${p.deviceName}` : (p.deviceId ? `📱 ID salvo` : 'Sem pulseira')}</td>
+            <td class="action-buttons">
+                <button class="edit-btn" onclick="editParticipant(${p.id})">Editar</button>
+                <button class="delete-btn" onclick="deleteParticipant(${p.id})">Excluir</button>
+            </td>
         `;
-        list.appendChild(li);
+        tbody.appendChild(tr);
+    });
+
+    container.appendChild(table);
+
+    // Salvar seleção ao mudar checkbox
+    document.querySelectorAll('.participant-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const id = Number(cb.dataset.id);
+            if (cb.checked) {
+                if (!activeParticipants.includes(id)) activeParticipants.push(id);
+            } else {
+                activeParticipants = activeParticipants.filter(i => i !== id);
+            }
+            console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
+        });
     });
 
     if (participants.length === 0) {
-        list.innerHTML = '<li>Nenhum aluno cadastrado ainda.</li>';
+        container.innerHTML += '<p style="color:#888;">Nenhum aluno cadastrado ainda.</p>';
     }
 }
 
@@ -1130,8 +1182,11 @@ function updateQueimaCaloriesAndTimer() {
     }
 
     const now = Date.now();
-    participants.forEach(p => {
-        if (p.connected && p.hr > 0) {
+
+    // Processa apenas os alunos selecionados
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (p && p.connected && p.hr > 0) {
             if (p.hr > (p.maxHRReached || 0)) p.maxHRReached = p.hr;
             if (p.hr > (p.todayMaxHR || 0)) p.todayMaxHR = p.hr;
             if (p.todayMaxHR > (p.historicalMaxHR || 0)) {
@@ -1177,7 +1232,8 @@ function renderTiles() {
     const container = document.getElementById('participants');
     if (!container) return;
 
-    const activeOnScreen = participants.filter(p => p.connected || (p.hr > 0));
+    // Só mostra tiles dos alunos selecionados
+    const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
     const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
     
     container.innerHTML = '';
@@ -1240,8 +1296,10 @@ function renderTiles() {
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
     reconnectInterval = setInterval(() => {
-        participants.forEach(p => {
-            if (p.device && !p.connected) {
+        // Reconecta apenas os selecionados
+        activeParticipants.forEach(id => {
+            const p = participants.find(p => p.id === id);
+            if (p && p.device && !p.connected) {
                 console.log(`Tentando reconectar ${p.name} (${p.deviceName || 'sem nome'})`);
                 connectDevice(p.device, true).catch(e => console.log("Falha reconexão:", e));
             }
@@ -1292,7 +1350,7 @@ async function connectDevice(device, isReconnect = false) {
             }
 
             // Salvar medição de repouso nos primeiros 3 minutos da aula
-            if (currentSessionId && (Date.now() - wodStartTime) <= 180000) {  // 180 segundos = 3 minutos
+            if (currentSessionId && (Date.now() - wodStartTime) <= 180000) {
                 saveRestingHRSample(p.id, currentSessionId, hr);
             }
 
@@ -1325,13 +1383,16 @@ async function connectDevice(device, isReconnect = false) {
 // ── RANKINGS ────────────────────────────────────────────────────────────────────
 function updateLeaderboard() {
     if (!participants.length) return;
-    const l = participants.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
+    const active = participants.filter(p => activeParticipants.includes(p.id));
+    if (!active.length) return;
+    const l = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
     const el = document.getElementById('leaderboard-top');
     if (el) el.textContent = `Líder Aula: ${l.name || '--'} (${Math.round(l.queimaPoints || 0)} PTS)`;
 }
 
 function updateVO2Leaderboard() {
-    const topVO2 = [...participants]
+    const active = participants.filter(p => activeParticipants.includes(p.id));
+    const topVO2 = active
         .filter(p => p.vo2TimeSeconds >= 60)
         .sort((a, b) => b.vo2TimeSeconds - a.vo2TimeSeconds)
         .slice(0, 5);
@@ -1468,7 +1529,8 @@ function saveDailyLeader() {
 }
 
 function updateDailyLeader() {
-    const best = participants.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
+    const active = participants.filter(p => activeParticipants.includes(p.id));
+    const best = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
     if (best.queimaPoints > dailyLeader.queimaPoints) {
         dailyLeader.name = best.name;
         dailyLeader.queimaPoints = Math.round(best.queimaPoints);
@@ -1497,7 +1559,8 @@ function saveDailyCaloriesLeader() {
 }
 
 function updateDailyCaloriesLeader() {
-    const best = participants.reduce((a, b) => (b.calories || 0) > (a.calories || 0) ? b : a, {calories:0});
+    const active = participants.filter(p => activeParticipants.includes(p.id));
+    const best = active.reduce((a, b) => (b.calories || 0) > (a.calories || 0) ? b : a, {calories:0});
     if (best.calories > (dailyCaloriesLeader.calories || 0)) {
         dailyCaloriesLeader.name = best.name;
         dailyCaloriesLeader.calories = Math.round(best.calories);
@@ -1532,7 +1595,8 @@ function renderWeeklyRankings() {
 
     caloriasEl.innerHTML = calorias.length ? calorias.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${Math.round(x.c)} kcal</strong></div>`).join('') : 'Nenhum dado ainda';
 
-    const topVO2 = [...participants]
+    const active = participants.filter(p => activeParticipants.includes(p.id));
+    const topVO2 = active
         .filter(p => p.vo2TimeSeconds >= 60)
         .sort((a, b) => b.vo2TimeSeconds - a.vo2TimeSeconds)
         .slice(0,5);
