@@ -856,36 +856,35 @@ async function autoEndClass() {
         p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
 
-    // Calcular FC de repouso dinâmica para cada aluno - COM LOGS EXTRAS
     // Calcular FC de repouso dinâmica para cada aluno - RELAXADO PARA ≥1 AMOSTRA VÁLIDA
-for (const p of participants) {
-    if (p.id && currentSessionId) {
-        const restingSamples = await db.restingHrMeasurements
-            .where('[participantId+sessionId]')
-            .equals([p.id, currentSessionId])
-            .toArray();
+    for (const p of participants) {
+        if (p.id && currentSessionId) {
+            const restingSamples = await db.restingHrMeasurements
+                .where('[participantId+sessionId]')
+                .equals([p.id, currentSessionId])
+                .toArray();
 
-        console.log(`[DEBUG FC REPOUSO] Aluno ${p.name} (ID ${p.id}): ${restingSamples.length} amostras totais na sessão ${currentSessionId}`);
+            console.log(`[DEBUG FC REPOUSO] Aluno ${p.name} (ID ${p.id}): ${restingSamples.length} amostras totais na sessão ${currentSessionId}`);
 
-        if (restingSamples.length >= 1) {  // RELAXADO: ≥1 ao invés de ≥3
-            const validHRs = restingSamples
-                .map(s => s.hrValue)
-                .filter(v => v >= 30 && v <= 120);
+            if (restingSamples.length >= 1) {  // RELAXADO: ≥1 ao invés de ≥3
+                const validHRs = restingSamples
+                    .map(s => s.hrValue)
+                    .filter(v => v >= 30 && v <= 120);
 
-            console.log(`[DEBUG FC REPOUSO] Aluno ${p.name}: ${validHRs.length} amostras válidas (30-120 bpm)`);
+                console.log(`[DEBUG FC REPOUSO] Aluno ${p.name}: ${validHRs.length} amostras válidas (30-120 bpm)`);
 
-            if (validHRs.length >= 1) {
-                const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
-                p.real_resting_hr = avgResting;
-                console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições válidas)`);
+                if (validHRs.length >= 1) {
+                    const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
+                    p.real_resting_hr = avgResting;
+                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições válidas)`);
+                } else {
+                    console.log(`[RESTING HR] Nenhuma amostra válida para ${p.name} (${validHRs.length})`);
+                }
             } else {
-                console.log(`[RESTING HR] Nenhuma amostra válida para ${p.name} (${validHRs.length})`);
+                console.log(`[RESTING HR] Nenhuma amostra para ${p.name} (${restingSamples.length})`);
             }
-        } else {
-            console.log(`[RESTING HR] Nenhuma amostra para ${p.name} (${restingSamples.length})`);
         }
     }
-}
 
     // EPOC melhorado (kcal) - modelo aproximado baseado em literatura
     participants.forEach(p => {
