@@ -1,106 +1,388 @@
-// Rota para ranking acumulado por aluno (total de todas as aulas)
-sessionsRouter.get('/participants/ranking-acumulado', async (req, res) => {
-    const { alunoId, inicio, fim } = req.query;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V6 WODPulse - Relatórios Avançado</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+    <link rel="stylesheet" href="report.css"> <!-- reuse seu css existente, se quiser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    let query = `
-        SELECT 
-            p.name AS aluno,
-            COUNT(DISTINCT sp.session_id) AS qtd_aulas,
-            SUM(sp.calories_total) AS total_calorias,
-            SUM(sp.vo2_time_seconds) AS total_vo2_seg,
-            AVG(sp.avg_hr) AS fc_media_geral,
-            MAX(sp.max_hr_reached) AS fc_max_geral,
-            SUM(sp.min_red) AS total_tempo_vermelho_min,
-            SUM(sp.queima_points) AS total_queima_points,
-            AVG(sp.trimp_total) AS trimp_medio,
-            AVG(sp.epoc_estimated) AS epoc_medio
-        FROM participants p
-        LEFT JOIN session_participants sp ON sp.participant_id = p.id
-        LEFT JOIN sessions s ON s.id = sp.session_id
-        WHERE 1=1
-    `;
-    const params = [];
-    let paramIndex = 1;
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #444;
+        }
+        h1 {
+            color: #FF9800;
+            margin: 0;
+        }
+        .filter-section {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 180px;
+        }
+        .filter-item label {
+            font-weight: bold;
+            color: #FF9800;
+        }
+        .filter-item input, .filter-item select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #252525;
+            color: white;
+            font-size: 1rem;
+        }
+        .filter-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .filter-btn:hover {
+            background: #388E3C;
+        }
+        .export-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .export-btn:hover {
+            background: #1976D2;
+        }
+        .section {
+            margin: 40px 0;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        h2 {
+            color: #FF9800;
+            margin-top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+        th {
+            background: #252525;
+            color: #FF9800;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #222;
+        }
+        tr:hover {
+            background: #333;
+        }
+        .highlight {
+            background: #2e4a2e !important;
+            font-weight: bold;
+        }
+        .top1 { background: #FFD70033 !important; }
+        .top2 { background: #C0C0C033 !important; }
+        .top3 { background: #CD7F3233 !important; }
+        #loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.3rem;
+            color: #FF9800;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                margin-bottom: 15px;
+                border: 1px solid #444;
+                border-radius: 8px;
+            }
+            td {
+                border: none;
+                border-bottom: 1px solid #444;
+                position: relative;
+                padding-left: 50%;
+            }
+            td:before {
+                position: absolute;
+                top: 12px;
+                left: 15px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #FF9800;
+            }
+            td:nth-of-type(1):before { content: "Aluno"; }
+            td:nth-of-type(2):before { content: "Aulas"; }
+            td:nth-of-type(3):before { content: "Total Calorias"; }
+            td:nth-of-type(4):before { content: "Total VO2 (seg)"; }
+            td:nth-of-type(5):before { content: "FC Média Geral"; }
+            td:nth-of-type(6):before { content: "FC Máx Geral"; }
+            td:nth-of-type(7):before { content: "Total Zona Vermelha"; }
+            td:nth-of-type(8):before { content: "Total Queima Points"; }
+            td:nth-of-type(9):before { content: "TRIMP Médio"; }
+            td:nth-of-type(10):before { content: "EPOC Médio"; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>V6 WODPulse - Relatórios Avançado</h1>
+            <button class="export-btn" onclick="exportToPDF()">Exportar PDF Completo</button>
+        </header>
 
-    if (alunoId) {
-        query += ` AND p.id = $${paramIndex}`;
-        params.push(alunoId);
-        paramIndex++;
-    }
-    if (inicio) {
-        query += ` AND s.date_start >= $${paramIndex}`;
-        params.push(inicio);
-        paramIndex++;
-    }
-    if (fim) {
-        query += ` AND s.date_start <= $${paramIndex}`;
-        params.push(fim);
-        paramIndex++;
-    }
+        <!-- Filtros -->
+        <section class="filter-section">
+            <div class="filter-item">
+                <label>Aluno:</label>
+                <select id="filter-aluno">
+                    <option value="">Todos os alunos</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Data inicial:</label>
+                <input type="date" id="filter-data-inicio">
+            </div>
+            <div class="filter-item">
+                <label>Data final:</label>
+                <input type="date" id="filter-data-fim">
+            </div>
+            <button class="filter-btn" onclick="carregarRelatorios()">Filtrar / Atualizar</button>
+        </section>
 
-    query += ` GROUP BY p.name ORDER BY total_calorias DESC`;
+        <!-- Loading -->
+        <div id="loading">Carregando dados do servidor...</div>
 
-    try {
-        const result = await pool.query(query, params);
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Erro ao buscar ranking acumulado' });
-    }
-});
+        <!-- Ranking Geral Acumulado (Top 10) -->
+        <div class="section">
+            <h2>Ranking Geral Acumulado (Top 10 - Todas as Aulas)</h2>
+            <table id="ranking-geral">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Aluno</th>
+                        <th>Aulas</th>
+                        <th>Total Calorias</th>
+                        <th>Total VO2 (seg)</th>
+                        <th>FC Média Geral</th>
+                        <th>FC Máx Geral</th>
+                        <th>Total Zona Vermelha (min)</th>
+                        <th>Total Queima Points</th>
+                        <th>TRIMP Médio</th>
+                        <th>EPOC Médio</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
-// Rota para histórico detalhado por aula
-sessionsRouter.get('/sessions/historico', async (req, res) => {
-    const { alunoId, inicio, fim } = req.query;
+        <!-- Histórico Detalhado por Aula -->
+        <div class="section">
+            <h2>Histórico Detalhado por Aula</h2>
+            <table id="historico-aulas">
+                <thead>
+                    <tr>
+                        <th>ID Sessão</th>
+                        <th>Aula</th>
+                        <th>Data Início</th>
+                        <th>Data Fim</th>
+                        <th>Duração (min)</th>
+                        <th>Aluno</th>
+                        <th>Calorias</th>
+                        <th>VO2 (seg)</th>
+                        <th>FC Média</th>
+                        <th>FC Máx</th>
+                        <th>Zona Vermelha (min)</th>
+                        <th>Queima Points</th>
+                        <th>TRIMP Total</th>
+                        <th>EPOC Estimado</th>
+                        <th>FC Repouso</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-    let query = `
-        SELECT 
-            s.id AS id_sessao,
-            s.class_name,
-            s.date_start,
-            s.date_end,
-            s.duration_minutes,
-            p.name AS aluno,
-            sp.calories_total,
-            sp.vo2_time_seconds,
-            sp.avg_hr,
-            sp.max_hr_reached,
-            sp.min_red,
-            sp.queima_points,
-            sp.trimp_total,
-            sp.epoc_estimated,
-            sp.real_resting_hr
-        FROM sessions s
-        JOIN session_participants sp ON sp.session_id = s.id
-        JOIN participants p ON p.id = sp.participant_id
-        WHERE 1=1
-    `;
-    const params = [];
-    let paramIndex = 1;
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
 
-    if (alunoId) {
-        query += ` AND p.id = $${paramIndex}`;
-        params.push(alunoId);
-        paramIndex++;
-    }
-    if (inicio) {
-        query += ` AND s.date_start >= $${paramIndex}`;
-        params.push(inicio);
-        paramIndex++;
-    }
-    if (fim) {
-        query += ` AND s.date_start <= $${paramIndex}`;
-        params.push(fim);
-        paramIndex++;
-    }
+        // Carrega lista de alunos no filtro ao abrir a página
+        window.addEventListener('load', async () => {
+            const select = document.getElementById('filter-aluno');
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/participants`);
+                const data = await response.json();
+                const alunos = data.participants || [];
+                alunos.sort((a,b) => a.name.localeCompare(b.name)).forEach(aluno => {
+                    const opt = document.createElement('option');
+                    opt.value = aluno.id;
+                    opt.textContent = aluno.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Erro ao carregar alunos:', err);
+            }
+            // Carrega dados iniciais (todos os alunos)
+            carregarRelatorios();
+        });
 
-    query += ` ORDER BY s.date_start DESC`;
+        async function carregarRelatorios() {
+            document.getElementById('loading').style.display = 'block';
 
-    try {
-        const result = await pool.query(query, params);
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Erro ao buscar histórico' });
-    }
-});
+            const alunoId = document.getElementById('filter-aluno').value;
+            const dataInicio = document.getElementById('filter-data-inicio').value;
+            const dataFim = document.getElementById('filter-data-fim').value;
+
+            try {
+                // 1. Ranking Acumulado (Top 10)
+                let urlRanking = `${API_BASE_URL}/api/participants/ranking-acumulado`;
+                if (alunoId) urlRanking += `?alunoId=${alunoId}`;
+                if (dataInicio) urlRanking += `${alunoId ? '&' : '?'}inicio=${dataInicio}`;
+                if (dataFim) urlRanking += `${(alunoId || dataInicio) ? '&' : '?'}fim=${dataFim}`;
+
+                const rankingRes = await fetch(urlRanking);
+                const ranking = await rankingRes.json();
+                renderRankingGeral(ranking);
+
+                // 2. Histórico Detalhado
+                let urlHistorico = `${API_BASE_URL}/api/sessions/historico`;
+                if (alunoId) urlHistorico += `?alunoId=${alunoId}`;
+                if (dataInicio) urlHistorico += `${alunoId ? '&' : '?'}inicio=${dataInicio}`;
+                if (dataFim) urlHistorico += `${(alunoId || dataInicio) ? '&' : '?'}fim=${dataFim}`;
+
+                const historicoRes = await fetch(urlHistorico);
+                const historico = await historicoRes.json();
+                renderHistoricoAulas(historico);
+            } catch (err) {
+                console.error('Erro ao carregar relatórios:', err);
+                alert('Erro ao carregar dados: ' + err.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderRankingGeral(data) {
+            const tbody = document.getElementById('ranking-geral').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                if (index === 0) tr.classList.add('top1', 'highlight');
+                if (index === 1) tr.classList.add('top2');
+                if (index === 2) tr.classList.add('top3');
+
+                tr.innerHTML = `
+                    <td>${index + 1}º</td>
+                    <td>${item.aluno}</td>
+                    <td>${item.qtd_aulas}</td>
+                    <td>${Math.round(item.total_calorias || 0)}</td>
+                    <td>${Math.round(item.total_vo2_seg || 0)}</td>
+                    <td>${Math.round(item.fc_media_geral || 0)}</td>
+                    <td>${Math.round(item.fc_max_geral || 0)}</td>
+                    <td>${Math.round(item.total_tempo_vermelho_min || 0)}</td>
+                    <td>${Math.round(item.total_queima_points || 0)}</td>
+                    <td>${item.trimp_medio ? item.trimp_medio.toFixed(2) : '0.00'}</td>
+                    <td>${item.epoc_medio ? item.epoc_medio.toFixed(2) : '0.00'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11">Nenhum dado encontrado com os filtros.</td></tr>';
+            }
+        }
+
+        function renderHistoricoAulas(data) {
+            const tbody = document.getElementById('historico-aulas').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id_sessao}</td>
+                    <td>${item.class_name || item.nome_aula || 'Aula'}</td>
+                    <td>${new Date(item.date_start).toLocaleString('pt-BR')}</td>
+                    <td>${new Date(item.date_end).toLocaleString('pt-BR')}</td>
+                    <td>${item.duration_minutes || 0}</td>
+                    <td>${item.aluno}</td>
+                    <td>${Math.round(item.calories_total || 0)}</td>
+                    <td>${Math.round(item.vo2_time_seconds || 0)}</td>
+                    <td>${Math.round(item.avg_hr || 0)}</td>
+                    <td>${Math.round(item.max_hr_reached || 0)}</td>
+                    <td>${Math.round(item.min_red || 0)}</td>
+                    <td>${Math.round(item.queima_points || 0)}</td>
+                    <td>${Math.round(item.trimp_total || 0)}</td>
+                    <td>${Math.round(item.epoc_estimated || 0)}</td>
+                    <td>${item.real_resting_hr || '--'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="15">Nenhum dado encontrado com os filtros.</td></tr>';
+            }
+        }
+
+        function exportToPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 1,
+                filename: 'Relatorio_Avancado_WODPulse_' + new Date().toLocaleDateString('pt-BR') + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
