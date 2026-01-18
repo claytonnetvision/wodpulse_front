@@ -17,7 +17,7 @@
             line-height: 1.6;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         header {
@@ -102,17 +102,27 @@
             padding: 12px 10px;
             text-align: center;
             border-bottom: 1px solid #444;
+            cursor: pointer;
         }
         th {
             background: #252525;
             color: #FF9800;
             font-weight: bold;
+            user-select: none;
+        }
+        th:hover {
+            background: #333;
         }
         tr:nth-child(even) {
             background: #222;
         }
         tr:hover {
             background: #333;
+        }
+        .red-zone {
+            background: #ff174433 !important;
+            font-weight: bold;
+            color: #ff1744;
         }
         .highlight {
             background: #2e4a2e !important;
@@ -171,7 +181,6 @@
                 color: #FF9800;
                 text-align: left;
             }
-            /* Labels para mobile */
             td:nth-of-type(1):before { content: "Pos"; }
             td:nth-of-type(2):before { content: "Aluno"; }
             td:nth-of-type(3):before { content: "Aulas"; }
@@ -202,6 +211,12 @@
                 </select>
             </div>
             <div class="filter-item">
+                <label>Nome da Aula:</label>
+                <select id="filter-aula">
+                    <option value="">Todas as aulas</option>
+                </select>
+            </div>
+            <div class="filter-item">
                 <label>Data inicial:</label>
                 <input type="date" id="filter-data-inicio">
             </div>
@@ -221,17 +236,17 @@
             <table id="ranking-geral">
                 <thead>
                     <tr>
-                        <th>Pos</th>
-                        <th>Aluno</th>
-                        <th>Aulas</th>
-                        <th>Total Calorias</th>
-                        <th>Total VO2 (seg)</th>
-                        <th>FC Média Geral</th>
-                        <th>FC Máx Geral</th>
-                        <th>Total Zona Vermelha (min)</th>
-                        <th>Total Queima Points</th>
-                        <th>TRIMP Médio</th>
-                        <th>EPOC Médio</th>
+                        <th data-sort="pos">Pos</th>
+                        <th data-sort="aluno">Aluno</th>
+                        <th data-sort="qtd_aulas">Aulas</th>
+                        <th data-sort="total_calorias">Total Calorias</th>
+                        <th data-sort="total_vo2_seg">Total VO2 (seg)</th>
+                        <th data-sort="fc_media_geral">FC Média Geral</th>
+                        <th data-sort="fc_max_geral">FC Máx Geral</th>
+                        <th data-sort="total_tempo_vermelho_min">Total Zona Vermelha (min)</th>
+                        <th data-sort="total_queima_points">Total Queima Points</th>
+                        <th data-sort="trimp_medio">TRIMP Médio</th>
+                        <th data-sort="epoc_medio">EPOC Médio</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -244,21 +259,21 @@
             <table id="historico-aulas">
                 <thead>
                     <tr>
-                        <th>ID Sessão</th>
-                        <th>Aula</th>
-                        <th>Data Início</th>
-                        <th>Data Fim</th>
-                        <th>Duração (min)</th>
-                        <th>Aluno</th>
-                        <th>Calorias</th>
-                        <th>VO2 (seg)</th>
-                        <th>FC Média</th>
-                        <th>FC Máx</th>
-                        <th>Zona Vermelha (min)</th>
-                        <th>Queima Points</th>
-                        <th>TRIMP Total</th>
-                        <th>EPOC Estimado</th>
-                        <th>FC Repouso</th>
+                        <th data-sort="id_sessao">ID Sessão</th>
+                        <th data-sort="class_name">Aula</th>
+                        <th data-sort="date_start">Data Início</th>
+                        <th data-sort="date_end">Data Fim</th>
+                        <th data-sort="duration_minutes">Duração (min)</th>
+                        <th data-sort="aluno">Aluno</th>
+                        <th data-sort="calories_total">Calorias</th>
+                        <th data-sort="vo2_time_seconds">VO2 (seg)</th>
+                        <th data-sort="avg_hr">FC Média</th>
+                        <th data-sort="max_hr_reached">FC Máx</th>
+                        <th data-sort="min_red" class="red-zone">Zona Vermelha (min)</th>
+                        <th data-sort="queima_points">Queima Points</th>
+                        <th data-sort="trimp_total">TRIMP Total</th>
+                        <th data-sort="epoc_estimated">EPOC Estimado</th>
+                        <th data-sort="real_resting_hr">FC Repouso</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -268,25 +283,43 @@
 
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        let rankingData = [];
+        let historicoData = [];
+        let sortDirection = {};
 
         // Carrega lista de alunos no filtro ao abrir a página
         window.addEventListener('load', async () => {
-            const select = document.getElementById('filter-aluno');
+            const selectAluno = document.getElementById('filter-aluno');
+            const selectAula = document.getElementById('filter-aula');
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/participants`);
-                if (!response.ok) throw new Error('Erro ao carregar alunos');
-                const data = await response.json();
-                const alunos = data.participants || data || [];
+                // Carrega alunos
+                const alunosRes = await fetch(`${API_BASE_URL}/api/participants`);
+                const alunosData = await alunosRes.json();
+                const alunos = alunosData.participants || [];
                 alunos.sort((a,b) => a.name.localeCompare(b.name)).forEach(aluno => {
                     const opt = document.createElement('option');
                     opt.value = aluno.id;
                     opt.textContent = aluno.name;
-                    select.appendChild(opt);
+                    selectAluno.appendChild(opt);
+                });
+
+                // Carrega aulas únicas (para filtro por nome de aula)
+                const aulasRes = await fetch(`${API_BASE_URL}/api/sessions`);
+                const aulasData = await aulasRes.json();
+                const aulas = aulasData.sessions || [];
+                const aulasUnicas = [...new Set(aulas.map(a => a.class_name))];
+                aulasUnicas.forEach(aula => {
+                    const opt = document.createElement('option');
+                    opt.value = aula;
+                    opt.textContent = aula;
+                    selectAula.appendChild(opt);
                 });
             } catch (err) {
-                console.error('Erro ao carregar alunos:', err);
+                console.error('Erro ao carregar filtros:', err);
             }
-            // Carrega dados iniciais (todos os alunos)
+
+            // Carrega dados iniciais
             carregarRelatorios();
         });
 
@@ -294,11 +327,12 @@
             document.getElementById('loading').style.display = 'block';
 
             const alunoId = document.getElementById('filter-aluno').value;
+            const aulaNome = document.getElementById('filter-aula').value;
             const dataInicio = document.getElementById('filter-data-inicio').value;
             const dataFim = document.getElementById('filter-data-fim').value;
 
             try {
-                // 1. Ranking Acumulado (Top 10)
+                // 1. Ranking Acumulado
                 let urlRanking = `${API_BASE_URL}/api/participants/ranking-acumulado`;
                 const params = [];
                 if (alunoId) params.push(`alunoId=${alunoId}`);
@@ -307,22 +341,23 @@
                 if (params.length > 0) urlRanking += '?' + params.join('&');
 
                 const rankingRes = await fetch(urlRanking);
-                if (!rankingRes.ok) throw new Error('Erro no ranking acumulado');
-                const ranking = await rankingRes.json();
-                renderRankingGeral(ranking);
+                if (!rankingRes.ok) throw new Error('Erro no ranking');
+                rankingData = await rankingRes.json();
+                renderRankingGeral(rankingData);
 
                 // 2. Histórico Detalhado
                 let urlHistorico = `${API_BASE_URL}/api/sessions/historico`;
                 const paramsHist = [];
                 if (alunoId) paramsHist.push(`alunoId=${alunoId}`);
+                if (aulaNome) paramsHist.push(`class_name=${encodeURIComponent(aulaNome)}`);
                 if (dataInicio) paramsHist.push(`inicio=${dataInicio}`);
                 if (dataFim) paramsHist.push(`fim=${dataFim}`);
                 if (paramsHist.length > 0) urlHistorico += '?' + paramsHist.join('&');
 
                 const historicoRes = await fetch(urlHistorico);
                 if (!historicoRes.ok) throw new Error('Erro no histórico');
-                const historico = await historicoRes.json();
-                renderHistoricoAulas(historico);
+                historicoData = await historicoRes.json();
+                renderHistoricoAulas(historicoData);
             } catch (err) {
                 console.error('Erro ao carregar relatórios:', err);
                 alert('Erro ao carregar dados: ' + err.message);
@@ -374,6 +409,8 @@
 
             data.forEach(item => {
                 const tr = document.createElement('tr');
+                if (item.min_red > 0) tr.classList.add('red-zone');
+
                 tr.innerHTML = `
                     <td>${item.id_sessao}</td>
                     <td>${item.class_name || 'Aula'}</td>
@@ -385,7 +422,7 @@
                     <td>${Math.round(item.vo2_time_seconds || 0)} s</td>
                     <td>${Math.round(item.avg_hr || 0)} bpm</td>
                     <td>${Math.round(item.max_hr_reached || 0)} bpm</td>
-                    <td>${Math.round(item.min_red || 0)} min</td>
+                    <td class="red-zone">${Math.round(item.min_red || 0)} min</td>
                     <td>${Math.round(item.queima_points || 0)} pts</td>
                     <td>${Math.round(item.trimp_total || 0)}</td>
                     <td>${Math.round(item.epoc_estimated || 0)} kcal</td>
@@ -394,6 +431,32 @@
                 tbody.appendChild(tr);
             });
         }
+
+        // Ordenação de colunas clicando no cabeçalho
+        document.querySelectorAll('#ranking-geral th[data-sort], #historico-aulas th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const tableId = th.closest('table').id;
+                const sortKey = th.dataset.sort;
+                const direction = sortDirection[sortKey] = sortDirection[sortKey] === 'asc' ? 'desc' : 'asc';
+
+                let data = tableId === 'ranking-geral' ? rankingData : historicoData;
+
+                data.sort((a, b) => {
+                    let valA = a[sortKey];
+                    let valB = b[sortKey];
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                if (tableId === 'ranking-geral') renderRankingGeral(data);
+                else renderHistoricoAulas(data);
+            });
+        });
 
         function exportToPDF() {
             const element = document.querySelector('.container');
