@@ -66,6 +66,19 @@
             font-size: 1.1rem;
             margin: 10px 0;
         }
+
+        /* Botão Iniciar Aula no topo - destaque */
+        #startScanBtn {
+            background: #FF5722;
+            color: white;
+            font-size: 1.3rem;
+            padding: 15px 30px;
+            margin: 15px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+        }
     </style>
 </head>
 <body>
@@ -108,6 +121,9 @@
             <h1>V6 WODPulse - Configurar Aula</h1>
             <button onclick="logout()" class="btn-logout">Sair</button>
             <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
+
+            <!-- Botão Iniciar Aula movido para o topo -->
+            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
             
             <div id="addParticipant">
                 <input type="text" id="nameInput" placeholder="Nome do Aluno">
@@ -120,11 +136,8 @@
                     <option value="F">Feminino</option>
                     <option value="O">Outro</option>
                 </select>
-                <!-- Removido o campo FC Repouso -->
+                <!-- Campo FC Repouso removido -->
                 <input type="email" id="emailInput" placeholder="Email (opcional)">
-                <label>
-                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
-                </label>
                 <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
 
@@ -153,15 +166,6 @@
                 <div id="summary-content"></div>
             </div>
 
-            <div id="checkins-section">
-                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
-                <p>Alunos com check-in hoje aparecerão aqui.</p>
-                <ul id="checkinsList">
-                    <li>(Integração pendente)</li>
-                </ul>
-            </div>
-
-            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
             <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
         </div>
 
