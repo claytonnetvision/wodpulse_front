@@ -780,7 +780,7 @@ function calculateTRIMPIncrement() {
         p.trimpPoints += increment;
         p.queimaPoints = Math.round(p.trimpPoints);
 
-        // NOVO: Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
+        // Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
         p.lastSampleTime = now;
@@ -835,7 +835,7 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
             hrValue,
             isValid: hrValue >= 30 && hrValue <= 120  // filtro simples
         });
-        console.log(`[RESTING HR] Medição salva: ${hrValue} bpm (participante ${participantId})`);
+        console.log(`[RESTING HR] Medição salva: ${hrValue} bpm (participante ${participantId}, sessão ${sessionId})`);
     } catch (err) {
         console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
     }
@@ -856,7 +856,7 @@ async function autoEndClass() {
         p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
 
-    // Calcular FC de repouso dinâmica para cada aluno
+    // Calcular FC de repouso dinâmica para cada aluno - COM LOGS EXTRAS
     for (const p of participants) {
         if (p.id && currentSessionId) {
             const restingSamples = await db.restingHrMeasurements
@@ -864,16 +864,24 @@ async function autoEndClass() {
                 .equals([p.id, currentSessionId])
                 .toArray();
 
+            console.log(`[DEBUG FC REPOUSO] Aluno ${p.name} (ID ${p.id}): ${restingSamples.length} amostras totais na sessão ${currentSessionId}`);
+
             if (restingSamples.length >= 3) {
                 const validHRs = restingSamples
                     .map(s => s.hrValue)
                     .filter(v => v >= 30 && v <= 120);
 
-                if (validHRs.length > 0) {
+                console.log(`[DEBUG FC REPOUSO] Aluno ${p.name}: ${validHRs.length} amostras válidas (30-120 bpm)`);
+
+                if (validHRs.length >= 3) {
                     const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
                     p.real_resting_hr = avgResting;
-                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições)`);
+                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições válidas)`);
+                } else {
+                    console.log(`[RESTING HR] Poucas amostras válidas para ${p.name} (${validHRs.length}) - não calculou`);
                 }
+            } else {
+                console.log(`[RESTING HR] Menos de 3 amostras para ${p.name} (${restingSamples.length}) - não calculou`);
             }
         }
     }
@@ -894,13 +902,13 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
-    // NOVO: Log debug para verificar calorias antes de enviar
+    // Log debug para verificar calorias antes de enviar
     participants.forEach(p => {
         console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
     });
 
     const participantsData = participants.filter(p => p.id).map(p => {
-        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}`);
+        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}, real_resting_hr=${p.real_resting_hr || 'null'}`);
         return {
             participantId: p.id,
             avg_hr: p.avg_hr,
@@ -910,11 +918,12 @@ async function autoEndClass() {
             min_yellow: Math.round(p.minYellow || 0),
             min_orange: Math.round(p.minOrange || 0),
             min_red: Math.round(p.minRed || 0),
-            trimp_total: Math.round(p.trimpPoints || 0),
+            trimp_total: Number(p.trimpPoints.toFixed(2)), // mantido com 2 casas
             calories_total: Math.round(p.calories || 0),
             vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
             epoc_estimated: p.epocEstimated || 0,
-            max_hr_reached: p.maxHRReached || null
+            max_hr_reached: p.maxHRReached || null,
+            real_resting_hr: p.real_resting_hr || null  // mantido null se não calculou
         };
     });
 
@@ -927,14 +936,13 @@ async function autoEndClass() {
         participantsData
     };
 
-    // NOVO: Pergunta se quer salvar (evita salvar em testes)
+    // Pergunta se quer salvar (já tem)
     const confirmarSalvar = confirm("Aula finalizada. Deseja salvar os dados no banco agora?\n\n(Sim = salva normalmente)\n(Não = descarta esta aula, útil para testes)");
 
     if (!confirmarSalvar) {
         console.log("[TEST MODE] Aula descartada pelo usuário - não enviada ao banco");
         alert("Aula descartada (não salva no banco). Útil para testes!");
         
-        // Volta para tela de setup sem salvar
         currentActiveClassName = "";
         isManualClass = false;
         document.getElementById('current-class-name').textContent = "Aula: --";
@@ -943,7 +951,6 @@ async function autoEndClass() {
         renderTiles();
         updateReconnectButtonVisibility();
 
-        // Pausa monitor automático
         autoClassMonitorActive = false;
         if (autoClassInterval) {
             clearInterval(autoClassInterval);
@@ -951,10 +958,9 @@ async function autoEndClass() {
             console.log("Monitor automático pausado");
         }
 
-        return;  // Sai da função sem salvar
+        return;
     }
 
-    // Se chegou aqui, o usuário confirmou → prossegue com o salvamento
     console.log("[SALVAR] Usuário confirmou salvamento da aula");
 
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
@@ -1008,7 +1014,6 @@ async function autoEndClass() {
         renderTiles();
         updateReconnectButtonVisibility();
 
-        // Pausa o monitor automático após sair da aula
         autoClassMonitorActive = false;
         if (autoClassInterval) {
             clearInterval(autoClassInterval);
