@@ -1304,6 +1304,17 @@ async function connectDevice(device, isReconnect = false) {
         p.lastSampleTime = p.lastSampleTime || Date.now();
         renderTiles();
         console.log(`Conectado com sucesso: ${p.name} (${p.hr || 'aguardando HR'})`);
+
+        // NOVO: Salvar FC repouso imediatamente na primeira conexão do aluno na sessão
+        if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {  // primeira conexão na sessão
+            if (p.hr >= 30 && p.hr <= 120) {
+                console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} na sessão ${currentSessionId} - salvando amostra inicial: ${p.hr} bpm`);
+                await saveRestingHRSample(p.id, currentSessionId, p.hr);
+            } else {
+                console.log(`[RESTING HR ON CONNECT] HR inicial inválido para ${p.name}: ${p.hr} bpm (fora de 30-120)`);
+            }
+        }
+
     } catch (e) {
         console.error("Erro ao conectar device:", e);
         p.connected = false;
