@@ -1,0 +1,14 @@
+{
+  "buildCommand": "cd treinos && pnpm install && pnpm build",
+  "outputDirectory": "treinos/dist",
+  "rewrites": [
+    {
+      "source": "/treinos/:path*",
+      "destination": "/treinos/dist/:path*"
+    },
+    {
+      "source": "/treinos",
+      "destination": "/treinos/dist/index.html"
+    }
+  ]
+}

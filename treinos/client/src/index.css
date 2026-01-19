@@ -1,0 +1,257 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Industrial Futurista: Neon + Preto Profundo */
+  --primary: #FF6B35;
+  --primary-foreground: #000000;
+  --secondary: #00D9FF;
+  --secondary-foreground: #000000;
+  --accent: #FFFFFF;
+  --accent-foreground: #000000;
+  --sidebar-primary: #FF6B35;
+  --sidebar-primary-foreground: #000000;
+  --chart-1: #FF6B35;
+  --chart-2: #00D9FF;
+  --chart-3: #FFD700;
+  --chart-4: #FF006E;
+  --chart-5: #00FF88;
+  
+  --radius: 0.5rem;
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
+  --popover: #0A0A0A;
+  --popover-foreground: #FFFFFF;
+  --secondary-bg: #1A1A1A;
+  --muted: #333333;
+  --muted-foreground: #AAAAAA;
+  --accent-alt: #00D9FF;
+  --accent-foreground-alt: #000000;
+  --destructive: #FF006E;
+  --destructive-foreground: #FFFFFF;
+  --border: #333333;
+  --input: #1A1A1A;
+  --ring: #FF6B35;
+  --sidebar: #000000;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-accent: #FF6B35;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #333333;
+  --sidebar-ring: #FF6B35;
+  
+  /* Animações Neon */
+  --glow-orange: 0 0 10px rgba(255, 107, 53, 0.6), 0 0 20px rgba(255, 107, 53, 0.3);
+  --glow-cyan: 0 0 10px rgba(0, 217, 255, 0.6), 0 0 20px rgba(0, 217, 255, 0.3);
+  --glow-intense: 0 0 20px rgba(255, 107, 53, 0.8), 0 0 40px rgba(255, 107, 53, 0.4);
+}
+
+/* Animações Customizadas */
+@keyframes neon-glow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 107, 53, 0.8), 0 0 40px rgba(255, 107, 53, 0.5);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.4), inset 0 0 10px rgba(255, 107, 53, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.8), inset 0 0 20px rgba(255, 107, 53, 0.2);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(255, 107, 53, 0.5);
+    box-shadow: inset 0 0 10px rgba(255, 107, 53, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 107, 53, 1);
+    box-shadow: inset 0 0 20px rgba(255, 107, 53, 0.2);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+  
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* Componentes Neon */
+  .neon-text {
+    animation: neon-glow 3s ease-in-out infinite;
+  }
+
+  .neon-border {
+    border: 2px solid rgba(255, 107, 53, 0.6);
+    animation: border-glow 3s ease-in-out infinite;
+  }
+
+  .neon-box {
+    background: rgba(255, 107, 53, 0.05);
+    border: 2px solid rgba(255, 107, 53, 0.4);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.2), inset 0 0 20px rgba(255, 107, 53, 0.05);
+  }
+
+  .neon-box-cyan {
+    background: rgba(0, 217, 255, 0.05);
+    border: 2px solid rgba(0, 217, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.2), inset 0 0 20px rgba(0, 217, 255, 0.05);
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  .slide-in-left {
+    animation: slide-in-left 0.6s ease-out;
+  }
+
+  .slide-in-right {
+    animation: slide-in-right 0.6s ease-out;
+  }
+
+  .fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+}

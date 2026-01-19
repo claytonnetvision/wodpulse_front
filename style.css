@@ -586,7 +586,36 @@ body {
     font-size: 1.1rem;
     margin-bottom: 20px;
 }
+/* ========================================
+   BOTÃO TREINOS - V6 CROSSFIT
+   ======================================== */
 
+.treinos-btn {
+    background: linear-gradient(135deg, #00D9FF, #00B8D4);
+    color: #000;
+    font-size: 1.1rem;
+    padding: 15px 30px;
+    margin: 10px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 400px;
+    font-weight: bold;
+    border: 2px solid #00D9FF;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+    text-align: center;
+}
+
+.treinos-btn:hover {
+    background: linear-gradient(135deg, #00B8D4, #0099AA);
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.treinos-btn:active {
+    transform: scale(0.98);
+}
 #login-result {
     margin-top: 20px;
     font-size: 1.2rem;
