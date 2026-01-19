@@ -1,8 +1,7 @@
 {
   "buildCommand": "cd treinos && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "treinos/dist",
-  "installCommand": "cd treinos && npm install --legacy-peer-deps"
-,
+  "installCommand": "cd treinos && npm install --legacy-peer-deps",
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
     "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
