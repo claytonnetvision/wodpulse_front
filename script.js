@@ -28,14 +28,14 @@ let weeklyHistory = { weekStart: "", participants: {} };
 let dailyLeader = { date: "", name: "", queimaPoints: 0 };
 let dailyCaloriesLeader = { date: "", name: "", calories: 0 };
 
-// Tabela de pontos (mantida por compatibilidade)
+// Tabela de pontos ajustada (valores por MINUTO - como você pediu)
 const pontosPorMinuto = {
     gray: 0,
     green: 0,
-    blue: 1,
-    yellow: 3,
-    orange: 7,
-    red: 12
+    blue: 0.01,
+    yellow: 0.02,
+    orange: 0.03,
+    red: 0.05
 };
 
 const classTimes = [
@@ -52,6 +52,9 @@ const classTimes = [
 
 // NOVO: Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
+
+// NOVO: Contador de segundos por zona (para somar pontos por minuto)
+let zoneSecondsCounter = {};
 
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
@@ -88,7 +91,7 @@ window.addEventListener('load', async () => {
     document.getElementById('resetWeeklyBtn')?.addEventListener('click', resetWeeklyRanking);
 
     document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        window.open('relatorios-avancado.html', '_blank');  // Atualizado para o relatório atual
+        window.open('relatorios-avancado.html', '_blank');
     });
 
     document.getElementById('reconnectDevicesBtn')?.addEventListener('click', async () => {
@@ -121,7 +124,6 @@ function stopAllTimersAndLoops() {
         clearInterval(hrSampleInterval);
         hrSampleInterval = null;
     }
-    // NOVO: Limpar timer de captura de FC repouso
     if (restingHRCaptureTimer) {
         clearTimeout(restingHRCaptureTimer);
         restingHRCaptureTimer = null;
@@ -164,7 +166,7 @@ function startRestingHRCapture() {
         } else {
             console.warn('[RESTING HR] Nenhuma HR válida 30-120 bpm após 60s');
         }
-    }, 60000);  // 60 segundos
+    }, 60000); // 60 segundos
 }
 
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
@@ -217,7 +219,8 @@ async function loadParticipantsFromBackend() {
             minGreen: 0,
             minBlue: 0,
             minYellow: 0,
-            realRestingHR: null  // NOVO
+            realRestingHR: null,
+            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 } // NOVO: contador por zona
         }));
 
         console.log(`Carregados ${participants.length} alunos do backend`);
@@ -310,7 +313,8 @@ window.addNewParticipantFromSetup = async function() {
             minGreen: 0,
             minBlue: 0,
             minYellow: 0,
-            realRestingHR: null  // NOVO
+            realRestingHR: null,
+            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }
         });
 
         renderParticipantList();
@@ -592,7 +596,8 @@ window.addParticipantDuringClass = async function() {
                 vo2GraceStart: null,
                 vo2StartTime: null,
                 vo2TimeSeconds: 0,
-                vo2LastUpdate: 0
+                vo2LastUpdate: 0,
+                zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }
             };
             participants.push(p);
         }
@@ -686,19 +691,20 @@ async function autoStartClass(className) {
             p.minGreen = 0;
             p.minBlue = 0;
             p.minYellow = 0;
-            p.realRestingHR = null; // reset
+            p.realRestingHR = null;
+            p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }; // reset contador
         }
     });
 
     wodStartTime = Date.now();
     currentSessionId = null;
 
-    // NOVO: Iniciar captura de FC repouso
+    // Iniciar captura de FC repouso
     startRestingHRCapture();
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
-    // CORREÇÃO: Reconexão automática robusta
+    // Reconexão automática robusta
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
@@ -831,21 +837,16 @@ function updateReconnectButtonVisibility() {
 function calculateTRIMPIncrement() {
     const now = Date.now();
 
-    console.log('[TRIMP INTERVAL] Ciclo iniciado - alunos ativos:', activeParticipants.length);
-
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) {
-            console.log('[TRIMP SKIP] Aluno pulado:', p?.name || id, '- connected:', p?.connected, 'hr:', p?.hr);
-            return;
-        }
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
 
         const deltaMs = now - p.lastSampleTime;
         if (deltaMs < 5000) return;
 
         const deltaMin = deltaMs / 60000;
 
-        const resting = Number(p.realRestingHR || p.restingHR) || 60; // Usa o capturado se disponível
+        const resting = Number(p.realRestingHR || p.restingHR) || 60;
         const hrr = p.maxHR - resting;
         if (hrr <= 0) return;
 
@@ -859,10 +860,7 @@ function calculateTRIMPIncrement() {
         const increment = deltaMin * ratio * factor * weight * 0.00008;
 
         p.trimpPoints += increment;
-
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
-
-        console.log(`[TRIMP DEBUG] ${p.name} | deltaMin:${deltaMin.toFixed(3)} | hr:${p.hr} | resting:${resting} | ratio:${ratio.toFixed(3)} | factor:${factor.toFixed(3)} | increment:${increment.toFixed(4)} | total TRIMP:${p.trimpPoints.toFixed(2)}`);
 
         p.lastSampleTime = now;
     });
@@ -1010,7 +1008,7 @@ async function autoEndClass() {
             vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
             epoc_estimated: p.epocEstimated || 0,
             max_hr_reached: p.maxHRReached || null,
-            real_resting_hr: p.realRestingHR || p.restingHR || null  // CORREÇÃO: usa o capturado
+            real_resting_hr: p.realRestingHR || p.restingHR || null
         };
     });
 
@@ -1070,7 +1068,7 @@ async function autoEndClass() {
 
         currentActiveClassName = "";
         isManualClass = false;
-        activeParticipants = []; // limpa seleção após finalizar
+        activeParticipants = [];
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
@@ -1258,6 +1256,30 @@ function updateQueimaCaloriesAndTimer() {
             const percent = Math.round((p.hr / p.maxHR) * 100);
             const zone = getZone(percent);
 
+            // Contador de segundos na zona
+            if (!p.zoneSeconds) p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
+            p.zoneSeconds[zone] += 1;
+
+            // Incremento de pontos a cada 60 segundos na zona
+            if (p.zoneSeconds[zone] >= 60) {
+                let pontosThisMinute = pontosPorMinuto[zone] || 0;
+
+                // Penalidade se >3 minutos em red
+                if (zone === 'red' && (p.minRed || 0) > 3) {
+                    pontosThisMinute *= 0.5;
+                    console.log(`[QUEIMA MINUTO] ${p.name} - Penalidade red >3min → ${pontosThisMinute.toFixed(4)} pts/min`);
+                }
+
+                // Bônus TRIMP ×10
+                const trimpBonus = p.trimpPoints > 0 ? p.trimpPoints * 10 : 0;
+
+                p.queimaPoints += pontosThisMinute + trimpBonus;
+
+                console.log(`[QUEIMA MINUTO] ${p.name} | Zona:${zone} | +${pontosThisMinute.toFixed(4)} pts | TRIMP bonus:${trimpBonus.toFixed(2)} | Total:${p.queimaPoints.toFixed(2)}`);
+
+                p.zoneSeconds[zone] = 0;
+            }
+
             if (zone === 'gray') p.minGray = (p.minGray || 0) + 1/60;
             if (zone === 'green') p.minGreen = (p.minGreen || 0) + 1/60;
             if (zone === 'blue') p.minBlue = (p.minBlue || 0) + 1/60;
@@ -1277,13 +1299,6 @@ function updateQueimaCaloriesAndTimer() {
 
             p.lastZone = zone;
             p.lastUpdate = now;
-
-            // NOVO: Incremento correto de queimaPoints baseado em zona
-            const pontosThisCycle = pontosPorMinuto[zone] || 0;
-            p.queimaPoints = (p.queimaPoints || 0) + pontosThisCycle;
-
-            // DEPURAÇÃO: Log completo
-            console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total queima:${p.queimaPoints}`);
         }
     });
 
@@ -1368,7 +1383,6 @@ function startReconnectLoop() {
             const p = participants.find(p => p.id === id);
             if (p && p.deviceId && !p.connected) {
                 console.log(`Tentando reconectar ${p.name} (${p.deviceName || 'sem nome'})`);
-                // Nova lógica: pedir device novamente
                 navigator.bluetooth.requestDevice({
                     filters: [{ services: ['heart_rate'] }],
                     optionalServices: ['heart_rate']
@@ -1464,7 +1478,7 @@ function updateLeaderboard() {
     if (!active.length) return;
     const l = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
     const el = document.getElementById('leaderboard-top');
-    if (el) el.textContent = `Líder Aula: ${l.name || '--'} (${Math.round(l.queimaPoints || 0)} PTS)`;
+    if (el) el.textContent = `Líder Aula: ${l.name || '--'} (${l.queimaPoints.toFixed(2)} PTS)`;
 }
 
 function updateVO2Leaderboard() {
@@ -1508,7 +1522,7 @@ function showFullRanking() {
         .sort((a,b)=>b.p-a.p);
 
     queimaFull.forEach((item, i) => {
-        html += `<tr><td>${i+1}º</td><td>${item.n}</td><td>${Math.round(item.p)}</td></tr>`;
+        html += `<tr><td>${i+1}º</td><td>${item.n}</td><td>${item.p.toFixed(2)}</td></tr>`;
     });
     html += '</table>';
 
@@ -1574,7 +1588,7 @@ function updateWeeklyTotals() {
     participants.forEach(p => {
         if (p.queimaPoints > 0 || p.calories > 0) {
             if (!weeklyHistory.participants[p.name]) weeklyHistory.participants[p.name] = { totalQueimaPontos: 0, totalCalorias: 0 };
-            weeklyHistory.participants[p.name].totalQueimaPontos += Math.round(p.queimaPoints);
+            weeklyHistory.participants[p.name].totalQueimaPontos += p.queimaPoints;
             weeklyHistory.participants[p.name].totalCalorias += Math.round(p.calories);
         }
     });
@@ -1610,7 +1624,7 @@ function updateDailyLeader() {
     const best = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
     if (best.queimaPoints > dailyLeader.queimaPoints) {
         dailyLeader.name = best.name;
-        dailyLeader.queimaPoints = Math.round(best.queimaPoints);
+        dailyLeader.queimaPoints = best.queimaPoints;
         saveDailyLeader();
     }
     renderDailyLeader();
@@ -1618,7 +1632,7 @@ function updateDailyLeader() {
 
 function renderDailyLeader() {
     const el = document.getElementById('daily-leader');
-    if (el) el.textContent = dailyLeader.name ? `Campeão do Dia: ${dailyLeader.name} - ${dailyLeader.queimaPoints} PTS` : "Campeão do Dia: --";
+    if (el) el.textContent = dailyLeader.name ? `Campeão do Dia: ${dailyLeader.name} - ${dailyLeader.queimaPoints.toFixed(2)} PTS` : "Campeão do Dia: --";
 }
 
 function loadDailyCaloriesLeader() {
@@ -1663,7 +1677,7 @@ function renderWeeklyRankings() {
         .sort((a,b)=>b.p-a.p)
         .slice(0,5);
 
-    queimaEl.innerHTML = queima.length ? queima.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${Math.round(x.p)}</strong></div>`).join('') : 'Nenhum dado ainda';
+    queimaEl.innerHTML = queima.length ? queima.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${x.p.toFixed(2)}</strong></div>`).join('') : 'Nenhum dado ainda';
 
     const calorias = Object.entries(weeklyHistory.participants)
         .map(([n, d]) => ({n, c: d.totalCalorias || 0}))
