@@ -28,7 +28,7 @@ let weeklyHistory = { weekStart: "", participants: {} };
 let dailyLeader = { date: "", name: "", queimaPoints: 0 };
 let dailyCaloriesLeader = { date: "", name: "", calories: 0 };
 
-// Tabela de pontos antiga (mantida por compatibilidade)
+// Tabela de pontos (mantida por compatibilidade)
 const pontosPorMinuto = {
     gray: 0,
     green: 0,
@@ -49,6 +49,9 @@ const classTimes = [
     { name: "Aula das 18:00", start: "18:00", end: "19:00" },
     { name: "Aula das 19:00", start: "19:00", end: "20:00" }
 ];
+
+// NOVO: Timer para captura de FC repouso após 60 segundos
+let restingHRCaptureTimer = null;
 
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
@@ -85,7 +88,7 @@ window.addEventListener('load', async () => {
     document.getElementById('resetWeeklyBtn')?.addEventListener('click', resetWeeklyRanking);
 
     document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        window.open('report.html', '_blank');
+        window.open('relatorios-avancado.html', '_blank');  // Atualizado para o relatório atual
     });
 
     document.getElementById('reconnectDevicesBtn')?.addEventListener('click', async () => {
@@ -118,6 +121,50 @@ function stopAllTimersAndLoops() {
         clearInterval(hrSampleInterval);
         hrSampleInterval = null;
     }
+    // NOVO: Limpar timer de captura de FC repouso
+    if (restingHRCaptureTimer) {
+        clearTimeout(restingHRCaptureTimer);
+        restingHRCaptureTimer = null;
+    }
+}
+
+// NOVO: Captura FC repouso após 60 segundos
+function startRestingHRCapture() {
+    if (restingHRCaptureTimer) clearTimeout(restingHRCaptureTimer);
+
+    console.log('[RESTING HR] Agendando captura em 60 segundos');
+
+    restingHRCaptureTimer = setTimeout(() => {
+        console.log('[RESTING HR] === CAPTURA EXECUTANDO ===');
+
+        let minHR = Infinity;
+        let capturedCount = 0;
+        let capturedDetails = [];
+
+        activeParticipants.forEach(id => {
+            const p = participants.find(part => part.id === id);
+            if (p && p.connected && p.hr >= 30 && p.hr <= 120) {
+                if (p.hr < minHR) minHR = p.hr;
+                capturedCount++;
+                capturedDetails.push({ name: p.name, hr: p.hr });
+            }
+        });
+
+        if (capturedCount > 0 && minHR !== Infinity) {
+            const restingValue = Math.round(minHR);
+            console.log(`[RESTING HR] Captura OK: ${restingValue} bpm (${capturedCount} medições)`, capturedDetails);
+
+            activeParticipants.forEach(id => {
+                const p = participants.find(part => part.id === id);
+                if (p) {
+                    p.realRestingHR = restingValue;
+                    p.restingHR = restingValue;
+                }
+            });
+        } else {
+            console.warn('[RESTING HR] Nenhuma HR válida 30-120 bpm após 60s');
+        }
+    }, 60000);  // 60 segundos
 }
 
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
@@ -169,7 +216,8 @@ async function loadParticipantsFromBackend() {
             minGray: 0,
             minGreen: 0,
             minBlue: 0,
-            minYellow: 0
+            minYellow: 0,
+            realRestingHR: null  // NOVO
         }));
 
         console.log(`Carregados ${participants.length} alunos do backend`);
@@ -261,7 +309,8 @@ window.addNewParticipantFromSetup = async function() {
             minGray: 0,
             minGreen: 0,
             minBlue: 0,
-            minYellow: 0
+            minYellow: 0,
+            realRestingHR: null  // NOVO
         });
 
         renderParticipantList();
@@ -637,21 +686,42 @@ async function autoStartClass(className) {
             p.minGreen = 0;
             p.minBlue = 0;
             p.minYellow = 0;
+            p.realRestingHR = null; // reset
         }
     });
 
     wodStartTime = Date.now();
     currentSessionId = null;
 
+    // NOVO: Iniciar captura de FC repouso
+    startRestingHRCapture();
+
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
+    // CORREÇÃO: Reconexão automática robusta
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
-            console.log(`Forçando reconexão imediata para ${p.name} (${p.deviceName})`);
-            await connectDevice({ id: p.deviceId, name: p.deviceName }, true).catch(e => {
-                console.log(`Falha na reconexão imediata de ${p.name}:`, e);
-            });
+            console.log(`Tentando reconexão automática para ${p.name} (ID salvo: ${p.deviceId})`);
+
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['heart_rate'] }],
+                    optionalServices: ['heart_rate']
+                });
+
+                if (device.id === p.deviceId) {
+                    p.device = device;
+                    await connectDevice(device, true);
+                    console.log(`Reconectado automaticamente: ${p.name}`);
+                } else {
+                    console.log(`Device errado selecionado para ${p.name}. Esperado: ${p.deviceId}, recebido: ${device.id}`);
+                    alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
+                }
+            } catch (e) {
+                console.error(`Falha na reconexão automática de ${p.name}:`, e);
+                document.getElementById('authorizeReconnectBtn')?.classList.remove('hidden');
+            }
         }
     }
 
@@ -685,11 +755,21 @@ async function tryAutoReconnectSavedDevices() {
 
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
-        if (p && p.device && !p.connected) {
+        if (p && p.deviceId && !p.connected) {
             try {
-                console.log(`Reconectando ${p.name} (${p.deviceName})`);
-                await connectDevice(p.device, true);
-                connectedCount++;
+                console.log(`Reconectando ${p.name} (${p.deviceName || p.deviceId})`);
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['heart_rate'] }],
+                    optionalServices: ['heart_rate']
+                });
+
+                if (device.id === p.deviceId) {
+                    p.device = device;
+                    await connectDevice(device, true);
+                    connectedCount++;
+                } else {
+                    console.log(`Device errado selecionado`);
+                }
             } catch (e) {
                 console.log(`Falha na reconexão de ${p.name}:`, e);
                 document.getElementById('authorizeReconnectBtn')?.classList.remove('hidden');
@@ -710,7 +790,7 @@ async function reconnectAllSavedDevices() {
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
-            console.log(`Tentando reconectar ${p.name} (${p.deviceName || p.deviceId})`);
+            console.log(`Tentando reconectar ${p.name} (ID salvo: ${p.deviceId})`);
             try {
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [{ services: ['heart_rate'] }],
@@ -723,11 +803,12 @@ async function reconnectAllSavedDevices() {
                     connectedCount++;
                     console.log(`Reconectado manualmente: ${p.name}`);
                 } else {
-                    console.log(`Device errado selecionado`);
+                    console.log(`Device errado selecionado para ${p.name}`);
                     failedCount++;
+                    alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
                 }
             } catch (e) {
-                console.log(`Falha ao reconectar ${p.name}:`, e);
+                console.error(`Falha ao reconectar ${p.name}:`, e);
                 failedCount++;
             }
         }
@@ -750,16 +831,21 @@ function updateReconnectButtonVisibility() {
 function calculateTRIMPIncrement() {
     const now = Date.now();
 
+    console.log('[TRIMP INTERVAL] Ciclo iniciado - alunos ativos:', activeParticipants.length);
+
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) {
+            console.log('[TRIMP SKIP] Aluno pulado:', p?.name || id, '- connected:', p?.connected, 'hr:', p?.hr);
+            return;
+        }
 
         const deltaMs = now - p.lastSampleTime;
         if (deltaMs < 5000) return;
 
         const deltaMin = deltaMs / 60000;
 
-        const resting = Number(p.restingHR) || 60;
+        const resting = Number(p.realRestingHR || p.restingHR) || 60; // Usa o capturado se disponível
         const hrr = p.maxHR - resting;
         if (hrr <= 0) return;
 
@@ -773,9 +859,10 @@ function calculateTRIMPIncrement() {
         const increment = deltaMin * ratio * factor * weight * 0.00008;
 
         p.trimpPoints += increment;
-        p.queimaPoints = Math.round(p.trimpPoints);
 
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
+
+        console.log(`[TRIMP DEBUG] ${p.name} | deltaMin:${deltaMin.toFixed(3)} | hr:${p.hr} | resting:${resting} | ratio:${ratio.toFixed(3)} | factor:${factor.toFixed(3)} | increment:${increment.toFixed(4)} | total TRIMP:${p.trimpPoints.toFixed(2)}`);
 
         p.lastSampleTime = now;
     });
@@ -872,7 +959,7 @@ async function autoEndClass() {
 
                 if (validHRs.length >= 1) {
                     const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
-                    p.real_resting_hr = avgResting;
+                    p.realRestingHR = avgResting;
                     console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições válidas)`);
                 } else {
                     console.log(`[RESTING HR] Nenhuma amostra válida para ${p.name} (${validHRs.length})`);
@@ -908,7 +995,7 @@ async function autoEndClass() {
     });
 
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => {
-        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}, real_resting_hr=${p.real_resting_hr || 'null'}`);
+        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}, real_resting_hr=${p.realRestingHR || p.restingHR || 'null'}`);
         return {
             participantId: p.id,
             avg_hr: p.avg_hr,
@@ -923,7 +1010,7 @@ async function autoEndClass() {
             vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
             epoc_estimated: p.epocEstimated || 0,
             max_hr_reached: p.maxHRReached || null,
-            real_resting_hr: p.real_resting_hr || null
+            real_resting_hr: p.realRestingHR || p.restingHR || null  // CORREÇÃO: usa o capturado
         };
     });
 
@@ -936,7 +1023,6 @@ async function autoEndClass() {
         participantsData
     };
 
-    // SALVA AUTOMATICAMENTE (sem perguntar mais)
     console.log("[SALVAR AUTOMÁTICO] Salvando sessão sem confirmação do usuário");
 
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
@@ -1048,7 +1134,7 @@ function renderLastSessionSummary() {
         html += `<li>${i+1}º ${p.name} - ${p.calories} kcal</li>`;
     });
     html += `</ul>
-        <button onclick="window.open('report.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Completo</button>
+        <button onclick="window.open('relatorios-avancado.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Avançado</button>
     `;
 
     document.getElementById('summary-content').innerHTML = html;
@@ -1191,6 +1277,13 @@ function updateQueimaCaloriesAndTimer() {
 
             p.lastZone = zone;
             p.lastUpdate = now;
+
+            // NOVO: Incremento correto de queimaPoints baseado em zona
+            const pontosThisCycle = pontosPorMinuto[zone] || 0;
+            p.queimaPoints = (p.queimaPoints || 0) + pontosThisCycle;
+
+            // DEPURAÇÃO: Log completo
+            console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total queima:${p.queimaPoints}`);
         }
     });
 
@@ -1273,9 +1366,20 @@ function startReconnectLoop() {
     reconnectInterval = setInterval(() => {
         activeParticipants.forEach(id => {
             const p = participants.find(p => p.id === id);
-            if (p && p.device && !p.connected) {
+            if (p && p.deviceId && !p.connected) {
                 console.log(`Tentando reconectar ${p.name} (${p.deviceName || 'sem nome'})`);
-                connectDevice(p.device, true).catch(e => console.log("Falha reconexão:", e));
+                // Nova lógica: pedir device novamente
+                navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['heart_rate'] }],
+                    optionalServices: ['heart_rate']
+                }).then(device => {
+                    if (device.id === p.deviceId) {
+                        p.device = device;
+                        connectDevice(device, true);
+                    } else {
+                        console.log('Device errado selecionado');
+                    }
+                }).catch(e => console.log("Falha reconexão:", e));
             }
         });
     }, 5000);
@@ -1292,8 +1396,9 @@ async function connectDevice(device, isReconnect = false) {
         return;
     }
     
+    console.log(`[CONNECT] Iniciando conexão para ${p.name} - Device ID: ${device.id}, Reconnect: ${isReconnect}`);
+
     try {
-        console.log(`Conectando device de ${p.name}: ${device.id}`);
         const server = await device.gatt.connect();
         device.addEventListener('gattserverdisconnected', () => {
             p.connected = false;
@@ -1338,15 +1443,15 @@ async function connectDevice(device, isReconnect = false) {
 
         if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {
             if (p.hr >= 30 && p.hr <= 120) {
-                console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} na sessão ${currentSessionId} - salvando amostra inicial: ${p.hr} bpm`);
+                console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} - salvando amostra inicial: ${p.hr} bpm`);
                 await saveRestingHRSample(p.id, currentSessionId, p.hr);
             } else {
-                console.log(`[RESTING HR ON CONNECT] HR inicial inválido para ${p.name}: ${p.hr} bpm (fora de 30-120)`);
+                console.log(`[RESTING HR ON CONNECT] HR inicial inválido para ${p.name}: ${p.hr} bpm`);
             }
         }
 
     } catch (e) {
-        console.error("Erro ao conectar device:", e);
+        console.error(`[CONNECT ERROR] ${p.name}:`, e.message, e.stack);
         p.connected = false;
         renderTiles();
     }
