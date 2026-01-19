@@ -164,7 +164,11 @@ function startRestingHRCapture() {
         } else {
             console.warn('[RESTING HR] Nenhuma HR válida 30-120 bpm após 60s');
         }
+<<<<<<< HEAD
     }, 60000);  // 60 segundos
+=======
+    }, 60000);
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
 }
 
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
@@ -217,7 +221,11 @@ async function loadParticipantsFromBackend() {
             minGreen: 0,
             minBlue: 0,
             minYellow: 0,
+<<<<<<< HEAD
             realRestingHR: null  // NOVO
+=======
+            realRestingHR: null  // NOVO campo
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
         }));
 
         console.log(`Carregados ${participants.length} alunos do backend`);
@@ -310,7 +318,11 @@ window.addNewParticipantFromSetup = async function() {
             minGreen: 0,
             minBlue: 0,
             minYellow: 0,
+<<<<<<< HEAD
             realRestingHR: null  // NOVO
+=======
+            realRestingHR: null
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
         });
 
         renderParticipantList();
@@ -686,7 +698,11 @@ async function autoStartClass(className) {
             p.minGreen = 0;
             p.minBlue = 0;
             p.minYellow = 0;
+<<<<<<< HEAD
             p.realRestingHR = null; // reset
+=======
+            p.realRestingHR = null;
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
         }
     });
 
@@ -698,7 +714,11 @@ async function autoStartClass(className) {
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
+<<<<<<< HEAD
     // CORREÇÃO: Reconexão automática robusta
+=======
+    // CORREÇÃO: Reconexão automática robusta (pede device se necessário)
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
@@ -1278,11 +1298,16 @@ function updateQueimaCaloriesAndTimer() {
             p.lastZone = zone;
             p.lastUpdate = now;
 
+<<<<<<< HEAD
             // NOVO: Incremento correto de queimaPoints baseado em zona
             const pontosThisCycle = pontosPorMinuto[zone] || 0;
             p.queimaPoints = (p.queimaPoints || 0) + pontosThisCycle;
 
             // DEPURAÇÃO: Log completo
+=======
+            // DEPURAÇÃO: Log para ver zona e pontos de queima
+            const pontosThisCycle = pontosPorMinuto[zone] || 0;
+>>>>>>> 480329e16e44e76429d95cdf3d918832c3f114ba
             console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total queima:${p.queimaPoints}`);
         }
     });
