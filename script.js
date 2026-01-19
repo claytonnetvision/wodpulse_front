@@ -184,14 +184,13 @@ async function loadParticipantsFromBackend() {
 
 // ── CADASTRO MANUAL ─────────────────────────────────────────────────────────────
 window.addNewParticipantFromSetup = async function() {
-    const name = document.getElementById('nameInput').value.trim();
-    const age = parseInt(document.getElementById('ageInput').value) || null;
-    const weight = parseFloat(document.getElementById('weightInput').value) || null;
-    const heightCm = parseInt(document.getElementById('heightInput').value) || null;
-    const gender = document.getElementById('genderInput').value || null;
-    const restingHR = parseInt(document.getElementById('restingHRInput').value) || null;
-    const email = document.getElementById('emailInput').value.trim() || null;
-    const useTanaka = document.getElementById('useTanakaInput').checked;
+    const name = document.getElementById('nameInput')?.value.trim();
+    const age = parseInt(document.getElementById('ageInput')?.value) || null;
+    const weight = parseFloat(document.getElementById('weightInput')?.value) || null;
+    const heightCm = parseInt(document.getElementById('heightInput')?.value) || null;
+    const gender = document.getElementById('genderInput')?.value || null;
+    const email = document.getElementById('emailInput')?.value.trim() || null;
+    const useTanaka = document.getElementById('useTanakaInput')?.checked || false;
 
     if (!name) {
         return alert("Preencha pelo menos o nome do aluno!");
@@ -205,7 +204,6 @@ window.addNewParticipantFromSetup = async function() {
         weight,
         height_cm: heightCm,
         gender,
-        resting_hr: restingHR,
         email,
         use_tanaka: useTanaka,
         max_hr: estimatedMaxHR,
@@ -235,7 +233,6 @@ window.addNewParticipantFromSetup = async function() {
             weight: data.weight,
             heightCm: data.height_cm,
             gender: data.gender,
-            restingHR: data.resting_hr,
             email: data.email,
             useTanaka: data.use_tanaka,
             maxHR: data.max_hr,
@@ -275,9 +272,10 @@ window.addNewParticipantFromSetup = async function() {
         document.getElementById('weightInput').value = '';
         document.getElementById('heightInput').value = '';
         document.getElementById('genderInput').value = '';
-        document.getElementById('restingHRInput').value = '';
         document.getElementById('emailInput').value = '';
-        document.getElementById('useTanakaInput').checked = false;
+        if (document.getElementById('useTanakaInput')) {
+            document.getElementById('useTanakaInput').checked = false;
+        }
 
         alert(`Aluno ${name} cadastrado com sucesso!`);
 
@@ -381,7 +379,6 @@ async function editParticipant(id) {
         const newWeight = prompt("Novo peso (kg):", p.weight) || null;
         const newHeight = prompt("Nova altura (cm):", p.heightCm || '') || null;
         const newGender = prompt("Gênero (M/F/O):", p.gender || '') || null;
-        const newResting = prompt("FC Repouso:", p.restingHR || '') || null;
         const newEmail = prompt("Email:", p.email || '') || null;
         const newUseTanaka = confirm("Usar fórmula Tanaka?", p.useTanaka);
 
@@ -391,7 +388,6 @@ async function editParticipant(id) {
             weight: parseFloat(newWeight) || p.weight,
             height_cm: parseInt(newHeight) || p.heightCm,
             gender: newGender || p.gender,
-            resting_hr: parseInt(newResting) || p.restingHR,
             email: newEmail ? newEmail.trim() : p.email,
             use_tanaka: newUseTanaka,
             max_hr: p.maxHR,
@@ -495,13 +491,10 @@ window.addParticipantDuringClass = async function() {
             const weight = parseFloat(prompt("Peso (kg):", "75"));
             const heightCm = parseInt(prompt("Altura (cm):", "170")) || null;
             const gender = prompt("Gênero (M/F/O):", "M") || null;
-            const restingHR = parseInt(prompt("FC Repouso (opcional):", "")) || null;
             const email = prompt("Email (opcional):", "") || null;
-            const useTanaka = confirm("Usar fórmula Tanaka?");
 
-            const estimatedMaxHR = useTanaka ? (208 - 0.7 * age) : (220 - age);
+            const estimatedMaxHR = 220 - age;
 
-            // NOVO: Salva no backend como aluno real
             const response = await fetch(`${API_BASE_URL}/api/participants`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -511,9 +504,8 @@ window.addParticipantDuringClass = async function() {
                     weight,
                     height_cm: heightCm,
                     gender,
-                    resting_hr: restingHR,
                     email,
-                    use_tanaka: useTanaka,
+                    use_tanaka: false,
                     max_hr: Math.round(estimatedMaxHR),
                     historical_max_hr: 0,
                     device_id: null,
@@ -525,15 +517,14 @@ window.addParticipantDuringClass = async function() {
 
             const json = await response.json();
             p = {
-                id: json.participant.id,  // ID real do banco
+                id: json.participant.id,
                 name: name.trim(),
                 age,
                 weight,
                 heightCm,
                 gender,
-                restingHR,
                 email,
-                useTanaka,
+                useTanaka: false,
                 maxHR: Math.round(estimatedMaxHR),
                 historicalMaxHR: 0,
                 todayMaxHR: 0,
@@ -559,14 +550,13 @@ window.addParticipantDuringClass = async function() {
                 vo2TimeSeconds: 0,
                 vo2LastUpdate: 0
             };
-            participants.push(p);  // adiciona na lista local
+            participants.push(p);
         }
 
         p.device = device;
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
 
-        // Vincula pulseira no backend
         await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -791,7 +781,6 @@ function calculateTRIMPIncrement() {
         p.trimpPoints += increment;
         p.queimaPoints = Math.round(p.trimpPoints);
 
-        // Arredonda TRIMP para 2 casas decimais (evita valores como 0.001898)
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
         p.lastSampleTime = now;
@@ -835,7 +824,7 @@ function updateVO2Time() {
     });
 }
 
-// ── SALVAR MEDIÇÃO DE FC REPOUSO (primeiros 3 minutos) ─────────────────────────
+// ── SALVAR MEDIÇÃO DE FC REPOUSO ───────────────────────────────────────────────
 async function saveRestingHRSample(participantId, sessionId, hrValue) {
     if (!currentSessionId) return;
 
@@ -845,7 +834,7 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
             sessionId,
             measuredAt: new Date().toISOString(),
             hrValue,
-            isValid: hrValue >= 30 && hrValue <= 120  // filtro simples
+            isValid: hrValue >= 30 && hrValue <= 120
         });
         console.log(`[RESTING HR] Medição salva: ${hrValue} bpm (participante ${participantId}, sessão ${sessionId})`);
     } catch (err) {
@@ -857,7 +846,7 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
     
-    const sessionStart = new Date(wodStartTime || Date.now()); // fallback se wodStartTime não setado
+    const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
@@ -869,7 +858,7 @@ async function autoEndClass() {
         if (p) p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
 
-    // Calcular FC de repouso dinâmica para cada aluno ativo - RELAXADO PARA ≥1 AMOSTRA VÁLIDA
+    // Calcular FC de repouso dinâmica para cada aluno ativo
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.id && currentSessionId) {
@@ -1385,7 +1374,7 @@ async function connectDevice(device, isReconnect = false) {
         renderTiles();
         console.log(`Conectado com sucesso: ${p.name} (${p.hr || 'aguardando HR'})`);
 
-        // NOVO: Salvar FC repouso imediatamente na primeira conexão do aluno na sessão
+        // Salvar FC repouso imediatamente na primeira conexão do aluno na sessão
         if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {  // primeira conexão na sessão
             if (p.hr >= 30 && p.hr <= 120) {
                 console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} na sessão ${currentSessionId} - salvando amostra inicial: ${p.hr} bpm`);
