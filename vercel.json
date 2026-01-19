@@ -1,17 +1,7 @@
 {
   "buildCommand": "vite build",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist/public",
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
-  },
-  "rewrites": [
-    {
-      "source": "/treinos/:path*",
-      "destination": "/:path*"
-    },
-    {
-      "source": "/treinos",
-      "destination": "/index.html"
-    }
-  ]
+  }
 }
