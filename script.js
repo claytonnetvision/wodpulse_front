@@ -14,7 +14,7 @@ let reconnectInterval = null;
 let autoClassInterval = null;
 let currentActiveClassName = "";
 let isManualClass = false;
-let autoClassMonitorActive = true;  // ← controla se o monitor automático está ativo
+let autoClassMonitorActive = true;  // controla se o monitor automático está ativo
 
 // Controle de sessão e amostras HR
 let currentSessionId = null;
@@ -52,7 +52,6 @@ const classTimes = [
 
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
-    // Verifica se estamos em HTTPS (importante para Web Bluetooth)
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
         console.warn("A página não está em HTTPS. Web Bluetooth pode não funcionar.");
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
@@ -73,11 +72,11 @@ window.addEventListener('load', async () => {
     isManualClass = false;
     stopAllTimersAndLoops();
 
-    autoClassMonitorActive = true;  // garante que está ativo ao carregar
+    autoClassMonitorActive = true;
     startAutoClassMonitor();
 
     document.getElementById('startScanBtn')?.addEventListener('click', () => {
-        autoClassMonitorActive = true;  // reativa ao iniciar manual
+        autoClassMonitorActive = true;
         autoStartClass("Aula Manual");
     });
 
@@ -131,7 +130,7 @@ async function loadParticipantsFromBackend() {
         }
 
         const data = await response.json();
-        console.log('[LOAD DEBUG] Dados brutos do backend:', data);  // log extra para ver o que chega
+        console.log('[LOAD DEBUG] Dados brutos do backend:', data);
 
         participants = data.participants.map(p => ({
             id: p.id,
@@ -306,7 +305,6 @@ async function pairDeviceToParticipant(p) {
                 return;
             }
 
-            // Desvincula do aluno antigo
             try {
                 await fetch(`${API_BASE_URL}/api/participants/${alreadyRegistered.id}`, {
                     method: 'PUT',
@@ -458,10 +456,7 @@ window.deleteParticipant = async function(id) {
             throw new Error(err.error || 'Erro ao excluir aluno');
         }
 
-        // Remove do array local
         participants = participants.filter(p => p.id !== id);
-
-        // Atualiza a lista na tela
         renderParticipantList();
 
         alert('Aluno excluído com sucesso!');
@@ -650,7 +645,6 @@ async function autoStartClass(className) {
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
-    // Reconexão apenas dos alunos selecionados
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
@@ -842,7 +836,7 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
     }
 }
 
-// ── FINALIZAR AULA ──────────────────────────────────────────────────────────────
+// ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
     
@@ -908,7 +902,6 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
-    // Log debug para verificar calorias antes de enviar
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
@@ -943,32 +936,8 @@ async function autoEndClass() {
         participantsData
     };
 
-    const confirmarSalvar = confirm("Aula finalizada. Deseja salvar os dados no banco agora?\n\n(Sim = salva normalmente)\n(Não = descarta esta aula, útil para testes)");
-
-    if (!confirmarSalvar) {
-        console.log("[TEST MODE] Aula descartada pelo usuário - não enviada ao banco");
-        alert("Aula descartada (não salva no banco). Útil para testes!");
-        
-        currentActiveClassName = "";
-        isManualClass = false;
-        activeParticipants = []; // limpa seleção
-        document.getElementById('current-class-name').textContent = "Aula: --";
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('setup').classList.remove('hidden');
-        renderTiles();
-        updateReconnectButtonVisibility();
-
-        autoClassMonitorActive = false;
-        if (autoClassInterval) {
-            clearInterval(autoClassInterval);
-            autoClassInterval = null;
-            console.log("Monitor automático pausado");
-        }
-
-        return;
-    }
-
-    console.log("[SALVAR] Usuário confirmou salvamento da aula");
+    // SALVA AUTOMATICAMENTE (sem perguntar mais)
+    console.log("[SALVAR AUTOMÁTICO] Salvando sessão sem confirmação do usuário");
 
     console.log('[SESSION DEBUG] Enviando sessão para o backend:');
     console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
@@ -1029,7 +998,7 @@ async function autoEndClass() {
             console.log("Monitor automático pausado após sair da aula");
         }
 
-        alert('Aula finalizada e salva no banco com sucesso!');
+        alert('Aula finalizada e salva automaticamente no banco!');
     } catch (err) {
         console.error('[SESSION] Erro ao salvar sessão:', err);
         alert('Erro ao salvar sessão: ' + err.message);
@@ -1132,7 +1101,6 @@ function renderParticipantList() {
 
     container.appendChild(table);
 
-    // Salvar seleção ao mudar checkbox
     document.querySelectorAll('.participant-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             const id = Number(cb.dataset.id);
@@ -1143,7 +1111,6 @@ function renderParticipantList() {
             }
             console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
 
-            // Desabilitar botão Iniciar se nenhum aluno marcado
             const startBtn = document.getElementById('startScanBtn');
             if (startBtn) {
                 startBtn.disabled = activeParticipants.length === 0;
@@ -1153,7 +1120,6 @@ function renderParticipantList() {
         });
     });
 
-    // Inicializar estado do botão ao carregar a lista
     const startBtn = document.getElementById('startScanBtn');
     if (startBtn) {
         startBtn.disabled = activeParticipants.length === 0;
@@ -1194,7 +1160,6 @@ function updateQueimaCaloriesAndTimer() {
 
     const now = Date.now();
 
-    // Processa apenas os alunos selecionados
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p && p.connected && p.hr > 0) {
@@ -1243,7 +1208,6 @@ function renderTiles() {
     const container = document.getElementById('participants');
     if (!container) return;
 
-    // Só mostra tiles dos alunos selecionados
     const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
     const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
     
@@ -1307,7 +1271,6 @@ function renderTiles() {
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
     reconnectInterval = setInterval(() => {
-        // Reconecta apenas os selecionados
         activeParticipants.forEach(id => {
             const p = participants.find(p => p.id === id);
             if (p && p.device && !p.connected) {
@@ -1360,7 +1323,6 @@ async function connectDevice(device, isReconnect = false) {
                 p.lastSampleTime = Date.now();
             }
 
-            // Salvar medição de repouso nos primeiros 3 minutos da aula
             if (currentSessionId && (Date.now() - wodStartTime) <= 180000) {
                 saveRestingHRSample(p.id, currentSessionId, hr);
             }
@@ -1374,8 +1336,7 @@ async function connectDevice(device, isReconnect = false) {
         renderTiles();
         console.log(`Conectado com sucesso: ${p.name} (${p.hr || 'aguardando HR'})`);
 
-        // Salvar FC repouso imediatamente na primeira conexão do aluno na sessão
-        if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {  // primeira conexão na sessão
+        if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {
             if (p.hr >= 30 && p.hr <= 120) {
                 console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} na sessão ${currentSessionId} - salvando amostra inicial: ${p.hr} bpm`);
                 await saveRestingHRSample(p.id, currentSessionId, p.hr);
