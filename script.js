@@ -50,6 +50,9 @@ const classTimes = [
     { name: "Aula das 19:00", start: "19:00", end: "20:00" }
 ];
 
+// NOVO: Variável global para controlar o timer de captura de FC repouso após 60s
+let restingHRCaptureTimer = null;
+
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -118,6 +121,53 @@ function stopAllTimersAndLoops() {
         clearInterval(hrSampleInterval);
         hrSampleInterval = null;
     }
+    // NOVO: Limpar timer de captura de FC repouso, se existir
+    if (restingHRCaptureTimer) {
+        clearTimeout(restingHRCaptureTimer);
+        restingHRCaptureTimer = null;
+    }
+}
+
+// NOVO: Função para capturar o menor HR válido após 60 segundos de aula
+function startRestingHRCapture() {
+    if (restingHRCaptureTimer) {
+        clearTimeout(restingHRCaptureTimer);
+    }
+
+    console.log('[RESTING HR] Agendando captura de FC repouso para daqui a 60 segundos');
+
+    restingHRCaptureTimer = setTimeout(() => {
+        console.log('[RESTING HR] Executando captura de FC repouso após 60s');
+
+        let minHR = Infinity;
+        let capturedCount = 0;
+        let capturedDetails = [];
+
+        activeParticipants.forEach(id => {
+            const p = participants.find(part => part.id === id);
+            if (p && p.connected && p.hr >= 30 && p.hr <= 120) {
+                if (p.hr < minHR) minHR = p.hr;
+                capturedCount++;
+                capturedDetails.push({ name: p.name, hr: p.hr });
+            }
+        });
+
+        if (capturedCount > 0 && minHR !== Infinity) {
+            const restingValue = Math.round(minHR);
+            console.log(`[RESTING HR] Captura OK: ${restingValue} bpm (baseado em ${capturedCount} alunos com HR válido)`, capturedDetails);
+
+            // Aplicar o valor capturado a todos os alunos ativos
+            activeParticipants.forEach(id => {
+                const p = participants.find(part => part.id === id);
+                if (p) {
+                    p.realRestingHR = restingValue;  // nome enviado ao backend
+                    p.restingHR = restingValue;      // compatibilidade com código antigo, se usado
+                }
+            });
+        } else {
+            console.warn('[RESTING HR] Nenhuma medição válida de FC repouso (HR entre 30-120 bpm) após 60 segundos');
+        }
+    }, 60000);  // 60 segundos
 }
 
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
@@ -643,6 +693,9 @@ async function autoStartClass(className) {
     wodStartTime = Date.now();
     currentSessionId = null;
 
+    // NOVO: Iniciar captura de FC repouso após 60 segundos da aula
+    startRestingHRCapture();
+
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
     for (const id of activeParticipants) {
@@ -776,6 +829,9 @@ function calculateTRIMPIncrement() {
         p.queimaPoints = Math.round(p.trimpPoints);
 
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
+
+        // ALTERAÇÃO / DEPURAÇÃO: Log para ver o que está sendo adicionado
+        console.log(`[TRIMP DEBUG] ${p.name} | Delta min: ${deltaMin.toFixed(3)} | Ratio: ${ratio.toFixed(3)} | Factor: ${factor.toFixed(3)} | Incremento: ${increment.toFixed(4)} | Total TRIMP: ${p.trimpPoints.toFixed(2)}`);
 
         p.lastSampleTime = now;
     });
@@ -1191,6 +1247,10 @@ function updateQueimaCaloriesAndTimer() {
 
             p.lastZone = zone;
             p.lastUpdate = now;
+
+            // ALTERAÇÃO / DEPURAÇÃO: Log para ver zona e pontos de queima
+            const pontosThisCycle = pontosPorMinuto[zone] || 0;
+            console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total acumulado:${p.queimaPoints}`);
         }
     });
 
