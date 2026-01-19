@@ -3,5 +3,27 @@
   "outputDirectory": "dist/public",
   "env": {
     "NODE_OPTIONS": "--max-old-space-size=4096"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/manager",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/editor",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/manager/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/editor/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
