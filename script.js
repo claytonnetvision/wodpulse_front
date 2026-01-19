@@ -28,7 +28,7 @@ let weeklyHistory = { weekStart: "", participants: {} };
 let dailyLeader = { date: "", name: "", queimaPoints: 0 };
 let dailyCaloriesLeader = { date: "", name: "", calories: 0 };
 
-// Tabela de pontos ajustada (valores por MINUTO - como você pediu)
+// Tabela de pontos (como você deixou - valores por MINUTO)
 const pontosPorMinuto = {
     gray: 0,
     green: 0,
@@ -52,9 +52,6 @@ const classTimes = [
 
 // NOVO: Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
-
-// NOVO: Contador de segundos por zona (para somar pontos por minuto)
-let zoneSecondsCounter = {};
 
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
@@ -166,7 +163,7 @@ function startRestingHRCapture() {
         } else {
             console.warn('[RESTING HR] Nenhuma HR válida 30-120 bpm após 60s');
         }
-    }, 60000); // 60 segundos
+    }, 60000);  // 60 segundos
 }
 
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
@@ -220,7 +217,9 @@ async function loadParticipantsFromBackend() {
             minBlue: 0,
             minYellow: 0,
             realRestingHR: null,
-            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 } // NOVO: contador por zona
+            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }, // contador por zona
+            lastHR: null, // para bônus de recuperação
+            lastZone: null
         }));
 
         console.log(`Carregados ${participants.length} alunos do backend`);
@@ -314,7 +313,9 @@ window.addNewParticipantFromSetup = async function() {
             minBlue: 0,
             minYellow: 0,
             realRestingHR: null,
-            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }
+            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
+            lastHR: null,
+            lastZone: null
         });
 
         renderParticipantList();
@@ -692,19 +693,17 @@ async function autoStartClass(className) {
             p.minBlue = 0;
             p.minYellow = 0;
             p.realRestingHR = null;
-            p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }; // reset contador
+            p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
         }
     });
 
     wodStartTime = Date.now();
     currentSessionId = null;
 
-    // Iniciar captura de FC repouso
     startRestingHRCapture();
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
-    // Reconexão automática robusta
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.deviceId && !p.connected) {
@@ -721,7 +720,7 @@ async function autoStartClass(className) {
                     await connectDevice(device, true);
                     console.log(`Reconectado automaticamente: ${p.name}`);
                 } else {
-                    console.log(`Device errado selecionado para ${p.name}. Esperado: ${p.deviceId}, recebido: ${device.id}`);
+                    console.log(`Device errado selecionado para ${p.name}`);
                     alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
                 }
             } catch (e) {
@@ -1068,7 +1067,7 @@ async function autoEndClass() {
 
         currentActiveClassName = "";
         isManualClass = false;
-        activeParticipants = [];
+        activeParticipants = []; // limpa seleção após finalizar
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
@@ -1267,7 +1266,7 @@ function updateQueimaCaloriesAndTimer() {
                 // Penalidade se >3 minutos em red
                 if (zone === 'red' && (p.minRed || 0) > 3) {
                     pontosThisMinute *= 0.5;
-                    console.log(`[QUEIMA MINUTO] ${p.name} - Penalidade red >3min → ${pontosThisMinute.toFixed(4)} pts/min`);
+                    console.log(`[QUEIMA PENALIDADE] ${p.name} - >3 min em red → pontos reduzidos para ${pontosThisMinute.toFixed(4)} pts/min`);
                 }
 
                 // Bônus TRIMP ×10
@@ -1296,6 +1295,15 @@ function updateQueimaCaloriesAndTimer() {
             } else {
                 p.redStartTime = null;
             }
+
+            // AJUSTADO: Bônus de recuperação rápida
+            if (p.lastHR && p.lastZone === 'red' && zone !== 'red' && (p.lastHR - p.hr > 25)) {
+                p.queimaPoints += 5; // +5 pontos por recuperação rápida
+                console.log(`[QUEIMA BÔNUS] ${p.name} - Recuperação rápida (+5 pts)`);
+            }
+
+            p.lastHR = p.hr;
+            p.lastZone = zone;
 
             p.lastZone = zone;
             p.lastUpdate = now;
