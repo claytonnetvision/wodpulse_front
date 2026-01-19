@@ -1,18 +1,17 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build",
   "outputDirectory": "dist",
   "env": {
-    "NODE_OPTIONS": "--max-old-space-size=4096",
-    "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+    "NODE_OPTIONS": "--max-old-space-size=4096"
   },
   "rewrites": [
     {
       "source": "/treinos/:path*",
-      "destination": "/dist/:path*"
+      "destination": "/:path*"
     },
     {
       "source": "/treinos",
-      "destination": "/dist/index.html"
+      "destination": "/index.html"
     }
   ]
 }
