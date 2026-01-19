@@ -88,7 +88,7 @@ window.addEventListener('load', async () => {
     document.getElementById('resetWeeklyBtn')?.addEventListener('click', resetWeeklyRanking);
 
     document.getElementById('reportsBtn')?.addEventListener('click', () => {
-        window.open('report.html', '_blank');
+        window.open('relatorios-avancado.html', '_blank');  // NOVO: Atualizado para o relatório que você usa agora
     });
 
     document.getElementById('reconnectDevicesBtn')?.addEventListener('click', async () => {
@@ -128,16 +128,14 @@ function stopAllTimersAndLoops() {
     }
 }
 
-// NOVO: Função para capturar o menor HR válido após 60 segundos de aula
+// NOVO: Função para capturar FC repouso após 60 segundos de aula
 function startRestingHRCapture() {
-    if (restingHRCaptureTimer) {
-        clearTimeout(restingHRCaptureTimer);
-    }
+    if (restingHRCaptureTimer) clearTimeout(restingHRCaptureTimer);
 
-    console.log('[RESTING HR] Agendando captura de FC repouso para daqui a 60 segundos');
+    console.log('[RESTING HR] Agendando captura de FC repouso em 60 segundos');
 
     restingHRCaptureTimer = setTimeout(() => {
-        console.log('[RESTING HR] Executando captura de FC repouso após 60s');
+        console.log('[RESTING HR] === CAPTURA DE FC REPOUSO EXECUTANDO ===');
 
         let minHR = Infinity;
         let capturedCount = 0;
@@ -154,18 +152,17 @@ function startRestingHRCapture() {
 
         if (capturedCount > 0 && minHR !== Infinity) {
             const restingValue = Math.round(minHR);
-            console.log(`[RESTING HR] Captura OK: ${restingValue} bpm (baseado em ${capturedCount} alunos com HR válido)`, capturedDetails);
+            console.log(`[RESTING HR] Captura OK: ${restingValue} bpm (baseado em ${capturedCount} medições válidas)`, capturedDetails);
 
-            // Aplicar o valor capturado a todos os alunos ativos
             activeParticipants.forEach(id => {
                 const p = participants.find(part => part.id === id);
                 if (p) {
-                    p.realRestingHR = restingValue;  // nome enviado ao backend
-                    p.restingHR = restingValue;      // compatibilidade com código antigo, se usado
+                    p.realRestingHR = restingValue;
+                    p.restingHR = restingValue;  // compatibilidade
                 }
             });
         } else {
-            console.warn('[RESTING HR] Nenhuma medição válida de FC repouso (HR entre 30-120 bpm) após 60 segundos');
+            console.warn('[RESTING HR] Nenhuma medição válida (HR 30-120 bpm) após 60s');
         }
     }, 60000);  // 60 segundos
 }
@@ -693,7 +690,7 @@ async function autoStartClass(className) {
     wodStartTime = Date.now();
     currentSessionId = null;
 
-    // NOVO: Iniciar captura de FC repouso após 60 segundos da aula
+    // NOVO: Iniciar a captura de FC repouso após 60 segundos
     startRestingHRCapture();
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
@@ -803,9 +800,16 @@ function updateReconnectButtonVisibility() {
 function calculateTRIMPIncrement() {
     const now = Date.now();
 
+    // DEPURAÇÃO: Ver se o intervalo está rodando
+    console.log('[TRIMP INTERVAL] Ciclo de incremento TRIMP iniciado - alunos ativos:', activeParticipants.length);
+
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) {
+            // DEPURAÇÃO: Por que pulou o aluno
+            console.log('[TRIMP SKIP] Aluno pulado:', p?.name || id, '- connected:', p?.connected, 'hr:', p?.hr, 'maxHR:', p?.maxHR, 'lastSampleTime:', p?.lastSampleTime);
+            return;
+        }
 
         const deltaMs = now - p.lastSampleTime;
         if (deltaMs < 5000) return;
@@ -830,8 +834,8 @@ function calculateTRIMPIncrement() {
 
         p.trimpPoints = Number(p.trimpPoints.toFixed(2));
 
-        // ALTERAÇÃO / DEPURAÇÃO: Log para ver o que está sendo adicionado
-        console.log(`[TRIMP DEBUG] ${p.name} | Delta min: ${deltaMin.toFixed(3)} | Ratio: ${ratio.toFixed(3)} | Factor: ${factor.toFixed(3)} | Incremento: ${increment.toFixed(4)} | Total TRIMP: ${p.trimpPoints.toFixed(2)}`);
+        // DEPURAÇÃO: Log completo para entender o cálculo
+        console.log(`[TRIMP DEBUG] ${p.name} | deltaMin:${deltaMin.toFixed(3)} | hr:${p.hr} | resting:${resting} | ratio:${ratio.toFixed(3)} | factor:${factor.toFixed(3)} | increment:${increment.toFixed(4)} | total TRIMP:${p.trimpPoints.toFixed(2)}`);
 
         p.lastSampleTime = now;
     });
@@ -1104,7 +1108,7 @@ function renderLastSessionSummary() {
         html += `<li>${i+1}º ${p.name} - ${p.calories} kcal</li>`;
     });
     html += `</ul>
-        <button onclick="window.open('report.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Completo</button>
+        <button onclick="window.open('relatorios-avancado.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Avançado</button>
     `;
 
     document.getElementById('summary-content').innerHTML = html;
@@ -1248,9 +1252,9 @@ function updateQueimaCaloriesAndTimer() {
             p.lastZone = zone;
             p.lastUpdate = now;
 
-            // ALTERAÇÃO / DEPURAÇÃO: Log para ver zona e pontos de queima
+            // DEPURAÇÃO: Log para ver zona e pontos de queima
             const pontosThisCycle = pontosPorMinuto[zone] || 0;
-            console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total acumulado:${p.queimaPoints}`);
+            console.log(`[QUEIMA DEBUG] ${p.name} | HR:${p.hr} | %:${percent}% | Zona:${zone} | +${pontosThisCycle} pts/min | Total queima:${p.queimaPoints}`);
         }
     });
 
