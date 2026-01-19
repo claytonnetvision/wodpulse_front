@@ -4,12 +4,12 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "dev": "cd treinos && vite --host",
+    "build": "cd treinos && vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=../dist",
     "start": "NODE_ENV=production node dist/index.js",
-    "preview": "vite preview --host",
-    "check": "tsc --noEmit",
-    "format": "prettier --write ."
+    "preview": "cd treinos && vite preview --host",
+    "check": "cd treinos && tsc --noEmit",
+    "format": "cd treinos && prettier --write ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -78,7 +78,6 @@
     "add": "^2.0.6",
     "autoprefixer": "^10.4.20",
     "esbuild": "^0.25.0",
-    "pnpm": "^10.15.1",
     "postcss": "^8.4.47",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.14",
@@ -88,14 +87,5 @@
     "vite": "^7.1.7",
     "vite-plugin-manus-runtime": "^0.0.57",
     "vitest": "^2.1.4"
-  },
-  "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af",
-  "pnpm": {
-    "patchedDependencies": {
-      "wouter@3.7.1": "patches/wouter@3.7.1.patch"
-    },
-    "overrides": {
-      "tailwindcss>nanoid": "3.3.7"
-    }
   }
 }
