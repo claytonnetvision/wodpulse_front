@@ -1,6 +1,10 @@
 {
-  "buildCommand": "cd treinos && pnpm install && pnpm build",
+  "buildCommand": "cd treinos && npm install && npm run build",
   "outputDirectory": "treinos/dist",
+  "installCommand": "npm install",
+  "env": {
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
   "rewrites": [
     {
       "source": "/treinos/:path*",
