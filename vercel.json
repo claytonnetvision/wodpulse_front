@@ -6,20 +6,16 @@
   },
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/painel.html"
+    },
+    {
       "source": "/tv",
       "destination": "/index.html"
     },
     {
       "source": "/tv/(.*)",
       "destination": "/index.html"
-    },
-    {
-      "source": "/painel",
-      "destination": "/painel.html"
-    },
-    {
-      "source": "/",
-      "destination": "/painel.html"
     },
     {
       "source": "/(.*)",
