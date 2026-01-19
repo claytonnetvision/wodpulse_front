@@ -14,12 +14,10 @@
       "destination": "/index.html"
     },
     {
-      "source": "/tv/(.*)",
+      "source": "/tv/:path*",
       "destination": "/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/painel.html"
     }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
