@@ -192,6 +192,7 @@ async function loadParticipantsFromBackend() {
             historicalMaxHR: p.historical_max_hr,
             deviceId: p.device_id,
             deviceName: p.device_name,
+            device: null,                     // ← importante para reconexão
             hr: 0,
             connected: false,
             lastUpdate: 0,
@@ -217,9 +218,10 @@ async function loadParticipantsFromBackend() {
             minBlue: 0,
             minYellow: 0,
             realRestingHR: null,
-            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 }, // contador por zona
-            lastHR: null, // para bônus de recuperação
-            lastZone: null
+            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
+            lastHR: null,
+            lastZone: null,
+            _hrListener: null                 // evita duplicar eventos de HR
         }));
 
         console.log(`Carregados ${participants.length} alunos do backend`);
@@ -704,32 +706,7 @@ async function autoStartClass(className) {
 
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
     
-    for (const id of activeParticipants) {
-        const p = participants.find(p => p.id === id);
-        if (p && p.deviceId && !p.connected) {
-            console.log(`Tentando reconexão automática para ${p.name} (ID salvo: ${p.deviceId})`);
-
-            try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate'] }],
-                    optionalServices: ['heart_rate']
-                });
-
-                if (device.id === p.deviceId) {
-                    p.device = device;
-                    await connectDevice(device, true);
-                    console.log(`Reconectado automaticamente: ${p.name}`);
-                } else {
-                    console.log(`Device errado selecionado para ${p.name}`);
-                    alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
-                }
-            } catch (e) {
-                console.error(`Falha na reconexão automática de ${p.name}:`, e);
-                document.getElementById('authorizeReconnectBtn')?.classList.remove('hidden');
-            }
-        }
-    }
-
+    
     startReconnectLoop();
 
     if (hrSampleInterval) clearInterval(hrSampleInterval);
@@ -752,39 +729,6 @@ async function autoStartClass(className) {
 
     renderTiles();
     updateReconnectButtonVisibility();
-}
-
-async function tryAutoReconnectSavedDevices() {
-    console.log("Tentando reconexão automática...");
-    let connectedCount = 0;
-
-    for (const id of activeParticipants) {
-        const p = participants.find(p => p.id === id);
-        if (p && p.deviceId && !p.connected) {
-            try {
-                console.log(`Reconectando ${p.name} (${p.deviceName || p.deviceId})`);
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate'] }],
-                    optionalServices: ['heart_rate']
-                });
-
-                if (device.id === p.deviceId) {
-                    p.device = device;
-                    await connectDevice(device, true);
-                    connectedCount++;
-                } else {
-                    console.log(`Device errado selecionado`);
-                }
-            } catch (e) {
-                console.log(`Falha na reconexão de ${p.name}:`, e);
-                document.getElementById('authorizeReconnectBtn')?.classList.remove('hidden');
-            }
-        }
-    }
-
-    if (connectedCount > 0) {
-        console.log(`Reconexão automática para ${connectedCount} dispositivos.`);
-    }
 }
 
 async function reconnectAllSavedDevices() {
@@ -1386,25 +1330,60 @@ function renderTiles() {
 
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
-    reconnectInterval = setInterval(() => {
-        activeParticipants.forEach(id => {
+    
+    reconnectInterval = setInterval(async () => {
+        console.log("[RECONNECT LOOP] Verificando dispositivos desconectados...");
+
+        for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
-            if (p && p.deviceId && !p.connected) {
-                console.log(`Tentando reconectar ${p.name} (${p.deviceName || 'sem nome'})`);
-                navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate'] }],
-                    optionalServices: ['heart_rate']
-                }).then(device => {
-                    if (device.id === p.deviceId) {
-                        p.device = device;
-                        connectDevice(device, true);
-                    } else {
-                        console.log('Device errado selecionado');
-                    }
-                }).catch(e => console.log("Falha reconexão:", e));
+            if (!p || !p.device || p.connected) continue;
+
+            console.log(`[RECONNECT] Tentando reconectar ${p.name} (${p.deviceName || p.deviceId})`);
+
+            try {
+                if (p.device.gatt?.connected) {
+                    console.log(`[${p.name}] Já está conectado no GATT → ignorando`);
+                    p.connected = true;
+                    continue;
+                }
+
+                console.log(`[${p.name}] Executando device.gatt.connect()...`);
+                await p.device.gatt.connect();
+
+                // Reativa notificações
+                const server = p.device.gatt;
+                const service = await server.getPrimaryService('heart_rate');
+                const char = await service.getCharacteristic('heart_rate_measurement');
+
+                // Remove listener antigo se existir
+                if (p._hrListener) {
+                    char.removeEventListener('characteristicvaluechanged', p._hrListener);
+                }
+
+                p._hrListener = (e) => {
+                    const val = e.target.value;
+                    const flags = val.getUint8(0);
+                    let hr = (flags & 0x01) ? val.getUint16(1, true) : val.getUint8(1);
+                    p.hr = hr;
+                    p.lastUpdate = Date.now();
+                    p.connected = true;
+                    renderTiles();
+                };
+
+                char.addEventListener('characteristicvaluechanged', p._hrListener);
+                await char.startNotifications();
+
+                p.connected = true;
+                console.log(`[${p.name}] Reconectado com sucesso via gatt.connect()`);
+                renderTiles();
+
+            } catch (err) {
+                console.warn(`[${p.name}] Falha na reconexão automática: ${err.name} - ${err.message}`);
+                p.connected = false;
+                renderTiles();
             }
-        });
-    }, 5000);
+        }
+    }, 5000); // 5 segundos – pode mudar para 3000 ou 8000 se quiser testar
 }
 
 function stopReconnectLoop() {
@@ -1433,7 +1412,13 @@ async function connectDevice(device, isReconnect = false) {
         const char = await service.getCharacteristic('heart_rate_measurement');
         await char.startNotifications();
 
-        char.addEventListener('characteristicvaluechanged', (e) => {
+        // Remove listener antigo para evitar duplicação
+        if (p._hrListener) {
+            char.removeEventListener('characteristicvaluechanged', p._hrListener);
+        }
+
+        // Cria e salva o listener
+        p._hrListener = (e) => {
             const val = e.target.value;
             const flags = val.getUint8(0);
             let hr;
@@ -1455,7 +1440,9 @@ async function connectDevice(device, isReconnect = false) {
             }
 
             renderTiles();
-        });
+        };
+
+        char.addEventListener('characteristicvaluechanged', p._hrListener);
 
         p.connected = true;
         p.lastUpdate = Date.now();
