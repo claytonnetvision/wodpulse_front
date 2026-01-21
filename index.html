@@ -3,481 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Premium Dashboard</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Roboto:wght@900&display=swap">
+    <title>V6 WODPulse - Leaderboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
     <style>
-        :root {
-            --primary: #FF5722;
-            --primary-glow: rgba(255, 87, 34, 0.3);
-            --secondary: #FF9800;
-            --bg: #0a0a0b;
-            --card-bg: rgba(30, 30, 35, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text: #f0f0f0;
-            --text-dim: #a0a0a5;
-            --danger: #ff4b2b;
-            --success: #00d2ff;
-        }
-
-        /* Scrollbar Customizada */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--glass-border);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
-
-        body {
-            background: var(--bg);
-            background-image: radial-gradient(circle at 20% 20%, rgba(255, 87, 34, 0.05) 0%, transparent 40%),
-                              radial-gradient(circle at 80% 80%, rgba(255, 152, 0, 0.05) 0%, transparent 40%);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-
-        #app-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            box-sizing: border-box;
-            min-height: 100vh;
-        }
-
-        /* Header Setup */
-        .setup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .brand h1 {
-            font-family: 'Roboto', sans-serif;
-            font-size: clamp(1.5rem, 5vw, 2.5rem);
-            margin: 0;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
-        .brand p {
-            margin: 5px 0 0;
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* Grid Principal Setup */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 25px;
-            align-items: start;
-        }
-
-        /* Painel Lateral */
-        .control-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: sticky;
-            top: 20px;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-
-        .students-container-wrapper {
-            max-height: 75vh;
-            overflow-y: auto;
-            padding-right: 10px;
-            margin-top: 10px;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: var(--secondary);
-        }
-
-        /* Inputs */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        input, select {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 10px;
-            padding: 10px 12px;
-            color: white;
-            font-family: inherit;
-            font-size: 0.9rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Botões */
-        .btn {
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.8rem;
-        }
-
-        .btn-main {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            color: var(--text-dim);
-        }
-
-        .btn-danger {
-            background: rgba(255, 75, 43, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(255, 75, 43, 0.2);
-        }
-
-        /* Lista de Alunos em Linhas */
-        .students-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .student-row {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px 20px;
-            display: grid;
-            grid-template-columns: 40px 1.5fr 1fr 1.5fr 120px;
-            align-items: center;
-            gap: 15px;
-            transition: 0.2s;
-            position: relative;
-        }
-
-        .student-row:hover {
-            border-color: var(--primary);
-            background: rgba(40, 40, 45, 0.9);
-            transform: translateX(5px);
-        }
-
-        .student-row.selected {
-            border-left: 4px solid var(--primary);
-            background: rgba(255, 87, 34, 0.05);
-        }
-
-        .student-name {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .student-details {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            display: flex;
-            gap: 12px;
-            white-space: nowrap;
-        }
-
-        .student-device-info {
-            font-size: 0.8rem;
-            color: var(--success);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .row-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .mini-btn {
-            width: 32px;
-            height: 32px;
+        /* Estilos adicionais para a tabela de alunos cadastrados */
+        #participantListContainer {
+            margin: 30px 0;
+            max-height: 500px; /* Altura máxima antes da barra de rolagem */
+            overflow-y: auto; /* Barra de rolagem vertical */
+            border: 1px solid #444;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.05);
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .mini-btn:hover {
-            background: var(--primary);
-        }
-
-        .participant-checkbox {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--primary);
-            margin: 0;
-        }
-
-        /* ESTILOS DO DASHBOARD CLÁSSICO (Restaurados) */
-        #dashboard {
-            padding: 0;
-            background: #000; /* Fundo preto total para o dashboard como era antes */
-            min-height: 100vh;
-        }
-
-        #header {
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
-            align-items: center;
-            gap: 20px;
-            background: #1a1a1a;
-            padding: 15px 25px;
-            border-bottom: 1px solid #333;
-        }
-
-        #logo { height: 50px; }
-
-        #timer {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--primary);
-            font-family: 'Roboto', sans-serif;
-            text-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
-        }
-
-        .header-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        #current-class-name { font-weight: bold; color: var(--secondary); font-size: 1.2rem; }
-        #daily-leader, #daily-calories-leader { font-size: 0.9rem; color: #ccc; }
-
-        #leaderboard-top {
-            background: #222;
-            color: #fff;
-            padding: 10px 20px;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid #444;
-        }
-
-        #weekly-rankings {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
-            background: #111;
-        }
-
-        .ranking-block {
             background: #1e1e1e;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #333;
+            padding: 10px;
         }
 
-        .ranking-block h3 {
-            margin-top: 0;
-            font-size: 1rem;
-            text-transform: uppercase;
+        #participantTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #participantTable th,
+        #participantTable td {
+            padding: 12px;
+            text-align: left;
             border-bottom: 1px solid #444;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
         }
 
-        .ranking-block.pontos h3 { color: var(--primary); }
-        .ranking-block.calorias h3 { color: var(--secondary); }
-
-        .ranking-actions {
-            grid-column: span 2;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            padding-bottom: 10px;
+        #participantTable th {
+            background: #252525;
+            color: #FF9800;
+            font-weight: bold;
         }
 
-        .ranking-actions button {
+        #participantTable tr:hover {
             background: #333;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 8px 15px;
-            border-radius: 5px;
+        }
+
+        .action-buttons button {
+            margin-right: 8px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons button.edit-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .action-buttons button.delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .reports-btn {
+            background: #FF5722 !important;
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+
+        /* Botão Iniciar Aula no topo - destaque */
+        #startScanBtn {
+            background: #FF5722;
+            color: white;
+            font-size: 1.3rem;
+            padding: 15px 30px;
+            margin: 15px 0;
+            border-radius: 8px;
             cursor: pointer;
+            width: 100%;
+            max-width: 400px;
         }
 
-        /* Grid de Tiles do Monitoramento Clássico */
-        #participants {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            padding: 20px;
+        /* Botões de reset e apagar - destaque vermelho */
+        .reset-btn {
+            background: #f44336 !important;
+            color: white;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
         }
 
-        .hidden { display: none !important; }
-
-        /* Modal Ranking */
-        #full-ranking-modal {
-            display:none; 
-            position:fixed; 
-            top:0; left:0; 
-            width:100%; height:100%; 
-            background:rgba(0,0,0,0.9); 
-            z-index:1000; 
-            overflow-y:auto;
+        .reset-btn:hover {
+            background: #d32f2f !important;
         }
 
-        #full-ranking-modal > div {
-            max-width: 800px; 
-            margin: 50px auto; 
-            background: #1e1e1e; 
-            padding: 30px; 
-            border-radius: 15px; 
-            position: relative;
-            border: 1px solid #444;
-        }
-
-        #full-ranking-modal span {
-            position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer;
-        }
-
-        @media (max-width: 1000px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .control-panel { position: static; }
-            #header { grid-template-columns: 1fr 1fr; }
-            #weekly-rankings { grid-template-columns: 1fr; }
-            .ranking-actions { grid-column: 1; }
+        /* Checkbox de seleção */
+        .participant-checkbox {
+            transform: scale(1.3);
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div id="app-content">
-
-        <!-- TELA DE SETUP (PREMIUM) -->
-        <div id="setup">
-            <header class="setup-header">
-                <div class="brand">
-                    <h1>V6 WODPULSE</h1>
-                    <p>Performance Monitoring System</p>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn-outline" onclick="window.location.href='/tv'">📺 MODO TV</button>
-                    <button class="btn btn-outline" onclick="window.open('relatorios-avancado.html', '_blank')">📅 RELATÓRIOS</button>
-                </div>
-            </header>
-
-            <div class="main-grid">
-                <aside class="control-panel">
-                    <div class="glass-card">
-                        <div class="section-title">🚀 COMANDOS</div>
-                        <button id="startScanBtn" class="btn btn-main" style="width: 100%; margin-bottom: 12px;">INICIAR TREINO</button>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <button class="btn btn-danger" onclick="resetAllUserCounters()">RESET FC</button>
-                            <button class="btn btn-danger" onclick="deleteAllSessions()">LIMPAR</button>
-                        </div>
-                    </div>
-
-                    <div class="glass-card">
-                        <div class="section-title">👤 NOVO ALUNO</div>
-                        <div class="input-group">
-                            <input type="text" id="nameInput" placeholder="Nome">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <input type="number" id="ageInput" placeholder="Idade">
-                                <select id="genderInput">
-                                    <option value="">Gênero</option>
-                                    <option value="M">Masc</option>
-                                    <option value="F">Fem</option>
-                                </select>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                                <input type="number" id="heightInput" placeholder="Altura (cm)">
-                            </div>
-                            <input type="email" id="emailInput" placeholder="E-mail">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-dim);">
-                                <input type="checkbox" id="useTanakaInput"> Tanaka?
-                            </label>
-                            <button id="addBtn" class="btn btn-main" onclick="addNewParticipantFromSetup()">CADASTRAR</button>
-                        </div>
-                    </div>
-                </aside>
-
-                <main>
-                    <div class="glass-card">
-                        <div class="section-title">
-                            <span>👥 ALUNOS CADASTRADOS</span>
-                            <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-dim);">Selecione quem irá treinar</span>
-                        </div>
-                        
-                        <div class="students-container-wrapper">
-                            <div id="students-container" class="students-list">
-                                <!-- Linhas injetadas via JS -->
-                            </div>
-                        </div>
-                        <table style="display: none;"><tbody id="participantList"></tbody></table>
-                    </div>
-                </main>
+    <!-- Tela de Login -->
+    <div id="login-screen">
+        <h1>V6 WODPulse - Login</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Box (slug):</label>
+                <select name="slug" required>
+                    <option value="">Selecione seu box</option>
+                    <option value="v6">V6 CrossFit</option>
+                    <option value="uranium">CrossFit Uranium</option>
+                    <option value="apolo">CrossFit Apolo</option>
+                </select>
             </div>
+
+            <div class="form-group">
+                <label>Usuário:</label>
+                <input type="text" name="username" placeholder="ex: adminv6" required />
+            </div>
+
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" name="password" required />
+            </div>
+
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+
+        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
+    </div>
+
+    <!-- Conteúdo principal (escondido até login) -->
+    <div id="app-content" class="hidden">
+
+        <div id="setup">
+            <h1>V6 WODPulse - Configurar Aula</h1>
+            <button onclick="logout()" class="btn-logout">Sair</button>
+            <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
+            
+            <!-- BOTÃO PARA ABRIR O APP DE TREINOS (React/Vite) -->
+            <button class="treinos-btn" onclick="window.location.href='/tv'">
+                📺 Exibir Treinos na TV
+            </button>
+            
+            <!-- Botão Iniciar Aula movido para o topo -->
+            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
+
+            <!-- Botões de reset e apagar -->
+            <button class="reset-btn" onclick="resetAllUserCounters()">Resetar Contadores dos Alunos (FC, Calorias, etc.)</button>
+            <button class="reset-btn" onclick="deleteAllSessions()">Apagar Todas as Aulas (Manuais e Automáticas)</button>
+            
+            <div id="addParticipant">
+                <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                <input type="number" id="ageInput" placeholder="Idade">
+                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                <input type="number" id="heightInput" placeholder="Altura (cm)">
+                <select id="genderInput">
+                    <option value="">Gênero</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                    <option value="O">Outro</option>
+                </select>
+                <input type="email" id="emailInput" placeholder="Email (opcional)">
+                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
+            </div>
+
+            <div id="participantListContainer">
+                <h2>Alunos Cadastrados</h2>
+                <p>Marque quem vai participar da próxima aula antes de iniciar:</p>
+                <table id="participantTable">
+                    <thead>
+                        <tr>
+                            <th>Participar</th>
+                            <th>Nome</th>
+                            <th>Idade</th>
+                            <th>Peso (kg)</th>
+                            <th>Altura (cm)</th>
+                            <th>Gênero</th>
+                            <th>Email</th>
+                            <th>Pulseira</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantList"></tbody>
+                </table>
+            </div>
+
+            <div id="last-class-summary" class="hidden">
+                <h2>Última Aula Finalizada</h2>
+                <div id="summary-content"></div>
+            </div>
+
+            <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
         </div>
 
-        <!-- TELA DE DASHBOARD (CLÁSSICO RESTAURADO) -->
         <div id="dashboard" class="hidden">
+            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
+
             <div id="main-container">
                 <div id="monitor-panel">
                     <div id="header">
@@ -493,11 +219,10 @@
                         
                         <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
 
-                        <div class="header-actions" style="display: flex; gap: 10px;">
-                            <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
-                            <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
-                            <button id="backBtn" style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">🏁 Finalizar</button>
-                        </div>
+                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
+                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                        <button id="reportsBtn">📅 Relatórios</button>
+                        <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
                     </div>
 
                     <div id="weekly-rankings">
@@ -522,7 +247,8 @@
                 </div>
             </div>
             
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--success); color: white; font-size: 24px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">+</button>
+            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
+            <button id="backBtn">🏁 Finalizar</button>
         </div>
 
         <!-- Modal Ranking Completo -->
@@ -539,70 +265,309 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
+    <!-- Script de autenticação com logs detalhados -->
     <script>
-        // Renderização da Lista de Alunos (Setup Premium)
-        window.renderParticipantList = function() {
-            const container = document.getElementById('students-container');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            participants.forEach(p => {
-                const isSelected = activeParticipants.includes(p.id);
-                const row = document.createElement('div');
-                row.className = `student-row ${isSelected ? 'selected' : ''}`;
-                row.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center;">
-                        <input type="checkbox" class="participant-checkbox" 
-                               ${isSelected ? 'checked' : ''} 
-                               onchange="toggleParticipantSelection(${p.id})">
-                    </div>
-                    <div class="student-name" title="${p.name}">${p.name}</div>
-                    <div class="student-details">
-                        <span>${p.age || '--'}a</span>
-                        <span>${p.weight || '--'}kg</span>
-                        <span>${p.gender || '--'}</span>
-                    </div>
-                    <div class="student-device-info">
-                        <span title="${p.deviceName || 'Sem pulseira'}">⌚ ${p.deviceName || 'Sem pulseira'}</span>
-                    </div>
-                    <div class="row-actions">
-                        <button class="mini-btn" onclick="editParticipant(${p.id})" title="Editar">✎</button>
-                        <button class="mini-btn" onclick="deleteParticipant(${p.id})" style="color: var(--danger)" title="Excluir">✕</button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        };
+        // Variáveis globais necessárias
+        let authToken = null;
+        let currentBox = null;
 
-        window.toggleParticipantSelection = function(id) {
-            const index = activeParticipants.indexOf(id);
-            if (index > -1) activeParticipants.splice(index, 1);
-            else activeParticipants.push(id);
-            renderParticipantList();
-        };
+        function showLoginScreen() {
+            console.log('[LOGIN] Mostrando tela de login');
+            document.getElementById('login-screen')?.classList.remove('hidden');
+            document.getElementById('app-content')?.classList.add('hidden');
+        }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                if (typeof loadParticipantsFromBackend === 'function') loadParticipantsFromBackend();
-            }, 500);
-        });
+        function showAppContent() {
+            console.log('[LOGIN] Mostrando conteúdo principal');
+            document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('app-content')?.classList.remove('hidden');
+        }
 
-        async function resetAllUserCounters() {
-            if (!confirm("Zerar contadores?")) return;
-            if (typeof participants !== 'undefined') {
-                participants.forEach(p => { p.todayMaxHR = 0; p.calories = 0; p.queimaPoints = 0; });
+        function logout() {
+            console.log('[LOGOUT] Limpando sessão');
+            localStorage.removeItem('wodpulse_token');
+            localStorage.removeItem('wodpulse_box');
+            authToken = null;
+            currentBox = null;
+            showLoginScreen();
+        }
+
+        async function loadParticipantsFromBackend() {
+            if (!authToken) {
+                console.warn('[LOAD] Sem token – abortando carregamento');
+                return;
+            }
+
+            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/participants`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('[LOAD] Resposta recebida. Status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('[LOAD] Dados recebidos do backend:', data);
+
+                participants = data.participants.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    age: p.age,
+                    weight: p.weight,
+                    heightCm: p.height_cm,
+                    gender: p.gender,
+                    restingHR: p.resting_hr,
+                    email: p.email,
+                    useTanaka: p.use_tanaka,
+                    maxHR: p.max_hr,
+                    historicalMaxHR: p.historical_max_hr,
+                    deviceId: p.device_id,
+                    deviceName: p.device_name,
+                    hr: 0,
+                    connected: false,
+                    lastUpdate: 0,
+                    lastZone: 'gray',
+                    queimaPoints: 0,
+                    trimpPoints: 0,
+                    lastSampleTime: null,
+                    calories: 0,
+                    minOrange: 0,
+                    minRed: 0,
+                    epocEstimated: 0,
+                    redStartTime: null,
+                    vo2ZoneActive: false,
+                    vo2GraceStart: null,
+                    vo2StartTime: null,
+                    vo2TimeSeconds: 0,
+                    vo2LastUpdate: 0,
+                    todayMaxHR: 0,
+                    maxHRReached: 0,
+                    externalId: null,
+                    minGray: 0,
+                    minGreen: 0,
+                    minBlue: 0,
+                    minYellow: 0
+                }));
+
+                console.log('[LOAD] Sucesso! Alunos carregados:', participants.length);
                 renderParticipantList();
-                alert("Resetado!");
+            } catch (err) {
+                console.error('[LOAD] Erro ao carregar alunos:', err.message, err.stack);
             }
         }
 
-        async function deleteAllSessions() {
-            if (!confirm("Apagar histórico?")) return;
-            const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://wodpulse-back.onrender.com';
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[INIT] DOM carregado. Verificando token...');
+            const savedToken = localStorage.getItem('wodpulse_token');
+            if (savedToken) {
+                console.log('[INIT] Token encontrado no localStorage. Carregando app...');
+                authToken = savedToken;
+                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
+                showAppContent();
+                loadParticipantsFromBackend();
+            } else {
+                console.log('[INIT] Nenhum token → mostrando login');
+                showLoginScreen();
+            }
+
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                console.log('[INIT] Form de login encontrado. Adicionando evento submit...');
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    console.log('[LOGIN] Submit detectado – preventDefault ok');
+
+                    const formData = new FormData(loginForm);
+                    const data = {
+                        slug: formData.get('slug'),
+                        username: formData.get('username'),
+                        password: formData.get('password')
+                    };
+                    console.log('[LOGIN] Dados enviados:', data);
+
+                    const resultDiv = document.getElementById('login-result');
+                    resultDiv.innerHTML = '<p style="color:#ff9800;">Conectando ao servidor...</p>';
+
+                    try {
+                        console.log('[LOGIN] Fazendo POST para ' + API_BASE_URL + '/api/auth/login...');
+                        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        console.log('[LOGIN] Resposta recebida. Status:', response.status);
+
+                        const json = await response.json();
+                        console.log('[LOGIN] Resposta JSON:', json);
+
+                        if (!response.ok) {
+                            throw new Error(json.error || `Erro HTTP ${response.status}`);
+                        }
+
+                        console.log('[LOGIN] Login OK! Salvando token...');
+                        authToken = json.token;
+                        currentBox = json.user.box;
+
+                        localStorage.setItem('wodpulse_token', authToken);
+                        localStorage.setItem('wodpulse_box', JSON.stringify(currentBox));
+
+                        resultDiv.innerHTML = `<p class="success">Login realizado! Bem-vindo, ${json.user.username}</p>`;
+
+                        setTimeout(() => {
+                            console.log('[LOGIN] Transição para tela principal');
+                            showAppContent();
+                            loadParticipantsFromBackend();
+                        }, 1500);
+
+                    } catch (err) {
+                        console.error('[LOGIN] Erro completo:', err);
+                        resultDiv.innerHTML = `<p class="error">Erro: ${err.message}</p>`;
+                    }
+                });
+            } else {
+                console.error('[INIT] Elemento #loginForm NÃO encontrado!');
+            }
+        });
+
+        // Função para renderizar a tabela de alunos cadastrados com checkbox de participação
+        function renderParticipantList() {
+            const container = document.getElementById('participantListContainer');
+            if (!container) return;
+
+            container.innerHTML = '<h2>Alunos Cadastrados</h2><p>Marque quem vai participar da próxima aula antes de iniciar:</p>';
+
+            const table = document.createElement('table');
+            table.id = 'participantTable';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Participar</th>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Peso (kg)</th>
+                        <th>Altura (cm)</th>
+                        <th>Gênero</th>
+                        <th>Email</th>
+                        <th>Pulseira</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+
+            participants.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
+                    <td>${p.name}</td>
+                    <td>${p.age || '--'}</td>
+                    <td>${p.weight || '--'}</td>
+                    <td>${p.heightCm || '--'}</td>
+                    <td>${p.gender || '--'}</td>
+                    <td>${p.email || '--'}</td>
+                    <td>${p.deviceName ? `📱 ${p.deviceName}` : (p.deviceId ? `📱 ID salvo` : 'Sem pulseira')}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editParticipant(${p.id})">Editar</button>
+                        <button class="delete-btn" onclick="deleteParticipant(${p.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            container.appendChild(table);
+
+            // Salvar seleção ao mudar checkbox
+            document.querySelectorAll('.participant-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const id = Number(cb.dataset.id);
+                    if (cb.checked) {
+                        if (!activeParticipants.includes(id)) activeParticipants.push(id);
+                    } else {
+                        activeParticipants = activeParticipants.filter(i => i !== id);
+                    }
+                    console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
+                });
+            });
+
+            if (participants.length === 0) {
+                container.innerHTML += '<p style="color:#888;">Nenhum aluno cadastrado ainda.</p>';
+            }
+        }
+
+        // Função para resetar contadores dos alunos (FC, calorias, TRIMP, EPOC, zonas, etc.)
+        async function resetAllUserCounters() {
+            if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos (calorias, FC, TRIMP, EPOC, zonas, etc.), mas NÃO apaga os cadastros nem as aulas salvas no banco. Continua?")) {
+                return;
+            }
+
             try {
-                await fetch(`${baseUrl}/api/sessions/delete-all`, { method: 'DELETE' });
-                alert("Aulas apagadas!");
-            } catch (err) { alert(err.message); }
+                // Reseta contadores locais (no array participants)
+                participants.forEach(p => {
+                    p.todayMaxHR = 0;
+                    p.queimaPoints = 0;
+                    p.trimpPoints = 0;
+                    p.calories = 0;
+                    p.minGray = 0;
+                    p.minGreen = 0;
+                    p.minBlue = 0;
+                    p.minYellow = 0;
+                    p.minOrange = 0;
+                    p.minRed = 0;
+                    p.epocEstimated = 0;
+                    p.vo2TimeSeconds = 0;
+                    p.vo2LastUpdate = 0;
+                    p.redStartTime = null;
+                    p.vo2ZoneActive = false;
+                    p.vo2GraceStart = null;
+                    p.vo2StartTime = null;
+                });
+
+                renderParticipantList();
+                renderTiles();
+
+                alert("Contadores dos alunos zerados com sucesso (localmente)!");
+                console.log("[RESET] Todos os contadores dos alunos foram zerados localmente.");
+            } catch (err) {
+                console.error("[RESET] Erro ao resetar contadores:", err);
+                alert("Erro ao resetar contadores: " + err.message);
+            }
+        }
+
+        // Função para apagar TODAS as aulas (sessions + participações)
+        async function deleteAllSessions() {
+            if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco (manuais e automáticas), incluindo todos os dados de participantes nessas aulas. Essa ação NÃO PODE ser desfeita. Tem certeza?")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/sessions/delete-all`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Erro ao apagar aulas');
+                }
+
+                alert("Todas as aulas foram apagadas com sucesso!");
+                console.log("[DELETE ALL] Todas as sessões apagadas.");
+            } catch (err) {
+                console.error("[DELETE ALL] Erro ao apagar aulas:", err);
+                alert("Erro ao apagar aulas: " + err.message);
+            }
         }
     </script>
 </body>
