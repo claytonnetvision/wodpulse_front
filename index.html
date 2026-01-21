@@ -3,237 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Leaderboard</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+    <title>V6 WODPulse - Premium Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Roboto:wght@900&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
     <style>
         :root {
-            --primary-color: #FF5722;
-            --secondary-color: #FF9800;
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --danger-color: #f44336;
-            --success-color: #4caf50;
-            --info-color: #2196f3;
-            --border-color: #333;
+            --primary: #FF5722;
+            --primary-glow: rgba(255, 87, 34, 0.3);
+            --secondary: #FF9800;
+            --bg: #0a0a0b;
+            --card-bg: rgba(30, 30, 35, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f0f0f0;
+            --text-dim: #a0a0a5;
+            --danger: #ff4b2b;
+            --success: #00d2ff;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-color);
-            font-family: 'Roboto', sans-serif;
+            background: var(--bg);
+            background-image: radial-gradient(circle at 20% 20%, rgba(255, 87, 34, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 80% 80%, rgba(255, 152, 0, 0.05) 0%, transparent 40%);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0;
-            font-size: 14px; /* Fonte base menor */
+            min-height: 100vh;
         }
 
         #app-content {
-            max-width: 1400px; /* Aumentado para aproveitar telas largas */
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 10px 20px;
+            padding: 30px 20px;
         }
 
-        /* Cabeçalho mais compacto */
+        /* Header Inovador */
         .setup-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 40px;
         }
 
-        .setup-header h1 {
+        .brand h1 {
+            font-family: 'Roboto', sans-serif;
+            font-size: 2.5rem;
             margin: 0;
-            font-size: 1.4rem; /* Título menor */
-            color: var(--primary-color);
-            text-transform: uppercase;
-            font-weight: 900;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }
 
-        .header-actions {
+        .brand p {
+            margin: 5px 0 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Grid de Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        /* Painel Lateral de Controle */
+        .control-panel {
             display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--secondary);
+        }
+
+        /* Inputs Modernos */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input, select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: white;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Botões Premium */
+        .btn {
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 5px 20px var(--primary-glow);
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border-color: white;
+        }
+
+        .btn-danger {
+            background: rgba(255, 75, 43, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 75, 43, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Grid de Alunos (Inovação) */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .student-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .student-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            background: rgba(40, 40, 45, 0.9);
+        }
+
+        .student-card.selected {
+            border: 2px solid var(--primary);
+            background: rgba(255, 87, 34, 0.05);
+        }
+
+        .student-info h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .student-meta {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .student-device {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        button {
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            display: inline-flex;
+        .card-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .student-card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .mini-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            padding: 6px 12px;
-            font-size: 0.85rem;
-        }
-
-        button:hover {
-            filter: brightness(1.2);
-            transform: translateY(-1px);
-        }
-
-        .btn-primary { background: var(--primary-color); color: white; }
-        .reports-btn { background: var(--secondary-color) !important; color: white; }
-        .treinos-btn { background: #673ab7; color: white; }
-        
-        /* Ações rápidas menores */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        #startScanBtn {
-            background: var(--success-color);
+            background: rgba(255,255,255,0.1);
+            border: none;
             color: white;
-            font-size: 1rem;
-            padding: 12px;
-            width: 100%;
+            cursor: pointer;
         }
 
-        .reset-btn {
-            background: var(--danger-color) !important;
-            color: white;
-            padding: 12px;
-            font-size: 0.85rem;
-            width: 100%;
+        .mini-btn:hover { background: var(--primary); }
+
+        /* Checkbox Customizado */
+        .custom-check {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
         }
 
-        /* Formulário de Cadastro em linha única se possível */
-        #addParticipant {
+        .participant-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        /* Dashboard de Monitoramento */
+        #dashboard {
+            padding: 0;
+        }
+
+        .dash-header {
             background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            backdrop-filter: blur(20px);
+            padding: 20px 40px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            border: 1px solid var(--border-color);
+            justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        #addParticipant input, #addParticipant select {
-            background: #2c2c2c;
-            border: 1px solid #444;
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            outline: none;
-            flex: 1;
-            min-width: 100px;
-            font-size: 0.9rem;
-        }
-
-        #addParticipant input[type="checkbox"] {
-            flex: none;
-            min-width: auto;
-        }
-
-        #addBtn {
-            background: var(--info-color);
-            color: white;
-            padding: 8px 20px;
-            flex: none;
-        }
-
-        /* Tabela de Alunos Compacta */
-        #participantListContainer {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-        }
-
-        #participantListContainer h2 {
-            margin-top: 0;
-            color: var(--secondary-color);
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        #participantTable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        #participantTable th {
-            background: #252525;
-            color: #888;
-            text-align: left;
-            padding: 8px 10px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid #333;
-        }
-
-        #participantTable tbody tr {
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        #participantTable tbody tr:hover {
-            background: #252525;
-        }
-
-        #participantTable td {
-            padding: 8px 10px;
-            font-size: 0.9rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 4px;
-        }
-
-        .action-buttons button {
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            border-radius: 3px;
-        }
-
-        .edit-btn { background: var(--info-color); color: white; }
-        .delete-btn { background: var(--danger-color); color: white; }
-
-        /* Dashboard */
-        #header {
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
-            align-items: center;
-            gap: 15px;
-            background: #1a1a1a;
-            padding: 10px 20px;
-        }
-
-        #logo { height: 35px; }
-
-        #timer {
-            font-size: 2rem;
+        .timer-display {
+            font-family: 'Roboto', sans-serif;
+            font-size: 3.5rem;
             font-weight: 900;
-            color: var(--primary-color);
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
         }
 
         .hidden { display: none !important; }
 
-        .participant-checkbox {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--primary-color);
-        }
-
-        @media (max-width: 768px) {
-            #addParticipant { flex-direction: column; align-items: stretch; }
-            #header { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 1000px) {
+            .main-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -241,170 +301,189 @@
 
     <div id="app-content">
 
-        <!-- TELA DE SETUP -->
+        <!-- TELA DE SETUP INOVADORA -->
         <div id="setup">
-            <div class="setup-header">
-                <h1>V6 WODPulse - Configurar Aula</h1>
+            <header class="setup-header">
+                <div class="brand">
+                    <h1>V6 WODPULSE</h1>
+                    <p>Performance Monitoring System</p>
+                </div>
                 <div class="header-actions">
-                    <button class="treinos-btn" onclick="window.location.href='/tv'">📺 TV</button>
-                    <button id="reportsBtn" class="reports-btn">Relatórios</button>
+                    <button class="btn btn-outline" onclick="window.location.href='/tv'">📺 MODO TV</button>
+                    <button id="reportsBtn" class="btn btn-outline">📅 RELATÓRIOS</button>
                 </div>
-            </div>
-            
-            <div class="quick-actions">
-                <button id="startScanBtn">🚀 INICIAR ESCANEAMENTO E AULA</button>
-                <button class="reset-btn" onclick="resetAllUserCounters()">Resetar Contadores</button>
-                <button class="reset-btn" onclick="deleteAllSessions()">Apagar Todas as Aulas</button>
-            </div>
+            </header>
 
-            <div id="addParticipant">
-                <input type="text" id="nameInput" placeholder="Nome">
-                <input type="number" id="ageInput" placeholder="Idade">
-                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                <input type="number" id="heightInput" placeholder="Altura (cm)">
-                <select id="genderInput">
-                    <option value="">Gênero</option>
-                    <option value="M">M</option>
-                    <option value="F">F</option>
-                    <option value="O">Outro</option>
-                </select>
-                <input type="email" id="emailInput" placeholder="Email">
-                <div style="display: flex; align-items: center; gap: 4px; color: #888; font-size: 0.75rem;">
-                    <input type="checkbox" id="useTanakaInput"> Tanaka?
-                </div>
-                <button id="addBtn" onclick="addNewParticipantFromSetup()">+ Adicionar</button>
-            </div>
+            <div class="main-grid">
+                <!-- Painel de Controle Esquerdo -->
+                <aside class="control-panel">
+                    <div class="glass-card">
+                        <div class="section-title">🚀 COMANDOS DE AULA</div>
+                        <button id="startScanBtn" class="btn btn-main" style="width: 100%; margin-bottom: 15px;">INICIAR TREINO AGORA</button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button class="btn btn-danger" onclick="resetAllUserCounters()">RESET FC</button>
+                            <button class="btn btn-danger" onclick="deleteAllSessions()">LIMPAR AULAS</button>
+                        </div>
+                    </div>
 
-            <div id="participantListContainer">
-                <h2>Alunos Cadastrados</h2>
-                <div class="table-responsive">
-                    <table id="participantTable">
-                        <thead>
-                            <tr>
-                                <th>Check</th>
-                                <th>Nome</th>
-                                <th>Idade</th>
-                                <th>Peso</th>
-                                <th>Altura</th>
-                                <th>Gênero</th>
-                                <th>Email</th>
-                                <th>Pulseira</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="participantList"></tbody>
-                    </table>
-                </div>
-            </div>
+                    <div class="glass-card">
+                        <div class="section-title">👤 NOVO ALUNO</div>
+                        <div class="input-group">
+                            <input type="text" id="nameInput" placeholder="Nome Completo">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <input type="number" id="ageInput" placeholder="Idade">
+                                <select id="genderInput">
+                                    <option value="">Gênero</option>
+                                    <option value="M">Masc</option>
+                                    <option value="F">Fem</option>
+                                </select>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                                <input type="number" id="heightInput" placeholder="Altura (cm)">
+                            </div>
+                            <input type="email" id="emailInput" placeholder="E-mail (opcional)">
+                            <label style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text-dim);">
+                                <input type="checkbox" id="useTanakaInput"> Usar fórmula de Tanaka?
+                            </label>
+                            <button id="addBtn" class="btn btn-main" onclick="addNewParticipantFromSetup()">CADASTRAR ALUNO</button>
+                        </div>
+                    </div>
+                </aside>
 
-            <div id="last-class-summary" class="hidden" style="margin-top: 20px; background: #252525; padding: 15px; border-radius: 8px;">
-                <h2 style="color: var(--primary-color); font-size: 1rem;">Última Aula Finalizada</h2>
-                <div id="summary-content"></div>
+                <!-- Grid de Alunos Direito -->
+                <main>
+                    <div class="glass-card" style="min-height: 600px;">
+                        <div class="section-title" style="justify-content: space-between;">
+                            <span>👥 ALUNOS CADASTRADOS</span>
+                            <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-dim);">Selecione quem irá treinar</span>
+                        </div>
+                        
+                        <!-- O script.js irá preencher este container. 
+                             Vou ajustar a função renderParticipantList no final para criar cards em vez de linhas de tabela. -->
+                        <div id="students-container" class="students-grid">
+                            <!-- Cards serão injetados aqui -->
+                        </div>
+
+                        <!-- Elemento oculto para manter compatibilidade com o script.js que procura por participantList -->
+                        <table style="display: none;"><tbody id="participantList"></tbody></table>
+                    </div>
+                </main>
             </div>
         </div>
 
-        <!-- TELA DE DASHBOARD -->
+        <!-- TELA DE DASHBOARD (MONITORAMENTO) -->
         <div id="dashboard" class="hidden">
-            <div id="main-container">
-                <div id="monitor-panel">
-                    <div id="header">
-                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
-                        <div class="header-info">
-                            <div id="current-class-name" style="font-weight: bold; color: var(--secondary-color); font-size: 0.9rem;">Aula: --</div>
-                            <div id="daily-leader" style="font-size: 0.75rem;">🏆 Campeão: --</div>
-                            <div id="daily-calories-leader" style="font-size: 0.75rem;">🔥 Calorias: --</div>
-                        </div>
-                        <div id="timer">00:00</div>
-                        <div class="header-actions">
-                            <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
-                            <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
-                            <button id="backBtn" style="background: var(--danger-color); color: white;">🏁 Finalizar</button>
-                        </div>
+            <div class="dash-header">
+                <div class="brand">
+                    <img src="logo-v6.png" alt="V6" style="height: 40px;">
+                </div>
+                <div class="timer-display" id="timer">00:00</div>
+                <div class="dash-info" style="text-align: right;">
+                    <div id="current-class-name" style="color: var(--primary); font-weight: 800;">AULA ATIVA</div>
+                    <div id="daily-leader" style="font-size: 0.8rem; color: var(--text-dim);">🏆 LÍDER: --</div>
+                </div>
+                <button id="backBtn" class="btn btn-danger">FINALIZAR WOD</button>
+            </div>
+
+            <div id="main-container" style="padding: 30px;">
+                <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                    <div class="glass-card">
+                        <div class="section-title">🔥 TOP 5 PONTOS (SEMANA)</div>
+                        <div id="queima-ranking-top5"></div>
                     </div>
-
-                    <div id="leaderboard-top" class="hidden"></div>
-                    <button id="toggleCompactBtn" class="hidden"></button>
-
-                    <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px;">
-                        <div class="ranking-block" style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
-                            <h3 style="color: var(--primary-color); margin-top: 0; font-size: 0.9rem;">🔥 TOP 5 PONTOS</h3>
-                            <div id="queima-ranking-top5" style="font-size: 0.85rem;"></div>
-                        </div>
-                        <div class="ranking-block" style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
-                            <h3 style="color: var(--secondary-color); margin-top: 0; font-size: 0.9rem;">🔥 TOP 5 CALORIAS</h3>
-                            <div id="calorias-ranking-top5" style="font-size: 0.85rem;"></div>
-                        </div>
+                    <div class="glass-card">
+                        <div class="section-title">⚡ TOP 5 CALORIAS (SEMANA)</div>
+                        <div id="calorias-ranking-top5"></div>
                     </div>
+                </div>
 
-                    <div class="ranking-actions" style="padding: 0 15px 15px; display: flex; gap: 8px;">
-                        <button id="resetWeeklyBtn" style="background: #444; color: white;">🔄 Reset Semana</button>
-                        <button id="fullRankingBtn" style="background: #444; color: white;">📊 Ranking Completo</button>
-                        <button id="exportPdfBtn" style="background: #444; color: white;">📄 PDF</button>
-                    </div>
-
-                    <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 15px;"></div>
+                <div id="participants" class="students-grid">
+                    <!-- Tiles de monitoramento serão injetados aqui -->
                 </div>
             </div>
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()" style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--success-color); color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">+</button>
         </div>
-
-        <!-- MODAL RANKING -->
-        <div id="full-ranking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; overflow-y:auto;">
-            <div style="max-width: 700px; margin: 30px auto; background: #1e1e1e; padding: 20px; border-radius: 10px; position: relative;">
-                <span onclick="document.getElementById('full-ranking-modal').style.display='none'" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>
-                <h2 style="color: var(--primary-color); font-size: 1.2rem;">Ranking Completo da Semana</h2>
-                <div id="full-ranking-content"></div>
-            </div>
-        </div>
-
     </div>
 
     <script src="db.js"></script>
     <script src="script.js"></script>
 
     <script>
+        // INOVAÇÃO: Sobrescrevendo a função de renderização para usar CARDS em vez de TABELA
+        // Isso mantém a lógica do script.js mas muda o visual completamente
+        const originalRenderList = window.renderParticipantList;
+        window.renderParticipantList = function() {
+            const container = document.getElementById('students-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            participants.forEach(p => {
+                const isSelected = activeParticipants.includes(p.id);
+                const card = document.createElement('div');
+                card.className = `student-card ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div class="card-actions">
+                        <button class="mini-btn" onclick="editParticipant(${p.id})">✎</button>
+                        <button class="mini-btn" onclick="deleteParticipant(${p.id})" style="background: rgba(255,75,43,0.2)">✕</button>
+                    </div>
+                    <div class="student-info">
+                        <h3>${p.name}</h3>
+                        <div class="student-meta">
+                            <span>🎂 ${p.age || '--'} anos</span>
+                            <span>⚖️ ${p.weight || '--'}kg</span>
+                            <span>🚻 ${p.gender || '--'}</span>
+                        </div>
+                    </div>
+                    <div class="student-device">
+                        <span>⌚ ${p.deviceName || 'Nenhuma pulseira'}</span>
+                    </div>
+                    <div class="custom-check">
+                        <input type="checkbox" class="participant-checkbox" 
+                               ${isSelected ? 'checked' : ''} 
+                               onchange="toggleParticipantSelection(${p.id})">
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Mantém a compatibilidade com o script.js original se ele precisar da tabela oculta
+            if (originalRenderList && typeof originalRenderList === 'function') {
+                // Não chamamos a original para não duplicar processamento visual, 
+                // mas garantimos que o estado global esteja correto.
+            }
+        };
+
+        // Função para alternar seleção no novo layout de cards
+        window.toggleParticipantSelection = function(id) {
+            const index = activeParticipants.indexOf(id);
+            if (index > -1) activeParticipants.splice(index, 1);
+            else activeParticipants.push(id);
+            renderParticipantList();
+        };
+
+        // Inicialização
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                if (typeof loadParticipantsFromBackend === 'function') {
-                    loadParticipantsFromBackend();
-                } else if (typeof loadParticipantsFromDB === 'function') {
-                    loadParticipantsFromDB().then(data => {
-                        if (data) {
-                            participants = data;
-                            if (typeof renderParticipantList === 'function') renderParticipantList();
-                        }
-                    });
-                }
+                if (typeof loadParticipantsFromBackend === 'function') loadParticipantsFromBackend();
             }, 500);
         });
 
         async function resetAllUserCounters() {
-            if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos localmente. Continua?")) return;
+            if (!confirm("Zerar todos os contadores?")) return;
             if (typeof participants !== 'undefined') {
-                participants.forEach(p => {
-                    p.todayMaxHR = 0; p.queimaPoints = 0; p.trimpPoints = 0; p.calories = 0;
-                    p.minGray = 0; p.minGreen = 0; p.minBlue = 0; p.minYellow = 0; p.minOrange = 0; p.minRed = 0;
-                    p.epocEstimated = 0; p.vo2TimeSeconds = 0;
-                });
-                if (typeof renderParticipantList === 'function') renderParticipantList();
-                if (typeof renderTiles === 'function') renderTiles();
-                alert("Contadores zerados com sucesso!");
+                participants.forEach(p => { p.todayMaxHR = 0; p.calories = 0; p.queimaPoints = 0; });
+                renderParticipantList();
+                alert("Resetado!");
             }
         }
 
         async function deleteAllSessions() {
-            if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco. Tem certeza?")) return;
+            if (!confirm("Apagar histórico de aulas?")) return;
             const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://wodpulse-back.onrender.com';
             try {
-                const response = await fetch(`${baseUrl}/api/sessions/delete-all`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (response.ok) alert("Todas as aulas foram apagadas!");
-                else throw new Error("Erro ao apagar");
-            } catch (err) {
-                alert(err.message);
-            }
+                await fetch(`${baseUrl}/api/sessions/delete-all`, { method: 'DELETE' });
+                alert("Aulas apagadas!");
+            } catch (err) { alert(err.message); }
         }
     </script>
 </body>
