@@ -79,7 +79,6 @@
         }
 
         .btn-primary { background: var(--primary-color); color: white; padding: 10px 20px; }
-        .btn-logout { background: #444; color: white; padding: 8px 15px; }
         .reports-btn { background: var(--secondary-color) !important; color: white; padding: 10px 20px; }
         .treinos-btn { background: #673ab7; color: white; padding: 10px 20px; }
         
@@ -207,54 +206,6 @@
         .edit-btn { background: var(--info-color); color: white; }
         .delete-btn { background: var(--danger-color); color: white; }
 
-        /* Login Screen */
-        #login-screen {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
-        }
-
-        #login-screen h1 {
-            color: var(--primary-color);
-            margin-bottom: 30px;
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-
-        #loginForm {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #aaa;
-            font-size: 0.9rem;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            background: #2c2c2c;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
         /* Dashboard & Monitor */
         #dashboard {
             padding: 0;
@@ -302,47 +253,16 @@
 </head>
 <body>
 
-    <!-- Tela de Login -->
-    <div id="login-screen">
-        <h1>V6 WODPulse</h1>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Box (slug):</label>
-                <select name="slug" required>
-                    <option value="">Selecione seu box</option>
-                    <option value="v6">V6 CrossFit</option>
-                    <option value="uranium">CrossFit Uranium</option>
-                    <option value="apolo">CrossFit Apolo</option>
-                </select>
-            </div>
+    <!-- Conteúdo principal (Exibido diretamente, sem login) -->
+    <div id="app-content">
 
-            <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" name="username" placeholder="ex: adminv6" required />
-            </div>
-
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" name="password" required />
-            </div>
-
-            <button type="submit" class="btn-primary" style="width: 100%; padding: 15px;">ENTRAR NO SISTEMA</button>
-        </form>
-
-        <div id="login-result" style="margin-top:20px; min-height:80px; color: var(--danger-color);"></div>
-    </div>
-
-    <!-- Conteúdo principal (escondido até login) -->
-    <div id="app-content" class="hidden">
-
+        <!-- Seção de Configuração (Cadastro) -->
         <div id="setup">
             <div class="setup-header">
-                <h1>Configurar Aula</h1>
+                <h1>V6 WODPulse - Configurar Aula</h1>
                 <div class="header-actions">
                     <button class="treinos-btn" onclick="window.location.href='/tv'">📺 TV</button>
-                    <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios</button>
-                    <button onclick="logout()" class="btn-logout">Sair</button>
+                    <button id="reportsBtn" class="reports-btn">Relatórios</button>
                 </div>
             </div>
             
@@ -364,6 +284,9 @@
                     <option value="O">Outro</option>
                 </select>
                 <input type="email" id="emailInput" placeholder="Email (opcional)">
+                <div style="display: flex; align-items: center; gap: 8px; color: #888; font-size: 0.8rem;">
+                    <input type="checkbox" id="useTanakaInput"> Tanaka?
+                </div>
                 <button id="addBtn" onclick="addNewParticipantFromSetup()">+ Adicionar Aluno</button>
             </div>
 
@@ -396,6 +319,7 @@
             </div>
         </div>
 
+        <!-- Seção de Dashboard (Monitoramento) -->
         <div id="dashboard" class="hidden">
             <div id="main-container">
                 <div id="monitor-panel">
@@ -405,21 +329,20 @@
                         <div class="header-info">
                             <div id="current-class-name" style="font-weight: bold; color: var(--secondary-color);">Aula: --</div>
                             <div id="daily-leader" style="font-size: 0.85rem;">🏆 Campeão: --</div>
+                            <div id="daily-calories-leader" style="font-size: 0.85rem;">🔥 Calorias: --</div>
                         </div>
                         
                         <div id="timer">00:00</div>
                         
                         <div class="header-actions">
                             <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
-                            <button id="reportsBtn" class="btn-primary">📅 Relatórios</button>
+                            <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
                             <button id="backBtn" style="background: var(--danger-color); color: white; padding: 10px 20px;">🏁 Finalizar</button>
                         </div>
                     </div>
 
-                    <!-- Elementos mantidos para compatibilidade com script.js -->
+                    <!-- Elementos mantidos para compatibilidade -->
                     <div id="leaderboard-top" class="hidden"></div>
-                    <div id="daily-calories-leader" class="hidden"></div>
-                    <button id="authorizeReconnectBtn" class="hidden"></button>
                     <button id="toggleCompactBtn" class="hidden"></button>
 
                     <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
@@ -461,87 +384,28 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação e funções auxiliares (Mantidos conforme original) -->
+    <!-- Funções Auxiliares (Apenas o necessário para o funcionamento do script.js) -->
     <script>
-        let authToken = null;
-        let currentBox = null;
-
-        function showLoginScreen() {
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
-        }
-
-        function showAppContent() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            if (typeof renderParticipantList === 'function') renderParticipantList();
-        }
-
-        function logout() {
-            localStorage.removeItem('wodpulse_token');
-            localStorage.removeItem('wodpulse_box');
-            location.reload();
-        }
-
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3000' 
-            : 'https://wodpulse-api.vercel.app';
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            const resultDiv = document.getElementById('login-result');
-            resultDiv.innerHTML = 'Autenticando...';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const resData = await response.json();
-                if (response.ok) {
-                    localStorage.setItem('wodpulse_token', resData.token);
-                    localStorage.setItem('wodpulse_box', data.slug);
-                    showAppContent();
-                } else {
-                    resultDiv.innerHTML = `Erro: ${resData.error || 'Falha no login'}`;
-                }
-            } catch (err) {
-                resultDiv.innerHTML = `Erro de conexão: ${err.message}`;
-            }
-        });
-
-        window.addEventListener('load', () => {
-            const token = localStorage.getItem('wodpulse_token');
-            if (token) showAppContent();
-            else showLoginScreen();
-        });
-
+        // Funções de reset e delete que chamam o backend
         async function resetAllUserCounters() {
             if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos localmente. Continua?")) return;
-            try {
-                if (typeof participants !== 'undefined') {
-                    participants.forEach(p => {
-                        p.todayMaxHR = 0; p.queimaPoints = 0; p.trimpPoints = 0; p.calories = 0;
-                        p.minGray = 0; p.minGreen = 0; p.minBlue = 0; p.minYellow = 0; p.minOrange = 0; p.minRed = 0;
-                        p.epocEstimated = 0; p.vo2TimeSeconds = 0;
-                    });
-                    if (typeof renderParticipantList === 'function') renderParticipantList();
-                    if (typeof renderTiles === 'function') renderTiles();
-                    alert("Contadores zerados com sucesso!");
-                }
-            } catch (err) {
-                alert("Erro ao resetar: " + err.message);
+            if (typeof participants !== 'undefined') {
+                participants.forEach(p => {
+                    p.todayMaxHR = 0; p.queimaPoints = 0; p.trimpPoints = 0; p.calories = 0;
+                    p.minGray = 0; p.minGreen = 0; p.minBlue = 0; p.minYellow = 0; p.minOrange = 0; p.minRed = 0;
+                    p.epocEstimated = 0; p.vo2TimeSeconds = 0;
+                });
+                if (typeof renderParticipantList === 'function') renderParticipantList();
+                if (typeof renderTiles === 'function') renderTiles();
+                alert("Contadores zerados com sucesso!");
             }
         }
 
         async function deleteAllSessions() {
             if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco. Tem certeza?")) return;
+            const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://wodpulse-back.onrender.com';
             try {
-                const response = await fetch(`${API_BASE_URL}/api/sessions/delete-all`, {
+                const response = await fetch(`${baseUrl}/api/sessions/delete-all`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });
