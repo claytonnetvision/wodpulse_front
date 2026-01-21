@@ -182,7 +182,7 @@
             border: 1px solid rgba(255, 75, 43, 0.2);
         }
 
-        /* Lista de Alunos em Linhas */
+        /* Lista de Alunos em Linhas - CORRIGIDO */
         .students-list {
             display: flex;
             flex-direction: column;
@@ -195,11 +195,11 @@
             border-radius: 12px;
             padding: 12px 20px;
             display: grid;
-            grid-template-columns: 40px 1fr 150px 180px 100px;
+            grid-template-columns: 40px 1.5fr 1fr 1.5fr 120px; /* Ajustado para melhor distribuição */
             align-items: center;
             gap: 15px;
             transition: 0.2s;
-            position: relative;
+            position: relative; /* Mantido para efeitos, mas sem filhos absolutos que sobrepõem */
         }
 
         .student-row:hover {
@@ -217,13 +217,17 @@
             font-weight: 600;
             font-size: 1rem;
             color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .student-details {
             font-size: 0.85rem;
             color: var(--text-dim);
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            white-space: nowrap;
         }
 
         .student-device-info {
@@ -232,6 +236,9 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .row-actions {
@@ -258,11 +265,13 @@
             background: var(--primary);
         }
 
+        /* Checkbox - REMOVIDO POSICIONAMENTO ABSOLUTO */
         .participant-checkbox {
             width: 20px;
             height: 20px;
             cursor: pointer;
             accent-color: var(--primary);
+            margin: 0; /* Garante que não tenha margens estranhas */
         }
 
         /* Dashboard */
@@ -293,12 +302,13 @@
         /* Responsividade */
         @media (max-width: 1100px) {
             .student-row {
-                grid-template-columns: 40px 1fr 100px;
+                grid-template-columns: 40px 1fr 120px;
                 grid-template-rows: auto auto;
                 gap: 10px;
             }
-            .student-device-info { grid-column: 2; }
-            .row-actions { grid-column: 3; grid-row: 1 / span 2; }
+            .student-details { grid-column: 2; }
+            .student-device-info { grid-column: 2; grid-row: 3; }
+            .row-actions { grid-column: 3; grid-row: 1 / span 3; }
         }
 
         @media (max-width: 1000px) {
@@ -418,7 +428,7 @@
     <script src="script.js"></script>
 
     <script>
-        // Sobrescrevendo renderização para LISTA (Linha por Linha)
+        // Sobrescrevendo renderização para LISTA (Linha por Linha) - CORRIGIDO
         window.renderParticipantList = function() {
             const container = document.getElementById('students-container');
             if (!container) return;
@@ -429,19 +439,19 @@
                 const row = document.createElement('div');
                 row.className = `student-row ${isSelected ? 'selected' : ''}`;
                 row.innerHTML = `
-                    <div>
+                    <div style="display: flex; align-items: center; justify-content: center;">
                         <input type="checkbox" class="participant-checkbox" 
                                ${isSelected ? 'checked' : ''} 
                                onchange="toggleParticipantSelection(${p.id})">
                     </div>
-                    <div class="student-name">${p.name}</div>
+                    <div class="student-name" title="${p.name}">${p.name}</div>
                     <div class="student-details">
                         <span>${p.age || '--'}a</span>
                         <span>${p.weight || '--'}kg</span>
                         <span>${p.gender || '--'}</span>
                     </div>
                     <div class="student-device-info">
-                        <span>⌚ ${p.deviceName || 'Sem pulseira'}</span>
+                        <span title="${p.deviceName || 'Sem pulseira'}">⌚ ${p.deviceName || 'Sem pulseira'}</span>
                     </div>
                     <div class="row-actions">
                         <button class="mini-btn" onclick="editParticipant(${p.id})" title="Editar">✎</button>
