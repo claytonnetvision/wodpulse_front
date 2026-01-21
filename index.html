@@ -28,26 +28,28 @@
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
+            font-size: 14px; /* Fonte base menor */
         }
 
         #app-content {
-            max-width: 1200px;
+            max-width: 1400px; /* Aumentado para aproveitar telas largas */
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px 20px;
         }
 
+        /* Cabeçalho mais compacto */
         .setup-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 2px solid var(--primary-color);
         }
 
         .setup-header h1 {
             margin: 0;
-            font-size: 1.8rem;
+            font-size: 1.4rem; /* Título menor */
             color: var(--primary-color);
             text-transform: uppercase;
             font-weight: 900;
@@ -55,19 +57,21 @@
 
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         button {
             cursor: pointer;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: bold;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 5px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
         }
 
         button:hover {
@@ -75,171 +79,161 @@
             transform: translateY(-1px);
         }
 
-        .btn-primary { background: var(--primary-color); color: white; padding: 10px 20px; }
-        .reports-btn { background: var(--secondary-color) !important; color: white; padding: 10px 20px; }
-        .treinos-btn { background: #673ab7; color: white; padding: 10px 20px; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .reports-btn { background: var(--secondary-color) !important; color: white; }
+        .treinos-btn { background: #673ab7; color: white; }
         
+        /* Ações rápidas menores */
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         #startScanBtn {
             background: var(--success-color);
             color: white;
-            font-size: 1.2rem;
-            padding: 20px;
+            font-size: 1rem;
+            padding: 12px;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
         .reset-btn {
             background: var(--danger-color) !important;
             color: white;
-            padding: 15px;
-            font-size: 0.9rem;
+            padding: 12px;
+            font-size: 0.85rem;
             width: 100%;
         }
 
+        /* Formulário de Cadastro em linha única se possível */
         #addParticipant {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            align-items: center;
         }
 
         #addParticipant input, #addParticipant select {
             background: #2c2c2c;
             border: 1px solid #444;
             color: white;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 8px;
+            border-radius: 4px;
             outline: none;
+            flex: 1;
+            min-width: 100px;
+            font-size: 0.9rem;
         }
 
-        #addParticipant input:focus {
-            border-color: var(--primary-color);
+        #addParticipant input[type="checkbox"] {
+            flex: none;
+            min-width: auto;
         }
 
         #addBtn {
             background: var(--info-color);
             color: white;
-            grid-column: span 1;
+            padding: 8px 20px;
+            flex: none;
         }
 
+        /* Tabela de Alunos Compacta */
         #participantListContainer {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 8px;
+            padding: 15px;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         #participantListContainer h2 {
             margin-top: 0;
             color: var(--secondary-color);
-            font-size: 1.4rem;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
         }
 
         .table-responsive {
             overflow-x: auto;
-            margin-top: 15px;
         }
 
         #participantTable {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
+            border-collapse: collapse;
         }
 
         #participantTable th {
-            background: transparent;
+            background: #252525;
             color: #888;
             text-align: left;
-            padding: 10px 15px;
-            font-size: 0.85rem;
+            padding: 8px 10px;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            border-bottom: 1px solid #333;
         }
 
         #participantTable tbody tr {
-            background: #252525;
-            transition: transform 0.2s;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         #participantTable tbody tr:hover {
-            background: #2d2d2d;
-            transform: scale(1.005);
+            background: #252525;
         }
 
         #participantTable td {
-            padding: 15px;
-            border: none;
+            padding: 8px 10px;
+            font-size: 0.9rem;
         }
-
-        #participantTable td:first-child { border-radius: 8px 0 0 8px; }
-        #participantTable td:last-child { border-radius: 0 8px 8px 0; }
 
         .action-buttons {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
 
         .action-buttons button {
-            padding: 6px 10px;
-            font-size: 0.8rem;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 3px;
         }
 
         .edit-btn { background: var(--info-color); color: white; }
         .delete-btn { background: var(--danger-color); color: white; }
 
-        #dashboard {
-            padding: 0;
-        }
-
+        /* Dashboard */
         #header {
             display: grid;
             grid-template-columns: auto 1fr auto auto;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             background: #1a1a1a;
-            padding: 15px 25px;
-            border-bottom: 1px solid #333;
+            padding: 10px 20px;
         }
 
-        #logo { height: 50px; }
+        #logo { height: 35px; }
 
         #timer {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 900;
             color: var(--primary-color);
-            font-family: monospace;
         }
 
         .hidden { display: none !important; }
 
         .participant-checkbox {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             accent-color: var(--primary-color);
-            cursor: pointer;
         }
 
         @media (max-width: 768px) {
-            #addParticipant {
-                grid-template-columns: 1fr 1fr;
-            }
-            #addBtn { grid-column: span 2; }
-            #header {
-                grid-template-columns: 1fr 1fr;
-            }
+            #addParticipant { flex-direction: column; align-items: stretch; }
+            #header { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -264,26 +258,25 @@
             </div>
 
             <div id="addParticipant">
-                <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                <input type="text" id="nameInput" placeholder="Nome">
                 <input type="number" id="ageInput" placeholder="Idade">
                 <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
                 <input type="number" id="heightInput" placeholder="Altura (cm)">
                 <select id="genderInput">
                     <option value="">Gênero</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
+                    <option value="M">M</option>
+                    <option value="F">F</option>
                     <option value="O">Outro</option>
                 </select>
-                <input type="email" id="emailInput" placeholder="Email (opcional)">
-                <div style="display: flex; align-items: center; gap: 8px; color: #888; font-size: 0.8rem;">
+                <input type="email" id="emailInput" placeholder="Email">
+                <div style="display: flex; align-items: center; gap: 4px; color: #888; font-size: 0.75rem;">
                     <input type="checkbox" id="useTanakaInput"> Tanaka?
                 </div>
-                <button id="addBtn" onclick="addNewParticipantFromSetup()">+ Adicionar Aluno</button>
+                <button id="addBtn" onclick="addNewParticipantFromSetup()">+ Adicionar</button>
             </div>
 
             <div id="participantListContainer">
                 <h2>Alunos Cadastrados</h2>
-                <p style="color: #888; margin-bottom: 20px;">Selecione os participantes para a próxima aula:</p>
                 <div class="table-responsive">
                     <table id="participantTable">
                         <thead>
@@ -304,8 +297,8 @@
                 </div>
             </div>
 
-            <div id="last-class-summary" class="hidden" style="margin-top: 30px; background: #252525; padding: 20px; border-radius: 12px;">
-                <h2 style="color: var(--primary-color);">Última Aula Finalizada</h2>
+            <div id="last-class-summary" class="hidden" style="margin-top: 20px; background: #252525; padding: 15px; border-radius: 8px;">
+                <h2 style="color: var(--primary-color); font-size: 1rem;">Última Aula Finalizada</h2>
                 <div id="summary-content"></div>
             </div>
         </div>
@@ -316,78 +309,65 @@
                 <div id="monitor-panel">
                     <div id="header">
                         <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
-                        
                         <div class="header-info">
-                            <div id="current-class-name" style="font-weight: bold; color: var(--secondary-color);">Aula: --</div>
-                            <div id="daily-leader" style="font-size: 0.85rem;">🏆 Campeão: --</div>
-                            <div id="daily-calories-leader" style="font-size: 0.85rem;">🔥 Calorias: --</div>
+                            <div id="current-class-name" style="font-weight: bold; color: var(--secondary-color); font-size: 0.9rem;">Aula: --</div>
+                            <div id="daily-leader" style="font-size: 0.75rem;">🏆 Campeão: --</div>
+                            <div id="daily-calories-leader" style="font-size: 0.75rem;">🔥 Calorias: --</div>
                         </div>
-                        
                         <div id="timer">00:00</div>
-                        
                         <div class="header-actions">
                             <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
                             <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
-                            <button id="backBtn" style="background: var(--danger-color); color: white; padding: 10px 20px;">🏁 Finalizar</button>
+                            <button id="backBtn" style="background: var(--danger-color); color: white;">🏁 Finalizar</button>
                         </div>
                     </div>
 
                     <div id="leaderboard-top" class="hidden"></div>
                     <button id="toggleCompactBtn" class="hidden"></button>
 
-                    <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px;">
-                        <div class="ranking-block" style="background: #1e1e1e; padding: 15px; border-radius: 10px;">
-                            <h3 style="color: var(--primary-color); margin-top: 0;">🔥 TOP 5 PONTOS</h3>
-                            <div id="queima-ranking-top5"></div>
+                    <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px;">
+                        <div class="ranking-block" style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
+                            <h3 style="color: var(--primary-color); margin-top: 0; font-size: 0.9rem;">🔥 TOP 5 PONTOS</h3>
+                            <div id="queima-ranking-top5" style="font-size: 0.85rem;"></div>
                         </div>
-
-                        <div class="ranking-block" style="background: #1e1e1e; padding: 15px; border-radius: 10px;">
-                            <h3 style="color: var(--secondary-color); margin-top: 0;">🔥 TOP 5 CALORIAS</h3>
-                            <div id="calorias-ranking-top5"></div>
+                        <div class="ranking-block" style="background: #1e1e1e; padding: 10px; border-radius: 8px;">
+                            <h3 style="color: var(--secondary-color); margin-top: 0; font-size: 0.9rem;">🔥 TOP 5 CALORIAS</h3>
+                            <div id="calorias-ranking-top5" style="font-size: 0.85rem;"></div>
                         </div>
                     </div>
 
-                    <div class="ranking-actions" style="padding: 0 20px 20px; display: flex; gap: 10px;">
-                        <button id="resetWeeklyBtn" style="background: #444; color: white; padding: 8px 15px;">🔄 Reset Semana</button>
-                        <button id="fullRankingBtn" style="background: #444; color: white; padding: 8px 15px;">📊 Ranking Completo</button>
-                        <button id="exportPdfBtn" style="background: #444; color: white; padding: 8px 15px;">📄 PDF</button>
+                    <div class="ranking-actions" style="padding: 0 15px 15px; display: flex; gap: 8px;">
+                        <button id="resetWeeklyBtn" style="background: #444; color: white;">🔄 Reset Semana</button>
+                        <button id="fullRankingBtn" style="background: #444; color: white;">📊 Ranking Completo</button>
+                        <button id="exportPdfBtn" style="background: #444; color: white;">📄 PDF</button>
                     </div>
 
-                    <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; padding: 20px;"></div>
+                    <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 15px;"></div>
                 </div>
             </div>
-            
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--success-color); color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">+</button>
+            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()" style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--success-color); color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">+</button>
         </div>
 
         <!-- MODAL RANKING -->
         <div id="full-ranking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; overflow-y:auto;">
-            <div style="max-width: 800px; margin: 50px auto; background: #1e1e1e; padding: 30px; border-radius: 15px; position: relative;">
-                <span onclick="document.getElementById('full-ranking-modal').style.display='none'" style="position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
-                <h2 style="color: var(--primary-color);">Ranking Completo da Semana</h2>
+            <div style="max-width: 700px; margin: 30px auto; background: #1e1e1e; padding: 20px; border-radius: 10px; position: relative;">
+                <span onclick="document.getElementById('full-ranking-modal').style.display='none'" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">&times;</span>
+                <h2 style="color: var(--primary-color); font-size: 1.2rem;">Ranking Completo da Semana</h2>
                 <div id="full-ranking-content"></div>
             </div>
         </div>
 
     </div>
 
-    <!-- SCRIPTS EXTERNOS -->
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- FUNÇÕES DE APOIO E CORREÇÃO DE CARREGAMENTO -->
     <script>
-        // Força o carregamento dos participantes assim que o script.js estiver pronto
         window.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM carregado, verificando carregamento de participantes...");
-            
-            // Pequeno delay para garantir que o script.js inicializou suas variáveis
             setTimeout(() => {
                 if (typeof loadParticipantsFromBackend === 'function') {
-                    console.log("Chamando loadParticipantsFromBackend()...");
                     loadParticipantsFromBackend();
                 } else if (typeof loadParticipantsFromDB === 'function') {
-                    console.log("Chamando loadParticipantsFromDB()...");
                     loadParticipantsFromDB().then(data => {
                         if (data) {
                             participants = data;
