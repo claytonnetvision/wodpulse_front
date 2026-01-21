@@ -48,7 +48,7 @@
             margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
-            overflow-y: auto; /* ✅ Adicionado: rolagem vertical no body */
+            overflow-y: auto;
         }
 
         #app-content {
@@ -56,7 +56,7 @@
             margin: 0 auto;
             padding: 20px;
             box-sizing: border-box;
-            min-height: 100vh; /* ✅ Garante que o conteúdo tenha altura suficiente */
+            min-height: 100vh;
         }
 
         /* Header */
@@ -75,6 +75,7 @@
             margin: 0;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
         }
@@ -93,7 +94,6 @@
             grid-template-columns: 350px 1fr;
             gap: 25px;
             align-items: start;
-            min-height: 600px; /* ✅ Altura mínima para garantir espaço */
         }
 
         /* Painel Lateral */
@@ -117,7 +117,7 @@
 
         /* Container de Alunos com Rolagem Interna */
         .students-container-wrapper {
-            max-height: 70vh; /* ✅ Ajustado para caber melhor na tela */
+            max-height: 75vh;
             overflow-y: auto;
             padding-right: 10px;
             margin-top: 10px;
@@ -182,69 +182,68 @@
             border: 1px solid rgba(255, 75, 43, 0.2);
         }
 
-        /* Grid de Alunos */
-        .students-grid {
+        /* Lista de Alunos em Linhas */
+        .students-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .student-row {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: 40px 1fr 150px 180px 100px;
+            align-items: center;
+            gap: 15px;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .student-row:hover {
+            border-color: var(--primary);
+            background: rgba(40, 40, 45, 0.9);
+            transform: translateX(5px);
+        }
+
+        .student-row.selected {
+            border-left: 4px solid var(--primary);
+            background: rgba(255, 87, 34, 0.05);
+        }
+
+        .student-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .student-details {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            display: flex;
             gap: 15px;
         }
 
-        .student-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            padding: 15px;
-            position: relative;
-            transition: 0.2s;
-        }
-
-        .student-card:hover {
-            border-color: var(--primary);
-            background: rgba(40, 40, 45, 0.9);
-        }
-
-        .student-card.selected {
-            border: 2px solid var(--primary);
-            background: rgba(255, 87, 34, 0.1);
-        }
-
-        .student-info h3 {
-            margin: 0;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 40px;
-        }
-
-        .student-meta {
-            display: flex;
-            gap: 8px;
-            margin-top: 5px;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-        }
-
-        .student-device {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--glass-border);
-            font-size: 0.7rem;
+        .student-device-info {
+            font-size: 0.8rem;
             color: var(--success);
-        }
-
-        .card-actions {
-            position: absolute;
-            top: 12px;
-            right: 12px;
             display: flex;
+            align-items: center;
             gap: 5px;
         }
 
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
         .mini-btn {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -252,13 +251,18 @@
             border: none;
             color: white;
             cursor: pointer;
-            font-size: 0.7rem;
+            transition: 0.2s;
         }
 
-        .custom-check {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
+        .mini-btn:hover {
+            background: var(--primary);
+        }
+
+        .participant-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
 
         /* Dashboard */
@@ -286,17 +290,21 @@
 
         .hidden { display: none !important; }
 
-        /* Responsividade Mobile */
+        /* Responsividade */
+        @media (max-width: 1100px) {
+            .student-row {
+                grid-template-columns: 40px 1fr 100px;
+                grid-template-rows: auto auto;
+                gap: 10px;
+            }
+            .student-device-info { grid-column: 2; }
+            .row-actions { grid-column: 3; grid-row: 1 / span 2; }
+        }
+
         @media (max-width: 1000px) {
             .main-grid { grid-template-columns: 1fr; }
             .control-panel { position: static; }
             .students-container-wrapper { max-height: none; }
-        }
-
-        @media (max-width: 600px) {
-            .setup-header { justify-content: center; text-align: center; }
-            .header-actions { width: 100%; justify-content: center; }
-            .dash-header { justify-content: center; text-align: center; }
         }
     </style>
 </head>
@@ -354,17 +362,17 @@
                     </div>
                 </aside>
 
-                <!-- Grid de Alunos -->
+                <!-- Lista de Alunos -->
                 <main>
                     <div class="glass-card">
                         <div class="section-title">
                             <span>👥 ALUNOS CADASTRADOS</span>
-                            <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-dim);">Marque quem irá treinar</span>
+                            <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-dim);">Selecione quem irá treinar</span>
                         </div>
                         
                         <div class="students-container-wrapper">
-                            <div id="students-container" class="students-grid">
-                                <!-- Cards injetados aqui -->
+                            <div id="students-container" class="students-list">
+                                <!-- Linhas injetadas aqui -->
                             </div>
                         </div>
 
@@ -399,7 +407,7 @@
                     </div>
                 </div>
 
-                <div id="participants" class="students-grid">
+                <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
                     <!-- Tiles monitoramento -->
                 </div>
             </div>
@@ -410,7 +418,7 @@
     <script src="script.js"></script>
 
     <script>
-        // Sobrescrevendo renderização para Cards
+        // Sobrescrevendo renderização para LISTA (Linha por Linha)
         window.renderParticipantList = function() {
             const container = document.getElementById('students-container');
             if (!container) return;
@@ -418,31 +426,29 @@
             container.innerHTML = '';
             participants.forEach(p => {
                 const isSelected = activeParticipants.includes(p.id);
-                const card = document.createElement('div');
-                card.className = `student-card ${isSelected ? 'selected' : ''}`;
-                card.innerHTML = `
-                    <div class="card-actions">
-                        <button class="mini-btn" onclick="editParticipant(${p.id})">✎</button>
-                        <button class="mini-btn" onclick="deleteParticipant(${p.id})" style="color: var(--danger)">✕</button>
-                    </div>
-                    <div class="student-info">
-                        <h3>${p.name}</h3>
-                        <div class="student-meta">
-                            <span>🎂 ${p.age || '--'}a</span>
-                            <span>⚖️ ${p.weight || '--'}kg</span>
-                            <span>🚻 ${p.gender || '--'}</span>
-                        </div>
-                    </div>
-                    <div class="student-device">
-                        <span>⌚ ${p.deviceName || 'Sem pulseira'}</span>
-                    </div>
-                    <div class="custom-check">
+                const row = document.createElement('div');
+                row.className = `student-row ${isSelected ? 'selected' : ''}`;
+                row.innerHTML = `
+                    <div>
                         <input type="checkbox" class="participant-checkbox" 
                                ${isSelected ? 'checked' : ''} 
                                onchange="toggleParticipantSelection(${p.id})">
                     </div>
+                    <div class="student-name">${p.name}</div>
+                    <div class="student-details">
+                        <span>${p.age || '--'}a</span>
+                        <span>${p.weight || '--'}kg</span>
+                        <span>${p.gender || '--'}</span>
+                    </div>
+                    <div class="student-device-info">
+                        <span>⌚ ${p.deviceName || 'Sem pulseira'}</span>
+                    </div>
+                    <div class="row-actions">
+                        <button class="mini-btn" onclick="editParticipant(${p.id})" title="Editar">✎</button>
+                        <button class="mini-btn" onclick="deleteParticipant(${p.id})" style="color: var(--danger)" title="Excluir">✕</button>
+                    </div>
                 `;
-                container.appendChild(card);
+                container.appendChild(row);
             });
         };
 
