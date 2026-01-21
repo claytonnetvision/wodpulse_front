@@ -30,14 +30,12 @@
             padding: 0;
         }
 
-        /* Container Principal */
         #app-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Cabeçalho de Configuração */
         .setup-header {
             display: flex;
             justify-content: space-between;
@@ -60,7 +58,6 @@
             gap: 10px;
         }
 
-        /* Botões Gerais */
         button {
             cursor: pointer;
             border: none;
@@ -82,7 +79,6 @@
         .reports-btn { background: var(--secondary-color) !important; color: white; padding: 10px 20px; }
         .treinos-btn { background: #673ab7; color: white; padding: 10px 20px; }
         
-        /* Seção de Ações Rápidas */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -107,7 +103,6 @@
             width: 100%;
         }
 
-        /* Formulário de Cadastro */
         #addParticipant {
             background: var(--card-bg);
             padding: 25px;
@@ -139,7 +134,6 @@
             grid-column: span 1;
         }
 
-        /* Tabela de Alunos */
         #participantListContainer {
             background: var(--card-bg);
             border-radius: 12px;
@@ -206,7 +200,6 @@
         .edit-btn { background: var(--info-color); color: white; }
         .delete-btn { background: var(--danger-color); color: white; }
 
-        /* Dashboard & Monitor */
         #dashboard {
             padding: 0;
         }
@@ -232,7 +225,6 @@
 
         .hidden { display: none !important; }
 
-        /* Utilitários */
         .participant-checkbox {
             width: 20px;
             height: 20px;
@@ -253,10 +245,9 @@
 </head>
 <body>
 
-    <!-- Conteúdo principal (Exibido diretamente, sem login) -->
     <div id="app-content">
 
-        <!-- Seção de Configuração (Cadastro) -->
+        <!-- TELA DE SETUP (ABRE DIRETO) -->
         <div id="setup">
             <div class="setup-header">
                 <h1>V6 WODPulse - Configurar Aula</h1>
@@ -319,7 +310,7 @@
             </div>
         </div>
 
-        <!-- Seção de Dashboard (Monitoramento) -->
+        <!-- TELA DE DASHBOARD -->
         <div id="dashboard" class="hidden">
             <div id="main-container">
                 <div id="monitor-panel">
@@ -341,7 +332,6 @@
                         </div>
                     </div>
 
-                    <!-- Elementos mantidos para compatibilidade -->
                     <div id="leaderboard-top" class="hidden"></div>
                     <button id="toggleCompactBtn" class="hidden"></button>
 
@@ -370,7 +360,7 @@
             <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--success-color); color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">+</button>
         </div>
 
-        <!-- Modal Ranking Completo -->
+        <!-- MODAL RANKING -->
         <div id="full-ranking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; overflow-y:auto;">
             <div style="max-width: 800px; margin: 50px auto; background: #1e1e1e; padding: 30px; border-radius: 15px; position: relative;">
                 <span onclick="document.getElementById('full-ranking-modal').style.display='none'" style="position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
@@ -381,12 +371,13 @@
 
     </div>
 
+    <!-- SCRIPTS EXTERNOS -->
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Funções Auxiliares (Apenas o necessário para o funcionamento do script.js) -->
+    <!-- FUNÇÕES DE APOIO (SEM REDECLARAÇÃO DE VARIÁVEIS) -->
     <script>
-        // Funções de reset e delete que chamam o backend
+        // Funções que chamam o backend usando a API_BASE_URL que já está no script.js
         async function resetAllUserCounters() {
             if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos localmente. Continua?")) return;
             if (typeof participants !== 'undefined') {
@@ -403,6 +394,7 @@
 
         async function deleteAllSessions() {
             if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco. Tem certeza?")) return;
+            // Busca a URL do script.js ou usa o padrão
             const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://wodpulse-back.onrender.com';
             try {
                 const response = await fetch(`${baseUrl}/api/sessions/delete-all`, {
