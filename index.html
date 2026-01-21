@@ -247,7 +247,7 @@
 
     <div id="app-content">
 
-        <!-- TELA DE SETUP (ABRE DIRETO) -->
+        <!-- TELA DE SETUP -->
         <div id="setup">
             <div class="setup-header">
                 <h1>V6 WODPulse - Configurar Aula</h1>
@@ -375,9 +375,29 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- FUNÇÕES DE APOIO (SEM REDECLARAÇÃO DE VARIÁVEIS) -->
+    <!-- FUNÇÕES DE APOIO E CORREÇÃO DE CARREGAMENTO -->
     <script>
-        // Funções que chamam o backend usando a API_BASE_URL que já está no script.js
+        // Força o carregamento dos participantes assim que o script.js estiver pronto
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM carregado, verificando carregamento de participantes...");
+            
+            // Pequeno delay para garantir que o script.js inicializou suas variáveis
+            setTimeout(() => {
+                if (typeof loadParticipantsFromBackend === 'function') {
+                    console.log("Chamando loadParticipantsFromBackend()...");
+                    loadParticipantsFromBackend();
+                } else if (typeof loadParticipantsFromDB === 'function') {
+                    console.log("Chamando loadParticipantsFromDB()...");
+                    loadParticipantsFromDB().then(data => {
+                        if (data) {
+                            participants = data;
+                            if (typeof renderParticipantList === 'function') renderParticipantList();
+                        }
+                    });
+                }
+            }, 500);
+        });
+
         async function resetAllUserCounters() {
             if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos localmente. Continua?")) return;
             if (typeof participants !== 'undefined') {
@@ -394,7 +414,6 @@
 
         async function deleteAllSessions() {
             if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco. Tem certeza?")) return;
-            // Busca a URL do script.js ou usa o padrão
             const baseUrl = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://wodpulse-back.onrender.com';
             try {
                 const response = await fetch(`${baseUrl}/api/sessions/delete-all`, {
