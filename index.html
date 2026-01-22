@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
     <style>
-        /* CSS Compacto e Direto para evitar Zoom */
+        /* CSS COMPACTO PARA EVITAR ZOOM */
         body {
             background: #121212;
             color: #eee;
@@ -25,49 +25,50 @@
             padding: 10px;
         }
 
-        .header-simple {
+        /* Header Compacto */
+        .setup-header-compact {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #FF5722;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding: 5px 0;
+            margin-bottom: 10px;
         }
 
-        .header-simple h1 {
+        .setup-header-compact h1 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             color: #FF5722;
-            text-transform: uppercase;
         }
 
+        /* Grid de Topo */
         .top-grid {
             display: grid;
             grid-template-columns: 1fr 1.5fr;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 15px;
         }
 
-        .card-simple {
+        .card-compact {
             background: #1e1e1e;
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px;
         }
 
         .card-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
             color: #FF9800;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-transform: uppercase;
         }
 
-        /* Formulário Compacto - ID OBRIGATÓRIO PARA O SCRIPT.JS */
+        /* Formulário de Cadastro - IDs ORIGINAIS */
         #addParticipant {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
+            gap: 5px;
         }
 
         #addParticipant input, #addParticipant select {
@@ -81,73 +82,88 @@
             box-sizing: border-box;
         }
 
-        .btn-action {
+        /* Botões ORIGINAIS */
+        #startScanBtn {
+            background: #FF5722;
+            color: white;
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .reset-btn {
+            background: #f44336 !important;
+            color: white;
+            padding: 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-weight: bold;
+        }
+
+        #addBtn {
+            background: #4CAF50;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
             cursor: pointer;
             border: none;
-            border-radius: 4px;
             font-weight: bold;
-            transition: 0.2s;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 8px;
+            grid-column: span 3;
+            margin-top: 5px;
         }
 
-        /* IDs de Botões OBRIGATÓRIOS */
-        #startScanBtn { background: #FF5722; color: white; width: 100%; font-size: 0.9rem; margin-bottom: 8px; }
-        #addBtn { background: #4CAF50; color: white; grid-column: span 3; margin-top: 4px; }
-        .reset-btn { background: #f44336; color: white; font-size: 0.7rem; width: 100%; }
-        .btn-nav { background: #333; color: #ccc; border: 1px solid #444; }
-
-        /* Tabela de Alunos - ID OBRIGATÓRIO */
+        /* TABELA DE ALUNOS - ESTILO QUE SOBRESCREVE O SCRIPT.JS */
         #participantListContainer {
-            background: #1e1e1e;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 8px;
+            background: #1e1e1e;
+            padding: 5px;
         }
 
-        #participantTable {
+        /* Forçando estilo na tabela que o script.js cria dinamicamente */
+        #participantListContainer table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.8rem !important;
         }
 
-        #participantTable th {
+        #participantListContainer th {
             background: #252525;
             color: #FF9800;
+            padding: 8px !important;
             text-align: left;
-            padding: 8px;
-            border-bottom: 2px solid #333;
+            position: sticky;
+            top: 0;
         }
 
-        #participantTable td {
-            padding: 6px 8px;
+        #participantListContainer td {
+            padding: 5px 8px !important;
             border-bottom: 1px solid #2a2a2a;
         }
 
-        #participantTable tr:hover { background: #252525; }
-
-        .participant-checkbox { transform: scale(1.1); cursor: pointer; }
-
         .action-buttons button {
-            padding: 4px 8px;
-            font-size: 0.7rem;
+            padding: 3px 8px !important;
+            font-size: 0.7rem !important;
             margin-right: 4px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
         }
-        .edit-btn { background: #2196F3; color: white; }
-        .delete-btn { background: #f44336; color: white; }
 
         /* Dashboard e Outros */
-        #dashboard { background: #000; min-height: 100vh; }
         .hidden { display: none !important; }
+        #dashboard { background: #000; min-height: 100vh; }
 
         @media (max-width: 800px) {
             .top-grid { grid-template-columns: 1fr; }
-            #addParticipant { grid-template-columns: 1fr 1fr; }
-            #addBtn { grid-column: span 2; }
         }
     </style>
 </head>
@@ -155,29 +171,28 @@
 
     <div id="app-content">
 
-        <!-- TELA DE SETUP (ID OBRIGATÓRIO) -->
+        <!-- TELA DE SETUP (ESTRUTURA ORIGINAL PRESERVADA) -->
         <div id="setup">
-            <header class="header-simple">
-                <h1>V6 WODPulse</h1>
+            <header class="setup-header-compact">
+                <h1>V6 WODPulse - Configurar Aula</h1>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn-action btn-nav" onclick="window.location.href='/tv'">📺 TV</button>
-                    <button id="reportsBtn" class="btn-action btn-nav">📅 RELATÓRIOS</button>
+                    <button class="reset-btn" style="background:#333 !important; width: auto; padding: 5px 15px;" onclick="window.location.href='/tv'">📺 TV</button>
+                    <button id="reportsBtn" class="reset-btn" style="background:#FF5722 !important; width: auto; padding: 5px 15px;">📅 Relatórios</button>
                 </div>
             </header>
-
+            
             <div class="top-grid">
-                <div class="card-simple">
+                <div class="card-compact">
                     <div class="card-title">🚀 Comandos</div>
                     <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button class="reset-btn btn-action" onclick="resetAllUserCounters()">Reset FC</button>
-                        <button class="reset-btn btn-action" onclick="deleteAllSessions()">Limpar Tudo</button>
+                        <button class="reset-btn" onclick="resetAllUserCounters()">Reset FC</button>
+                        <button class="reset-btn" onclick="deleteAllSessions()">Limpar Tudo</button>
                     </div>
                 </div>
 
-                <div class="card-simple">
+                <div class="card-compact">
                     <div class="card-title">👤 Novo Aluno</div>
-                    <!-- ID OBRIGATÓRIO PARA O SCRIPT.JS -->
                     <div id="addParticipant">
                         <input type="text" id="nameInput" placeholder="Nome do Aluno">
                         <input type="number" id="ageInput" placeholder="Idade">
@@ -191,60 +206,62 @@
                         <input type="number" id="heightInput" placeholder="Altura (cm)">
                         <input type="email" id="emailInput" placeholder="Email (opcional)">
                         <label style="display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #888; grid-column: span 3;">
-                            <input type="checkbox" id="useTanakaInput"> Usar fórmula de Tanaka?
+                            <input type="checkbox" id="useTanakaInput"> Tanaka?
                         </label>
                         <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
                     </div>
                 </div>
             </div>
 
-            <!-- ID OBRIGATÓRIO PARA O SCRIPT.JS -->
+            <!-- O SCRIPT.JS VAI APAGAR O CONTEÚDO DISSO AQUI E CRIAR A TABELA -->
             <div id="participantListContainer">
-                <div class="card-title" style="padding: 2px 0 8px 5px;">👥 Alunos Cadastrados</div>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <!-- O script.js vai injetar a tabela inteira aqui dentro -->
-                </div>
+                <h2>Alunos Cadastrados</h2>
+                <p>Carregando alunos...</p>
+                <!-- O script.js injeta a tabela aqui -->
             </div>
         </div>
 
-        <!-- TELA DE DASHBOARD (ID OBRIGATÓRIO) -->
+        <!-- TELA DE DASHBOARD (ESTRUTURA ORIGINAL PRESERVADA) -->
         <div id="dashboard" class="hidden">
-            <div id="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a1a1a;">
-                <img src="logo-v6.png" alt="V6" style="height: 40px;">
-                <div id="timer" style="font-size: 3rem; font-weight: 900; color: #FF5722;">00:00</div>
-                <button id="backBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">FINALIZAR</button>
-            </div>
-            
-            <div id="monitor-panel" style="padding: 20px;">
-                <div id="current-class-name" style="color: #FF9800; font-weight: bold; margin-bottom: 10px;">Aula: --</div>
-                
-                <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
-                        <h3 style="color: #FF5722; font-size: 0.9rem; margin-top: 0;">🔥 TOP 5 PONTOS</h3>
-                        <div id="queima-ranking-top5"></div>
+            <div id="main-container">
+                <div id="monitor-panel">
+                    <div id="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a1a1a;">
+                        <img src="logo-v6.png" alt="V6" style="height: 40px;">
+                        <div id="timer" style="font-size: 3rem; font-weight: 900; color: #FF5722;">00:00</div>
+                        <button id="backBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">🏁 Finalizar</button>
                     </div>
-                    <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
-                        <h3 style="color: #FF9800; font-size: 0.9rem; margin-top: 0;">⚡ TOP 5 CALORIAS</h3>
-                        <div id="calorias-ranking-top5"></div>
-                    </div>
-                </div>
+                    
+                    <div id="monitor-content" style="padding: 20px;">
+                        <div id="current-class-name" style="color: #FF9800; font-weight: bold; margin-bottom: 10px;">Aula: --</div>
+                        
+                        <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
+                                <h3 style="color: #FF5722; font-size: 0.9rem; margin-top: 0;">🔥 TOP 5 PONTOS</h3>
+                                <div id="queima-ranking-top5"></div>
+                            </div>
+                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
+                                <h3 style="color: #FF9800; font-size: 0.9rem; margin-top: 0;">⚡ TOP 5 CALORIAS</h3>
+                                <div id="calorias-ranking-top5"></div>
+                            </div>
+                        </div>
 
-                <!-- ID OBRIGATÓRIO PARA OS TILES -->
-                <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
-                    <!-- Tiles de monitoramento -->
+                        <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                            <!-- Tiles de monitoramento -->
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <!-- Botões adicionais do dashboard -->
+            <!-- Elementos invisíveis necessários para o script.js não dar erro -->
             <div style="display:none;">
+                <div id="daily-leader"></div>
+                <div id="daily-calories-leader"></div>
+                <div id="leaderboard-top"></div>
                 <button id="fullRankingBtn"></button>
                 <button id="exportPdfBtn"></button>
                 <button id="resetWeeklyBtn"></button>
                 <button id="reconnectDevicesBtn"></button>
                 <button id="authorizeReconnectBtn"></button>
-                <div id="daily-leader"></div>
-                <div id="daily-calories-leader"></div>
-                <div id="leaderboard-top"></div>
             </div>
         </div>
 
@@ -254,11 +271,10 @@
     <script src="script.js"></script>
 
     <script>
-        // Forçar o carregamento inicial chamando a função do seu script.js
+        // Forçar o carregamento inicial
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (typeof loadParticipantsFromBackend === 'function') {
-                    console.log('Chamando loadParticipantsFromBackend...');
                     loadParticipantsFromBackend();
                 }
             }, 1000);
