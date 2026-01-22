@@ -1,16 +1,23 @@
 {
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/admin",
-      "destination": "/admin/admin.html"
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/admin.html",
+      "destination": "/admin.html"
     },
     {
       "source": "/admin/(.*)",
-      "destination": "/admin/admin.html"
+      "destination": "/admin.html"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
