@@ -79,29 +79,6 @@
             background: #444;
             border-radius: 4px;
         }
-
-        /* Estilo para o botão Admin - novo */
-        .btn-admin {
-            background: #ff9800;
-            color: white;
-            font-size: 18px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px 0 20px;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(255,152,0,0.4);
-        }
-
-        .btn-admin:hover {
-            background: #f57c00;
-        }
-
-        #admin-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
     </style>
 </head>
 <body>
@@ -141,12 +118,6 @@
 
     <!-- Conteúdo principal (agora visível diretamente) -->
     <div id="app-content"> <!-- removido .hidden -->
-
-        <!-- Novo: Botão para Painel Admin no topo -->
-        <div id="admin-section">
-            <button class="btn-admin" onclick="window.open('/admin.html', '_blank')">Painel Admin 🔧</button>
-            <p style="font-size: 14px; color: #aaa;">(Abre em nova aba - para gerenciamento de alunos e aulas)</p>
-        </div>
 
         <div id="setup">
             <h1>V6 WODPulse - Configurar Aula</h1>
