@@ -1,13 +1,12 @@
 {
-  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/admin",
-      "destination": "/admin.html"
+      "destination": "/admin/admin.html"
     },
     {
       "source": "/admin/(.*)",
-      "destination": "/admin.html"
+      "destination": "/admin/admin.html"
     },
     {
       "source": "/(.*)",
