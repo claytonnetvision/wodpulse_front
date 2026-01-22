@@ -130,8 +130,6 @@
 
         #participantTable tr:hover { background: #252525; }
 
-        .pulseira-info { color: #00d2ff; font-size: 0.75rem; }
-
         /* Estilos do Dashboard (Mantidos do original) */
         #dashboard { background: #000; min-height: 100vh; }
         .hidden { display: none !important; }
@@ -195,17 +193,19 @@
                     <table id="participantTable">
                         <thead>
                             <tr>
-                                <th style="width: 40px;">✔</th>
+                                <th>Participar</th>
                                 <th>Nome</th>
                                 <th>Idade</th>
-                                <th>Peso</th>
+                                <th>Peso (kg)</th>
+                                <th>Altura (cm)</th>
                                 <th>Gênero</th>
+                                <th>Email</th>
                                 <th>Pulseira</th>
-                                <th style="text-align: right;">Ações</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="participantList">
-                            <!-- Injetado pelo script.js -->
+                            <!-- O script.js vai injetar as linhas aqui -->
                         </tbody>
                     </table>
                 </div>
@@ -244,11 +244,13 @@
     <script src="script.js"></script>
 
     <script>
-        // Pequeno ajuste para garantir que a tabela seja preenchida corretamente no novo layout
+        // Garantir que a tabela seja preenchida corretamente
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                if (typeof loadParticipantsFromBackend === 'function') loadParticipantsFromBackend();
-            }, 500);
+                if (typeof loadParticipantsFromBackend === 'function') {
+                    loadParticipantsFromBackend();
+                }
+            }, 800);
         });
 
         // Funções de suporte para os botões de reset
