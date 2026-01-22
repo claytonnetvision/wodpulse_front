@@ -9,10 +9,82 @@
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
+
+    <!-- Estilos que adicionamos antes (mantendo a correção da lista com scroll) -->
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+        }
+
+        .hidden { display: none !important; }
+
+        #app-content {
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        #setup {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        #addParticipant {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        #addParticipant input,
+        #addParticipant select {
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #161b22;
+            color: white;
+            min-width: 140px;
+            flex: 1 1 180px;
+        }
+
+        #participantList {
+            max-height: 50vh;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #participantList li {
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #participantList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #participantList::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        #participantList::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Tela de Login -->
+    <!-- Tela de Login – COMENTADA para pular autenticação temporariamente -->
+    <!--
     <div id="login-screen">
         <h1>V6 WODPulse - Login</h1>
         
@@ -42,9 +114,10 @@
 
         <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
     </div>
+    -->
 
-    <!-- Conteúdo principal (escondido até login) -->
-    <div id="app-content" class="hidden">
+    <!-- Conteúdo principal (agora visível diretamente) -->
+    <div id="app-content"> <!-- removido .hidden -->
 
         <div id="setup">
             <h1>V6 WODPulse - Configurar Aula</h1>
@@ -159,21 +232,21 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação com logs detalhados -->
+    <!-- Script de autenticação – partes de login comentadas -->
     <script>
         // Variáveis globais necessárias
         let authToken = null;
         let currentBox = null;
 
         function showLoginScreen() {
-            console.log('[LOGIN] Mostrando tela de login');
-            document.getElementById('login-screen')?.classList.remove('hidden');
-            document.getElementById('app-content')?.classList.add('hidden');
+            console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
+            // document.getElementById('login-screen')?.classList.remove('hidden');
+            // document.getElementById('app-content')?.classList.add('hidden');
         }
 
         function showAppContent() {
             console.log('[LOGIN] Mostrando conteúdo principal');
-            document.getElementById('login-screen')?.classList.add('hidden');
+            // document.getElementById('login-screen')?.classList.add('hidden');
             document.getElementById('app-content')?.classList.remove('hidden');
         }
 
@@ -183,37 +256,39 @@
             localStorage.removeItem('wodpulse_box');
             authToken = null;
             currentBox = null;
-            showLoginScreen();
+            // showLoginScreen();  // desativado temporariamente
+            location.reload();     // recarrega pra manter sem login
         }
 
         async function loadParticipantsFromBackend() {
             if (!authToken) {
-                console.warn('[LOAD] Sem token – abortando carregamento');
-                return;
+                console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
+                // return;  // comentado para permitir teste sem autenticação
             }
 
-            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken.substring(0, 20) + '...');
+            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/participants`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${authToken}`,
+                        'Authorization': authToken ? `Bearer ${authToken}` : '',
                         'Content-Type': 'application/json'
                     }
                 });
 
-                console.log('[LOAD] Resposta recebida. Status:', response.status, response.statusText);
+                console.log('[LOAD] Status:', response.status);
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Erro ${response.status}: ${errorText}`);
+                    console.warn('[LOAD] Falha na requisição. Status:', response.status);
+                    // throw new Error(...);  // comentado para não travar
+                    return;
                 }
 
                 const data = await response.json();
-                console.log('[LOAD] Dados recebidos do backend:', data);
+                console.log('[LOAD] Dados:', data);
 
-                participants = data.participants.map(p => ({
+                participants = data.participants?.map(p => ({
                     id: p.id,
                     name: p.name,
                     age: p.age,
@@ -244,87 +319,37 @@
                     vo2StartTime: null,
                     vo2TimeSeconds: 0,
                     vo2LastUpdate: 0
-                }));
+                })) || [];
 
-                console.log('[LOAD] Sucesso! Alunos carregados:', participants.length);
-                renderParticipantList();
+                console.log('[LOAD] Alunos carregados:', participants.length);
+                if (typeof renderParticipantList === 'function') {
+                    renderParticipantList();
+                }
             } catch (err) {
-                console.error('[LOAD] Erro ao carregar alunos:', err.message, err.stack);
+                console.error('[LOAD] Erro:', err.message);
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('[INIT] DOM carregado. Verificando token...');
+            console.log('[INIT] DOM carregado – pulando login (modo dev)');
+
             const savedToken = localStorage.getItem('wodpulse_token');
             if (savedToken) {
-                console.log('[INIT] Token encontrado no localStorage. Carregando app...');
                 authToken = savedToken;
                 currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
-                showAppContent();
-                loadParticipantsFromBackend();
-            } else {
-                console.log('[INIT] Nenhum token → mostrando login');
-                showLoginScreen();
             }
 
+            // Força exibição do conteúdo principal
+            showAppContent();
+            loadParticipantsFromBackend();
+
+            // Evento de login comentado completamente
+            /*
             const loginForm = document.getElementById('loginForm');
             if (loginForm) {
-                console.log('[INIT] Form de login encontrado. Adicionando evento submit...');
-                loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    console.log('[LOGIN] Submit detectado – preventDefault ok');
-
-                    const formData = new FormData(loginForm);
-                    const data = {
-                        slug: formData.get('slug'),
-                        username: formData.get('username'),
-                        password: formData.get('password')
-                    };
-                    console.log('[LOGIN] Dados enviados:', data);
-
-                    const resultDiv = document.getElementById('login-result');
-                    resultDiv.innerHTML = '<p style="color:#ff9800;">Conectando ao servidor...</p>';
-
-                    try {
-                        console.log('[LOGIN] Fazendo POST para ' + API_BASE_URL + '/api/auth/login...');
-                        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-
-                        console.log('[LOGIN] Resposta recebida. Status:', response.status);
-
-                        const json = await response.json();
-                        console.log('[LOGIN] Resposta JSON:', json);
-
-                        if (!response.ok) {
-                            throw new Error(json.error || `Erro HTTP ${response.status}`);
-                        }
-
-                        console.log('[LOGIN] Login OK! Salvando token...');
-                        authToken = json.token;
-                        currentBox = json.user.box;
-
-                        localStorage.setItem('wodpulse_token', authToken);
-                        localStorage.setItem('wodpulse_box', JSON.stringify(currentBox));
-
-                        resultDiv.innerHTML = `<p class="success">Login realizado! Bem-vindo, ${json.user.username}</p>`;
-
-                        setTimeout(() => {
-                            console.log('[LOGIN] Transição para tela principal');
-                            showAppContent();
-                            loadParticipantsFromBackend();
-                        }, 1500);
-
-                    } catch (err) {
-                        console.error('[LOGIN] Erro completo:', err);
-                        resultDiv.innerHTML = `<p class="error">Erro: ${err.message}</p>`;
-                    }
-                });
-            } else {
-                console.error('[INIT] Elemento #loginForm NÃO encontrado!');
+                loginForm.addEventListener('submit', async (e) => { ... });
             }
+            */
         });
     </script>
 </body>
