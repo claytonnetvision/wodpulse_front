@@ -9,100 +9,6 @@
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
-    <style>
-        /* Estilos adicionais para a tabela de alunos cadastrados */
-        #participantListContainer {
-            margin: 30px 0;
-            max-height: 500px; /* Altura máxima antes da barra de rolagem */
-            overflow-y: auto; /* Barra de rolagem vertical */
-            border: 1px solid #444;
-            border-radius: 8px;
-            background: #1e1e1e;
-            padding: 10px;
-        }
-
-        #participantTable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        #participantTable th,
-        #participantTable td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #444;
-        }
-
-        #participantTable th {
-            background: #252525;
-            color: #FF9800;
-            font-weight: bold;
-        }
-
-        #participantTable tr:hover {
-            background: #333;
-        }
-
-        .action-buttons button {
-            margin-right: 8px;
-            padding: 6px 12px;
-            font-size: 0.9rem;
-        }
-
-        .action-buttons button.edit-btn {
-            background: #2196F3;
-            color: white;
-        }
-
-        .action-buttons button.delete-btn {
-            background: #f44336;
-            color: white;
-        }
-
-        .reports-btn {
-            background: #FF5722 !important;
-            color: white;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            margin: 10px 0;
-        }
-
-        /* Botão Iniciar Aula no topo - destaque */
-        #startScanBtn {
-            background: #FF5722;
-            color: white;
-            font-size: 1.3rem;
-            padding: 15px 30px;
-            margin: 15px 0;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        /* Botões de reset e apagar - destaque vermelho */
-        .reset-btn {
-            background: #f44336 !important;
-            color: white;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            margin: 10px 0;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .reset-btn:hover {
-            background: #d32f2f !important;
-        }
-
-        /* Checkbox de seleção */
-        .participant-checkbox {
-            transform: scale(1.3);
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
 
@@ -143,19 +49,6 @@
         <div id="setup">
             <h1>V6 WODPulse - Configurar Aula</h1>
             <button onclick="logout()" class="btn-logout">Sair</button>
-            <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
-            
-            <!-- BOTÃO PARA ABRIR O APP DE TREINOS (React/Vite) -->
-            <button class="treinos-btn" onclick="window.location.href='/tv'">
-                📺 Exibir Treinos na TV
-            </button>
-            
-            <!-- Botão Iniciar Aula movido para o topo -->
-            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
-
-            <!-- Botões de reset e apagar -->
-            <button class="reset-btn" onclick="resetAllUserCounters()">Resetar Contadores dos Alunos (FC, Calorias, etc.)</button>
-            <button class="reset-btn" onclick="deleteAllSessions()">Apagar Todas as Aulas (Manuais e Automáticas)</button>
             
             <div id="addParticipant">
                 <input type="text" id="nameInput" placeholder="Nome do Aluno">
@@ -168,29 +61,18 @@
                     <option value="F">Feminino</option>
                     <option value="O">Outro</option>
                 </select>
+                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
                 <input type="email" id="emailInput" placeholder="Email (opcional)">
+                <label>
+                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                </label>
                 <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
 
             <div id="participantListContainer">
                 <h2>Alunos Cadastrados</h2>
-                <p>Marque quem vai participar da próxima aula antes de iniciar:</p>
-                <table id="participantTable">
-                    <thead>
-                        <tr>
-                            <th>Participar</th>
-                            <th>Nome</th>
-                            <th>Idade</th>
-                            <th>Peso (kg)</th>
-                            <th>Altura (cm)</th>
-                            <th>Gênero</th>
-                            <th>Email</th>
-                            <th>Pulseira</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="participantList"></tbody>
-                </table>
+                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
+                <ul id="participantList"></ul>
             </div>
 
             <div id="last-class-summary" class="hidden">
@@ -198,7 +80,15 @@
                 <div id="summary-content"></div>
             </div>
 
-            <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
+            <div id="checkins-section">
+                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
+                <p>Alunos com check-in hoje aparecerão aqui.</p>
+                <ul id="checkinsList">
+                    <li>(Integração pendente)</li>
+                </ul>
+            </div>
+
+            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
         </div>
 
         <div id="dashboard" class="hidden">
@@ -222,7 +112,6 @@
                         <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
                         <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
                         <button id="reportsBtn">📅 Relatórios</button>
-                        <button class="reports-btn" onclick="window.open('relatorios-avancado.html', '_blank')">Relatórios Avançado</button>
                     </div>
 
                     <div id="weekly-rankings">
@@ -234,6 +123,11 @@
                         <div class="ranking-block calorias">
                             <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
                             <div id="calorias-ranking-top5" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-block vo2ZoneActive">
+                            <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
+                            <div id="vo2ZoneActive" class="ranking-list"></div>
                         </div>
 
                         <div class="ranking-actions">
@@ -349,14 +243,7 @@
                     vo2GraceStart: null,
                     vo2StartTime: null,
                     vo2TimeSeconds: 0,
-                    vo2LastUpdate: 0,
-                    todayMaxHR: 0,
-                    maxHRReached: 0,
-                    externalId: null,
-                    minGray: 0,
-                    minGreen: 0,
-                    minBlue: 0,
-                    minYellow: 0
+                    vo2LastUpdate: 0
                 }));
 
                 console.log('[LOAD] Sucesso! Alunos carregados:', participants.length);
@@ -439,136 +326,6 @@
                 console.error('[INIT] Elemento #loginForm NÃO encontrado!');
             }
         });
-
-        // Função para renderizar a tabela de alunos cadastrados com checkbox de participação
-        function renderParticipantList() {
-            const container = document.getElementById('participantListContainer');
-            if (!container) return;
-
-            container.innerHTML = '<h2>Alunos Cadastrados</h2><p>Marque quem vai participar da próxima aula antes de iniciar:</p>';
-
-            const table = document.createElement('table');
-            table.id = 'participantTable';
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>Participar</th>
-                        <th>Nome</th>
-                        <th>Idade</th>
-                        <th>Peso (kg)</th>
-                        <th>Altura (cm)</th>
-                        <th>Gênero</th>
-                        <th>Email</th>
-                        <th>Pulseira</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            `;
-            const tbody = table.querySelector('tbody');
-
-            participants.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
-                    <td>${p.name}</td>
-                    <td>${p.age || '--'}</td>
-                    <td>${p.weight || '--'}</td>
-                    <td>${p.heightCm || '--'}</td>
-                    <td>${p.gender || '--'}</td>
-                    <td>${p.email || '--'}</td>
-                    <td>${p.deviceName ? `📱 ${p.deviceName}` : (p.deviceId ? `📱 ID salvo` : 'Sem pulseira')}</td>
-                    <td class="action-buttons">
-                        <button class="edit-btn" onclick="editParticipant(${p.id})">Editar</button>
-                        <button class="delete-btn" onclick="deleteParticipant(${p.id})">Excluir</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            container.appendChild(table);
-
-            // Salvar seleção ao mudar checkbox
-            document.querySelectorAll('.participant-checkbox').forEach(cb => {
-                cb.addEventListener('change', () => {
-                    const id = Number(cb.dataset.id);
-                    if (cb.checked) {
-                        if (!activeParticipants.includes(id)) activeParticipants.push(id);
-                    } else {
-                        activeParticipants = activeParticipants.filter(i => i !== id);
-                    }
-                    console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
-                });
-            });
-
-            if (participants.length === 0) {
-                container.innerHTML += '<p style="color:#888;">Nenhum aluno cadastrado ainda.</p>';
-            }
-        }
-
-        // Função para resetar contadores dos alunos (FC, calorias, TRIMP, EPOC, zonas, etc.)
-        async function resetAllUserCounters() {
-            if (!confirm("Tem certeza? Isso vai ZERAR todos os contadores dos alunos (calorias, FC, TRIMP, EPOC, zonas, etc.), mas NÃO apaga os cadastros nem as aulas salvas no banco. Continua?")) {
-                return;
-            }
-
-            try {
-                // Reseta contadores locais (no array participants)
-                participants.forEach(p => {
-                    p.todayMaxHR = 0;
-                    p.queimaPoints = 0;
-                    p.trimpPoints = 0;
-                    p.calories = 0;
-                    p.minGray = 0;
-                    p.minGreen = 0;
-                    p.minBlue = 0;
-                    p.minYellow = 0;
-                    p.minOrange = 0;
-                    p.minRed = 0;
-                    p.epocEstimated = 0;
-                    p.vo2TimeSeconds = 0;
-                    p.vo2LastUpdate = 0;
-                    p.redStartTime = null;
-                    p.vo2ZoneActive = false;
-                    p.vo2GraceStart = null;
-                    p.vo2StartTime = null;
-                });
-
-                renderParticipantList();
-                renderTiles();
-
-                alert("Contadores dos alunos zerados com sucesso (localmente)!");
-                console.log("[RESET] Todos os contadores dos alunos foram zerados localmente.");
-            } catch (err) {
-                console.error("[RESET] Erro ao resetar contadores:", err);
-                alert("Erro ao resetar contadores: " + err.message);
-            }
-        }
-
-        // Função para apagar TODAS as aulas (sessions + participações)
-        async function deleteAllSessions() {
-            if (!confirm("ATENÇÃO! Isso vai APAGAR TODAS as aulas salvas no banco (manuais e automáticas), incluindo todos os dados de participantes nessas aulas. Essa ação NÃO PODE ser desfeita. Tem certeza?")) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/sessions/delete-all`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || 'Erro ao apagar aulas');
-                }
-
-                alert("Todas as aulas foram apagadas com sucesso!");
-                console.log("[DELETE ALL] Todas as sessões apagadas.");
-            } catch (err) {
-                console.error("[DELETE ALL] Erro ao apagar aulas:", err);
-                alert("Erro ao apagar aulas: " + err.message);
-            }
-        }
     </script>
 </body>
 </html>
