@@ -93,26 +93,112 @@
             font-weight: bold;
             box-shadow: 0 2px 10px rgba(255,152,0,0.4);
         }
-        .btn-admin:hover { background: #f57c00; }
 
-        #admin-section { text-align: center; margin-bottom: 30px; }
+        .btn-admin:hover {
+            background: #f57c00;
+        }
 
-        /* Estilos do Painel Admin */
+        #admin-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Painel Admin */
         #admin-panel {
             padding: 20px;
             background: #0d1117;
+            overflow-y: auto;           /* barra de rolagem vertical */
+            height: calc(100vh - 80px); /* ocupa quase toda a tela, com espaço para cabeçalho */
+            max-height: 100vh;
         }
-        #admin-panel table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #161b22; }
-        #admin-panel th, #admin-panel td { padding: 12px; border: 1px solid #30363d; text-align: left; }
-        #admin-panel th { background: #21262d; }
-        #admin-panel button { padding: 6px 12px; margin: 0 4px; cursor: pointer; border: none; border-radius: 4px; }
+
+        #admin-panel table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #161b22;
+        }
+
+        #admin-panel th, #admin-panel td {
+            padding: 12px;
+            border: 1px solid #30363d;
+            text-align: left;
+        }
+
+        #admin-panel th {
+            background: #21262d;
+        }
+
+        #admin-panel button {
+            padding: 6px 12px;
+            margin: 0 4px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
         .delete { background: #f85149; color: white; }
+        .edit { background: #0288d1; color: white; }
         .view { background: #238636; color: white; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #161b22; padding: 20px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; }
-        .close { float: right; font-size: 28px; cursor: pointer; }
-        #stats { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .card { background: #21262d; padding: 16px; border-radius: 6px; flex: 1; min-width: 200px; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        #stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #21262d;
+            padding: 16px;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        form label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        form input, form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: #0d1117;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -128,7 +214,7 @@
 
         <!-- Painel Admin (oculto inicialmente) -->
         <div id="admin-panel" class="hidden">
-            <button class="btn-admin" onclick="toggleAdminPanel()" style="background:#f44336;">Voltar ao Principal</button>
+            <button class="btn-admin" onclick="toggleAdminPanel()" style="background:#f44336; margin-bottom:20px;">Voltar ao Principal</button>
             <h1>WODPulse - Painel Admin (Modo Dev - Sem Login)</h1>
 
             <div id="stats">
@@ -139,19 +225,46 @@
 
             <h2>Alunos Cadastrados</h2>
             <input type="text" id="buscaAluno" placeholder="Buscar por nome..." style="padding:10px; width:300px; margin-bottom:10px;">
-            <table id="tabelaAlunos">
-                <thead><tr><th>ID</th><th>Nome</th><th>Idade</th><th>Peso</th><th>Altura</th><th>Gênero</th><th>Email</th><th>Max HR</th><th>Device</th><th>Ações</th></tr></thead>
-                <tbody></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table id="tabelaAlunos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Idade</th>
+                            <th>Peso</th>
+                            <th>Altura</th>
+                            <th>Gênero</th>
+                            <th>Email</th>
+                            <th>Max HR</th>
+                            <th>Device</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
             <h2>Aulas Registradas</h2>
             <input type="text" id="buscaAula" placeholder="Buscar por nome da aula..." style="padding:10px; width:300px; margin-bottom:10px;">
-            <table id="tabelaAulas">
-                <thead><tr><th>ID</th><th>Aula</th><th>Início</th><th>Fim</th><th>Duração min</th><th>Alunos</th><th>Queima Total</th><th>Calorias Total</th><th>Ações</th></tr></thead>
-                <tbody></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table id="tabelaAulas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Aula</th>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Duração min</th>
+                            <th>Alunos</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
-            <!-- Modal para detalhes -->
+            <!-- Modal detalhes aula -->
             <div id="modalDetalhes" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="document.getElementById('modalDetalhes').style.display='none'">&times;</span>
@@ -159,115 +272,151 @@
                     <div id="detalhesConteudo"></div>
                 </div>
             </div>
-        </div>
 
-        <div id="setup">
-            <h1>V6 WODPulse - Configurar Aula</h1>
-            <button onclick="logout()" class="btn-logout">Sair</button>
-            
-            <!-- resto do setup igual ao original -->
-            <div id="addParticipant">
-                <input type="text" id="nameInput" placeholder="Nome do Aluno">
-                <input type="number" id="ageInput" placeholder="Idade">
-                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                <input type="number" id="heightInput" placeholder="Altura (cm)">
-                <select id="genderInput">
-                    <option value="">Gênero</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                    <option value="O">Outro</option>
-                </select>
-                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
-                <input type="email" id="emailInput" placeholder="Email (opcional)">
-                <label>
-                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
-                </label>
-                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
-            </div>
-
-            <div id="participantListContainer">
-                <h2>Alunos Cadastrados</h2>
-                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
-                <ul id="participantList"></ul>
-            </div>
-
-            <div id="last-class-summary" class="hidden">
-                <h2>Última Aula Finalizada</h2>
-                <div id="summary-content"></div>
-            </div>
-
-            <div id="checkins-section">
-                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
-                <p>Alunos com check-in hoje aparecerão aqui.</p>
-                <ul id="checkinsList">
-                    <li>(Integração pendente)</li>
-                </ul>
-            </div>
-
-            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
-        </div>
-
-        <div id="dashboard" class="hidden">
-            <!-- dashboard completo igual ao original -->
-            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
-
-            <div id="main-container">
-                <div id="monitor-panel">
-                    <div id="header">
-                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
-                        
-                        <div class="header-info">
-                            <div id="current-class-name">Aula: --</div>
-                            <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
-                            <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
-                        </div>
-                        
-                        <div id="timer">00:00</div>
-                        
-                        <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
-
-                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
-                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
-                        <button id="reportsBtn">📅 Relatórios</button>
-                    </div>
-
-                    <div id="weekly-rankings">
-                        <div class="ranking-block pontos">
-                            <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
-                            <div id="queima-ranking-top5" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-block calorias">
-                            <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
-                            <div id="calorias-ranking-top5" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-block vo2ZoneActive">
-                            <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
-                            <div id="vo2ZoneActive" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-actions">
-                            <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
-                            <button id="fullRankingBtn">📊 Ranking Completo</button>
-                            <button id="exportPdfBtn">📄 Exportar PDF</button>
-                        </div>
-                    </div>
-
-                    <div id="participants"></div>
+            <!-- Modal editar aluno -->
+            <div id="modalEditarAluno" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="document.getElementById('modalEditarAluno').style.display='none'">&times;</span>
+                    <h2>Editar Aluno</h2>
+                    <form id="formEditarAluno">
+                        <input type="hidden" id="editId">
+                        <label>Nome:</label>
+                        <input type="text" id="editNome" required>
+                        <label>Idade:</label>
+                        <input type="number" id="editIdade">
+                        <label>Peso (kg):</label>
+                        <input type="number" step="0.1" id="editPeso">
+                        <label>Altura (cm):</label>
+                        <input type="number" id="editAltura">
+                        <label>Gênero:</label>
+                        <select id="editGenero">
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                            <option value="O">Outro</option>
+                        </select>
+                        <label>Email:</label>
+                        <input type="email" id="editEmail">
+                        <label>Max HR:</label>
+                        <input type="number" id="editMaxHR">
+                        <label>FC Repouso:</label>
+                        <input type="number" id="editRestingHR">
+                        <label>
+                            <input type="checkbox" id="editUseTanaka"> Usar fórmula Tanaka (mais precisa)
+                        </label>
+                        <button type="button" onclick="salvarEdicaoAluno()" style="background:#4caf50; color:white; padding:10px; margin-top:15px; width:100%; border:none; border-radius:6px; cursor:pointer;">Salvar Alterações</button>
+                    </form>
                 </div>
             </div>
-            
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
-            <button id="backBtn">🏁 Finalizar</button>
         </div>
 
-        <!-- Modal Ranking Completo -->
-        <div id="full-ranking-modal">
-            <div>
-                <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
-                <h2>Ranking Completo da Semana</h2>
-                <div id="full-ranking-content"></div>
+        <!-- Conteúdo principal (setup + dashboard) -->
+        <div id="main-content">
+            <div id="setup">
+                <h1>V6 WODPulse - Configurar Aula</h1>
+                <button onclick="logout()" class="btn-logout">Sair</button>
+                
+                <div id="addParticipant">
+                    <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                    <input type="number" id="ageInput" placeholder="Idade">
+                    <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                    <input type="number" id="heightInput" placeholder="Altura (cm)">
+                    <select id="genderInput">
+                        <option value="">Gênero</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                        <option value="O">Outro</option>
+                    </select>
+                    <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
+                    <input type="email" id="emailInput" placeholder="Email (opcional)">
+                    <label>
+                        <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                    </label>
+                    <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
+                </div>
+
+                <div id="participantListContainer">
+                    <h2>Alunos Cadastrados</h2>
+                    <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
+                    <ul id="participantList"></ul>
+                </div>
+
+                <div id="last-class-summary" class="hidden">
+                    <h2>Última Aula Finalizada</h2>
+                    <div id="summary-content"></div>
+                </div>
+
+                <div id="checkins-section">
+                    <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
+                    <p>Alunos com check-in hoje aparecerão aqui.</p>
+                    <ul id="checkinsList">
+                        <li>(Integração pendente)</li>
+                    </ul>
+                </div>
+
+                <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
+            </div>
+
+            <div id="dashboard" class="hidden">
+                <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
+
+                <div id="main-container">
+                    <div id="monitor-panel">
+                        <div id="header">
+                            <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
+                            
+                            <div class="header-info">
+                                <div id="current-class-name">Aula: --</div>
+                                <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
+                                <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
+                            </div>
+                            
+                            <div id="timer">00:00</div>
+                            
+                            <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
+
+                            <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
+                            <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                            <button id="reportsBtn">📅 Relatórios</button>
+                        </div>
+
+                        <div id="weekly-rankings">
+                            <div class="ranking-block pontos">
+                                <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
+                                <div id="queima-ranking-top5" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-block calorias">
+                                <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
+                                <div id="calorias-ranking-top5" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-block vo2ZoneActive">
+                                <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
+                                <div id="vo2ZoneActive" class="ranking-list"></div>
+                            </div>
+
+                            <div class="ranking-actions">
+                                <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
+                                <button id="fullRankingBtn">📊 Ranking Completo</button>
+                                <button id="exportPdfBtn">📄 Exportar PDF</button>
+                            </div>
+                        </div>
+
+                        <div id="participants"></div>
+                    </div>
+                </div>
+                
+                <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
+                <button id="backBtn">🏁 Finalizar</button>
+            </div>
+
+            <!-- Modal Ranking Completo -->
+            <div id="full-ranking-modal">
+                <div>
+                    <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
+                    <h2>Ranking Completo da Semana</h2>
+                    <div id="full-ranking-content"></div>
+                </div>
             </div>
         </div>
 
@@ -276,35 +425,146 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação -->
+    <!-- Script de autenticação – partes de login comentadas -->
     <script>
-        // ... seu script de auth/login comentado igual ao original ...
-        // (mantive exatamente igual, não mudei nada aqui)
+        // Variáveis globais necessárias
+        let authToken = null;
+        let currentBox = null;
+
+        function showLoginScreen() {
+            console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
+            // document.getElementById('login-screen')?.classList.remove('hidden');
+            // document.getElementById('app-content')?.classList.add('hidden');
+        }
+
+        function showAppContent() {
+            console.log('[LOGIN] Mostrando conteúdo principal');
+            // document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('app-content')?.classList.remove('hidden');
+        }
+
+        function logout() {
+            console.log('[LOGOUT] Limpando sessão');
+            localStorage.removeItem('wodpulse_token');
+            localStorage.removeItem('wodpulse_box');
+            authToken = null;
+            currentBox = null;
+            // showLoginScreen();  // desativado temporariamente
+            location.reload();     // recarrega pra manter sem login
+        }
+
+        async function loadParticipantsFromBackend() {
+            if (!authToken) {
+                console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
+                // return;  // comentado para permitir teste sem autenticação
+            }
+
+            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/participants`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': authToken ? `Bearer ${authToken}` : '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('[LOAD] Status:', response.status);
+
+                if (!response.ok) {
+                    console.warn('[LOAD] Falha na requisição. Status:', response.status);
+                    // throw new Error(...);  // comentado para não travar
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('[LOAD] Dados:', data);
+
+                participants = data.participants?.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    age: p.age,
+                    weight: p.weight,
+                    heightCm: p.height_cm,
+                    gender: p.gender,
+                    restingHR: p.resting_hr,
+                    email: p.email,
+                    useTanaka: p.use_tanaka,
+                    maxHR: p.max_hr,
+                    historicalMaxHR: p.historical_max_hr,
+                    deviceId: p.device_id,
+                    deviceName: p.device_name,
+                    hr: 0,
+                    connected: false,
+                    lastUpdate: 0,
+                    lastZone: 'gray',
+                    queimaPoints: 0,
+                    trimpPoints: 0,
+                    lastSampleTime: null,
+                    calories: 0,
+                    minOrange: 0,
+                    minRed: 0,
+                    epocEstimated: 0,
+                    redStartTime: null,
+                    vo2ZoneActive: false,
+                    vo2GraceStart: null,
+                    vo2StartTime: null,
+                    vo2TimeSeconds: 0,
+                    vo2LastUpdate: 0
+                })) || [];
+
+                console.log('[LOAD] Alunos carregados:', participants.length);
+                if (typeof renderParticipantList === 'function') {
+                    renderParticipantList();
+                }
+            } catch (err) {
+                console.error('[LOAD] Erro:', err.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[INIT] DOM carregado – pulando login (modo dev)');
+
+            const savedToken = localStorage.getItem('wodpulse_token');
+            if (savedToken) {
+                authToken = savedToken;
+                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
+            }
+
+            // Força exibição do conteúdo principal
+            showAppContent();
+            loadParticipantsFromBackend();
+
+            // Evento de login comentado completamente
+            /*
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => { ... });
+            }
+            */
+        });
     </script>
 
-    <!-- Novo: Script para toggle do Painel Admin + lógica do admin -->
+    <!-- Script do Painel Admin -->
     <script>
         const API = 'https://wodpulse-back.onrender.com';
 
         function toggleAdminPanel() {
-            const mainContent = document.querySelector('#setup, #dashboard');
             const adminPanel = document.getElementById('admin-panel');
-            if (adminPanel.classList.contains('hidden')) {
-                // Esconde conteúdo principal e mostra admin
-                document.querySelectorAll('#setup, #dashboard').forEach(el => el.classList.add('hidden'));
-                adminPanel.classList.remove('hidden');
+            const mainContent = document.getElementById('main-content');
+            adminPanel.classList.toggle('hidden');
+            mainContent.classList.toggle('hidden');
+            if (!adminPanel.classList.contains('hidden')) {
                 carregarAlunos();
                 carregarAulas();
-            } else {
-                // Volta ao principal
-                adminPanel.classList.add('hidden');
-                document.getElementById('setup').classList.remove('hidden'); // ou dashboard se preferir
             }
         }
 
         async function carregarAlunos() {
             try {
                 const res = await fetch(`${API}/api/participants`);
+                if (!res.ok) throw new Error('Falha ao carregar alunos');
                 const data = await res.json();
                 const participants = data.participants || [];
                 document.getElementById('totalAlunos').textContent = participants.length;
@@ -323,26 +583,94 @@
                         <td>${p.email || '-'}</td>
                         <td>${p.max_hr || '-'}</td>
                         <td>${p.device_name || p.device_id || '-'}</td>
-                        <td><button class="delete" onclick="excluirAluno(${p.id})">Excluir</button></td>
+                        <td>
+                            <button class="edit" onclick="editarAluno(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.age || 'null'}, ${p.weight || 'null'}, ${p.height_cm || 'null'}, '${p.gender || ''}', '${p.email || ''}', ${p.max_hr || 'null'}, ${p.resting_hr || 'null'}, ${p.use_tanaka || false})">Editar</button>
+                            <button class="delete" onclick="excluirAluno(${p.id})">Excluir</button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (err) {
                 console.error('Erro ao carregar alunos:', err);
-                alert('Erro ao carregar alunos. Verifique console.');
+                alert('Erro ao carregar alunos. Verifique o console.');
+            }
+        }
+
+        function editarAluno(id, nome, idade, peso, altura, genero, email, maxHR, restingHR, useTanaka) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNome').value = nome;
+            document.getElementById('editIdade').value = idade || '';
+            document.getElementById('editPeso').value = peso || '';
+            document.getElementById('editAltura').value = altura || '';
+            document.getElementById('editGenero').value = genero || 'M';
+            document.getElementById('editEmail').value = email || '';
+            document.getElementById('editMaxHR').value = maxHR || '';
+            document.getElementById('editRestingHR').value = restingHR || '';
+            document.getElementById('editUseTanaka').checked = !!useTanaka;
+            document.getElementById('modalEditarAluno').style.display = 'flex';
+        }
+
+        async function salvarEdicaoAluno() {
+            const id = document.getElementById('editId').value;
+            const body = {
+                name: document.getElementById('editNome').value.trim(),
+                age: parseInt(document.getElementById('editIdade').value) || null,
+                weight: parseFloat(document.getElementById('editPeso').value) || null,
+                height_cm: parseInt(document.getElementById('editAltura').value) || null,
+                gender: document.getElementById('editGenero').value || null,
+                email: document.getElementById('editEmail').value.trim() || null,
+                max_hr: parseInt(document.getElementById('editMaxHR').value) || null,
+                resting_hr: parseInt(document.getElementById('editRestingHR').value) || null,
+                use_tanaka: document.getElementById('editUseTanaka').checked
+            };
+
+            try {
+                const res = await fetch(`${API}/api/participants/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert('Aluno atualizado com sucesso!');
+                    document.getElementById('modalEditarAluno').style.display = 'none';
+                    carregarAlunos();
+                } else {
+                    alert('Erro ao atualizar: ' + (result.error || 'Resposta inválida'));
+                }
+            } catch (err) {
+                console.error('Erro na edição:', err);
+                alert('Erro de rede ao salvar alterações.');
+            }
+        }
+
+        async function excluirAluno(id) {
+            if (!confirm('Excluir aluno permanentemente? Isso não pode ser desfeito.')) return;
+            try {
+                const res = await fetch(`${API}/api/participants/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Aluno excluído com sucesso');
+                    carregarAlunos();
+                } else {
+                    alert('Erro ao excluir aluno');
+                }
+            } catch (err) {
+                console.error('Erro exclusão aluno:', err);
+                alert('Erro de rede ao excluir aluno');
             }
         }
 
         async function carregarAulas() {
             try {
                 const res = await fetch(`${API}/api/sessions`);
+                if (!res.ok) throw new Error('Falha ao carregar aulas');
                 const data = await res.json();
                 const sessions = data.sessions || [];
                 document.getElementById('totalAulas').textContent = sessions.length;
 
                 if (sessions.length > 0) {
                     const ultima = new Date(sessions[0].date_start).toLocaleString('pt-BR');
-                    document.getElementById('ultimaAula').textContent = `${sessions[0].class_name} - ${ultima}`;
+                    document.getElementById('ultimaAula').textContent = `${sessions[0].class_name || 'Aula'} - ${ultima}`;
                 }
 
                 const tbody = document.querySelector('#tabelaAulas tbody');
@@ -350,90 +678,52 @@
                 sessions.forEach(s => {
                     const inicio = new Date(s.date_start).toLocaleString('pt-BR');
                     const fim = new Date(s.date_end).toLocaleString('pt-BR');
-                    const dur = s.duration_minutes || (new Date(s.date_end) - new Date(s.date_start)) / 60000;
+                    const dur = s.duration_minutes || Math.round((new Date(s.date_end) - new Date(s.date_start)) / 60000);
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${s.id}</td>
-                        <td>${s.class_name}</td>
+                        <td>${s.class_name || 'Aula'}</td>
                         <td>${inicio}</td>
                         <td>${fim}</td>
-                        <td>${Math.round(dur)}</td>
+                        <td>${dur}</td>
                         <td>${s.participant_count || '-'}</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>
-                            <button class="view" onclick="verDetalhes(${s.id})">Ver</button>
-                            <button class="delete" onclick="excluirAula(${s.id})">Excluir</button>
-                        </td>
+                        <td><button class="view" onclick="verDetalhes(${s.id})">Ver</button></td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (err) {
                 console.error('Erro ao carregar aulas:', err);
-                alert('Erro ao carregar aulas. Verifique console.');
-            }
-        }
-
-        async function excluirAluno(id) {
-            if (!confirm('Excluir aluno? Isso é irreversível.')) return;
-            try {
-                const res = await fetch(`${API}/api/participants/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    alert('Aluno excluído');
-                    carregarAlunos();
-                } else {
-                    alert('Erro ao excluir aluno');
-                }
-            } catch (err) {
-                alert('Erro de rede ao excluir aluno');
-            }
-        }
-
-        async function excluirAula(id) {
-            if (!confirm('Excluir aula e todos dados dela?')) return;
-            try {
-                const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    alert('Aula excluída');
-                    carregarAulas();
-                } else {
-                    alert('Erro ao excluir aula');
-                }
-            } catch (err) {
-                alert('Erro de rede ao excluir aula');
             }
         }
 
         async function verDetalhes(id) {
             try {
                 const res = await fetch(`${API}/api/sessions/${id}`);
+                if (!res.ok) throw new Error('Sessão não encontrada');
                 const data = await res.json();
-                if (!data.session) return alert('Sessão não encontrada');
+                let html = `<p><strong>Aula:</strong> ${data.session?.class_name || 'Aula'}</p>
+                    <p><strong>Início:</strong> ${new Date(data.session?.date_start).toLocaleString('pt-BR')}</p>
+                    <p><strong>Fim:</strong> ${new Date(data.session?.date_end).toLocaleString('pt-BR')}</p>`;
 
-                let html = `<p><strong>Aula:</strong> ${data.session.class_name}</p>
-                    <p><strong>Início:</strong> ${new Date(data.session.date_start).toLocaleString('pt-BR')}</p>
-                    <p><strong>Fim:</strong> ${new Date(data.session.date_end).toLocaleString('pt-BR')}</p>`;
-
-                // Se tiver participants no response (ajuste conforme sua rota /api/sessions/:id retorna)
                 if (data.participants && data.participants.length > 0) {
-                    html += '<h3>Alunos</h3><table><tr><th>Nome</th><th>Calorias</th><th>Queima Pts</th></tr>';
+                    html += '<h3>Alunos na aula</h3><table><tr><th>Nome</th><th>Calorias</th><th>Queima Points</th><th>VO2 (min)</th><th>Zona Vermelha (min)</th></tr>';
                     data.participants.forEach(p => {
-                        html += `<tr><td>${p.name || 'Aluno'}</td><td>${Math.round(p.calories_total || 0)}</td><td>${Math.round(p.queima_points || 0)}</td></tr>`;
+                        html += `<tr><td>${p.name || 'Aluno'}</td><td>${Math.round(p.calories_total || 0)}</td><td>${Math.round(p.queima_points || 0)}</td><td>${Math.round((p.vo2_time_seconds || 0)/60)}</td><td>${Math.round(p.min_red || 0)}</td></tr>`;
                     });
                     html += '</table>';
                 } else {
-                    html += '<p>Nenhum detalhe de alunos disponível.</p>';
+                    html += '<p>Nenhum aluno registrado nessa aula.</p>';
                 }
 
                 document.getElementById('detalhesConteudo').innerHTML = html;
                 document.getElementById('modalDetalhes').style.display = 'flex';
             } catch (err) {
+                console.error('Erro detalhes aula:', err);
                 alert('Erro ao carregar detalhes da aula');
-                console.error(err);
             }
         }
 
-        // Busca client-side
+        // Buscas client-side
         document.getElementById('buscaAluno')?.addEventListener('input', e => {
             const term = e.target.value.toLowerCase();
             document.querySelectorAll('#tabelaAlunos tbody tr').forEach(row => {
