@@ -3,265 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Configuração</title>
+    <title>V6 WODPulse - Leaderboard</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
+
+    <!-- Estilos que adicionamos antes (mantendo a correção da lista com scroll) -->
     <style>
-        /* CSS COMPACTO PARA EVITAR ZOOM */
         body {
-            background: #121212;
-            color: #eee;
-            font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
         }
+
+        .hidden { display: none !important; }
 
         #app-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 10px;
-        }
-
-        /* Header Compacto */
-        .setup-header-compact {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #FF5722;
-            padding: 5px 0;
-            margin-bottom: 10px;
-        }
-
-        .setup-header-compact h1 {
-            margin: 0;
-            font-size: 1.4rem;
-            color: #FF5722;
-        }
-
-        /* Grid de Topo */
-        .top-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .card-compact {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        .card-title {
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #FF9800;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        /* Formulário de Cadastro - IDs ORIGINAIS */
-        #addParticipant {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 5px;
-        }
-
-        #addParticipant input, #addParticipant select {
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            width: 100%;
+            padding: 16px;
             box-sizing: border-box;
         }
 
-        /* Botões ORIGINAIS */
-        #startScanBtn {
-            background: #FF5722;
-            color: white;
-            font-size: 1rem;
+        #setup {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        #addParticipant {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        #addParticipant input,
+        #addParticipant select {
             padding: 10px;
+            font-size: 15px;
             border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            border: none;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .reset-btn {
-            background: #f44336 !important;
+            border: 1px solid #444;
+            background: #161b22;
             color: white;
-            padding: 8px;
-            font-size: 0.7rem;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            border: none;
-            font-weight: bold;
+            min-width: 140px;
+            flex: 1 1 180px;
         }
 
-        #addBtn {
-            background: #4CAF50;
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            border: none;
-            font-weight: bold;
-            grid-column: span 3;
-            margin-top: 5px;
-        }
-
-        /* TABELA DE ALUNOS - ESTILO QUE SOBRESCREVE O SCRIPT.JS */
         #participantListContainer {
-            margin-top: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: #1e1e1e;
-            padding: 5px;
+            margin-top: 30px;
         }
 
-        /* Forçando estilo na tabela que o script.js cria dinamicamente */
-        #participantListContainer table {
+        #participantListContainer h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #f0f6fc;
+        }
+
+        #participantListContainer p {
+            font-size: 13px;
+            color: #8b949e;
+            margin-bottom: 16px;
+        }
+
+        .participant-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem !important;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        #participantListContainer th {
-            background: #252525;
-            color: #FF9800;
-            padding: 8px !important;
+        .participant-table thead {
+            background: #0d1117;
+            border-bottom: 2px solid #30363d;
+        }
+
+        .participant-table th {
+            padding: 14px 12px;
             text-align: left;
-            position: sticky;
-            top: 0;
+            font-weight: 600;
+            font-size: 13px;
+            color: #58a6ff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #30363d;
         }
 
-        #participantListContainer td {
-            padding: 5px 8px !important;
-            border-bottom: 1px solid #2a2a2a;
+        .participant-table th:last-child {
+            border-right: none;
         }
 
-        .action-buttons button {
-            padding: 3px 8px !important;
-            font-size: 0.7rem !important;
-            margin-right: 4px;
+        .participant-table tbody {
+            max-height: 50vh;
+            overflow-y: auto;
+            display: block;
         }
 
-        /* Dashboard e Outros */
-        .hidden { display: none !important; }
-        #dashboard { background: #000; min-height: 100vh; }
+        .participant-table thead,
+        .participant-table tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
 
-        @media (max-width: 800px) {
-            .top-grid { grid-template-columns: 1fr; }
+        .participant-table tbody tr {
+            border-bottom: 1px solid #30363d;
+            transition: background 0.2s;
+        }
+
+        .participant-table tbody tr:hover {
+            background: #1a1f26;
+        }
+
+        .participant-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .participant-table td {
+            padding: 12px;
+            font-size: 13px;
+            color: #e6edf3;
+            border-right: 1px solid #30363d;
+        }
+
+        .participant-table td:last-child {
+            border-right: none;
+        }
+
+        .participant-table .checkbox-col {
+            width: 50px;
+            text-align: center;
+        }
+
+        .participant-table .checkbox-col input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .participant-table .name-col {
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+
+        .participant-table .device-col {
+            color: #58a6ff;
+            font-weight: 500;
+        }
+
+        .participant-table .actions-col {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .participant-table .actions-col button {
+            padding: 6px 10px;
+            margin: 0 4px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .participant-table .actions-col button:hover {
+            background: #2ea043;
+        }
+
+        .participant-table .actions-col button.delete {
+            background: #da3633;
+        }
+
+        .participant-table .actions-col button.delete:hover {
+            background: #f85149;
+        }
+
+        #participantList {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="app-content">
+    <!-- Tela de Login – COMENTADA para pular autenticação temporariamente -->
+    <!--
+    <div id="login-screen">
+        <h1>V6 WODPulse - Login</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Box (slug):</label>
+                <select name="slug" required>
+                    <option value="">Selecione seu box</option>
+                    <option value="v6">V6 CrossFit</option>
+                    <option value="uranium">CrossFit Uranium</option>
+                    <option value="apolo">CrossFit Apolo</option>
+                </select>
+            </div>
 
-        <!-- TELA DE SETUP (ESTRUTURA ORIGINAL PRESERVADA) -->
+            <div class="form-group">
+                <label>Usuário:</label>
+                <input type="text" name="username" placeholder="ex: adminv6" required />
+            </div>
+
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" name="password" required />
+            </div>
+
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+
+        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
+    </div>
+    -->
+
+    <!-- Conteúdo principal (agora visível diretamente) -->
+    <div id="app-content"> <!-- removido .hidden -->
+
         <div id="setup">
-            <header class="setup-header-compact">
-                <h1>V6 WODPulse - Configurar Aula</h1>
-                <div style="display: flex; gap: 8px;">
-                    <button class="reset-btn" style="background:#333 !important; width: auto; padding: 5px 15px;" onclick="window.location.href='/tv'">📺 TV</button>
-                    <button id="reportsBtn" class="reset-btn" style="background:#FF5722 !important; width: auto; padding: 5px 15px;">📅 Relatórios</button>
-                </div>
-            </header>
+            <h1>V6 WODPulse - Configurar Aula</h1>
+            <button onclick="logout()" class="btn-logout">Sair</button>
             
-            <div class="top-grid">
-                <div class="card-compact">
-                    <div class="card-title">🚀 Comandos</div>
-                    <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button class="reset-btn" onclick="resetAllUserCounters()">Reset FC</button>
-                        <button class="reset-btn" onclick="deleteAllSessions()">Limpar Tudo</button>
-                    </div>
-                </div>
-
-                <div class="card-compact">
-                    <div class="card-title">👤 Novo Aluno</div>
-                    <div id="addParticipant">
-                        <input type="text" id="nameInput" placeholder="Nome do Aluno">
-                        <input type="number" id="ageInput" placeholder="Idade">
-                        <select id="genderInput">
-                            <option value="">Gênero</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Feminino</option>
-                            <option value="O">Outro</option>
-                        </select>
-                        <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                        <input type="number" id="heightInput" placeholder="Altura (cm)">
-                        <input type="email" id="emailInput" placeholder="Email (opcional)">
-                        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #888; grid-column: span 3;">
-                            <input type="checkbox" id="useTanakaInput"> Tanaka?
-                        </label>
-                        <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
-                    </div>
-                </div>
+            <div id="addParticipant">
+                <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                <input type="number" id="ageInput" placeholder="Idade">
+                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                <input type="number" id="heightInput" placeholder="Altura (cm)">
+                <select id="genderInput">
+                    <option value="">Gênero</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                    <option value="O">Outro</option>
+                </select>
+                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
+                <input type="email" id="emailInput" placeholder="Email (opcional)">
+                <label>
+                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                </label>
+                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
 
-            <!-- O SCRIPT.JS VAI APAGAR O CONTEÚDO DISSO AQUI E CRIAR A TABELA -->
             <div id="participantListContainer">
-                <h2>Alunos Cadastrados</h2>
-                <p>Carregando alunos...</p>
-                <!-- O script.js injeta a tabela aqui -->
+                <h2>Marque quem vai participar da próxima aula antes de iniciar:</h2>
+                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
+                <table class="participant-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col">Participar</th>
+                            <th>Nome</th>
+                            <th>Idade</th>
+                            <th>Peso (kg)</th>
+                            <th>Altura (cm)</th>
+                            <th>Gênero</th>
+                            <th>Email</th>
+                            <th class="device-col">Pulseira</th>
+                            <th class="actions-col">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="participantList"></tbody>
+                </table>
             </div>
+
+            <div id="last-class-summary" class="hidden">
+                <h2>Última Aula Finalizada</h2>
+                <div id="summary-content"></div>
+            </div>
+
+            <div id="checkins-section">
+                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
+                <p>Alunos com check-in hoje aparecerão aqui.</p>
+                <ul id="checkinsList">
+                    <li>(Integração pendente)</li>
+                </ul>
+            </div>
+
+            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
         </div>
 
-        <!-- TELA DE DASHBOARD (ESTRUTURA ORIGINAL PRESERVADA) -->
         <div id="dashboard" class="hidden">
+            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
+
             <div id="main-container">
                 <div id="monitor-panel">
-                    <div id="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a1a1a;">
-                        <img src="logo-v6.png" alt="V6" style="height: 40px;">
-                        <div id="timer" style="font-size: 3rem; font-weight: 900; color: #FF5722;">00:00</div>
-                        <button id="backBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">🏁 Finalizar</button>
-                    </div>
-                    
-                    <div id="monitor-content" style="padding: 20px;">
-                        <div id="current-class-name" style="color: #FF9800; font-weight: bold; margin-bottom: 10px;">Aula: --</div>
+                    <div id="header">
+                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
                         
-                        <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
-                                <h3 style="color: #FF5722; font-size: 0.9rem; margin-top: 0;">🔥 TOP 5 PONTOS</h3>
-                                <div id="queima-ranking-top5"></div>
-                            </div>
-                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
-                                <h3 style="color: #FF9800; font-size: 0.9rem; margin-top: 0;">⚡ TOP 5 CALORIAS</h3>
-                                <div id="calorias-ranking-top5"></div>
-                            </div>
+                        <div class="header-info">
+                            <div id="current-class-name">Aula: --</div>
+                            <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
+                            <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
+                        </div>
+                        
+                        <div id="timer">00:00</div>
+                        
+                        <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
+
+                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
+                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                        <button id="reportsBtn">📅 Relatórios</button>
+                    </div>
+
+                    <div id="weekly-rankings">
+                        <div class="ranking-block pontos">
+                            <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
+                            <div id="queima-ranking-top5" class="ranking-list"></div>
                         </div>
 
-                        <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
-                            <!-- Tiles de monitoramento -->
+                        <div class="ranking-block calorias">
+                            <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
+                            <div id="calorias-ranking-top5" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-block vo2ZoneActive">
+                            <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
+                            <div id="vo2ZoneActive" class="ranking-list"></div>
+                        </div>
+
+                        <div class="ranking-actions">
+                            <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
+                            <button id="fullRankingBtn">📊 Ranking Completo</button>
+                            <button id="exportPdfBtn">📄 Exportar PDF</button>
                         </div>
                     </div>
+
+                    <div id="participants"></div>
                 </div>
             </div>
             
-            <!-- Elementos invisíveis necessários para o script.js não dar erro -->
-            <div style="display:none;">
-                <div id="daily-leader"></div>
-                <div id="daily-calories-leader"></div>
-                <div id="leaderboard-top"></div>
-                <button id="fullRankingBtn"></button>
-                <button id="exportPdfBtn"></button>
-                <button id="resetWeeklyBtn"></button>
-                <button id="reconnectDevicesBtn"></button>
-                <button id="authorizeReconnectBtn"></button>
+            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
+            <button id="backBtn">🏁 Finalizar</button>
+        </div>
+
+        <!-- Modal Ranking Completo -->
+        <div id="full-ranking-modal">
+            <div>
+                <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
+                <h2>Ranking Completo da Semana</h2>
+                <div id="full-ranking-content"></div>
             </div>
         </div>
 
@@ -270,33 +355,125 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
+    <!-- Script de autenticação – partes de login comentadas -->
     <script>
-        // Forçar o carregamento inicial
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                if (typeof loadParticipantsFromBackend === 'function') {
-                    loadParticipantsFromBackend();
-                }
-            }, 1000);
-        });
+        // Variáveis globais necessárias
+        let authToken = null;
+        let currentBox = null;
 
-        async function resetAllUserCounters() {
-            if (!confirm("Zerar contadores?")) return;
-            if (typeof participants !== 'undefined') {
-                participants.forEach(p => { p.todayMaxHR = 0; p.calories = 0; p.queimaPoints = 0; });
-                if (typeof renderParticipantList === 'function') renderParticipantList();
-                alert("Resetado!");
+        function showLoginScreen() {
+            console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
+            // document.getElementById('login-screen')?.classList.remove('hidden');
+            // document.getElementById('app-content')?.classList.add('hidden');
+        }
+
+        function showAppContent() {
+            console.log('[LOGIN] Mostrando conteúdo principal');
+            // document.getElementById('login-screen')?.classList.add('hidden');
+            document.getElementById('app-content')?.classList.remove('hidden');
+        }
+
+        function logout() {
+            console.log('[LOGOUT] Limpando sessão');
+            localStorage.removeItem('wodpulse_token');
+            localStorage.removeItem('wodpulse_box');
+            authToken = null;
+            currentBox = null;
+            // showLoginScreen();  // desativado temporariamente
+            location.reload();     // recarrega pra manter sem login
+        }
+
+        async function loadParticipantsFromBackend() {
+            if (!authToken) {
+                console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
+                // return;  // comentado para permitir teste sem autenticação
+            }
+
+            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/participants`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': authToken ? `Bearer ${authToken}` : '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('[LOAD] Status:', response.status);
+
+                if (!response.ok) {
+                    console.warn('[LOAD] Falha na requisição. Status:', response.status);
+                    // throw new Error(...);  // comentado para não travar
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('[LOAD] Dados:', data);
+
+                participants = data.participants?.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    age: p.age,
+                    weight: p.weight,
+                    heightCm: p.height_cm,
+                    gender: p.gender,
+                    restingHR: p.resting_hr,
+                    email: p.email,
+                    useTanaka: p.use_tanaka,
+                    maxHR: p.max_hr,
+                    historicalMaxHR: p.historical_max_hr,
+                    deviceId: p.device_id,
+                    deviceName: p.device_name,
+                    hr: 0,
+                    connected: false,
+                    lastUpdate: 0,
+                    lastZone: 'gray',
+                    queimaPoints: 0,
+                    trimpPoints: 0,
+                    lastSampleTime: null,
+                    calories: 0,
+                    minOrange: 0,
+                    minRed: 0,
+                    epocEstimated: 0,
+                    redStartTime: null,
+                    vo2ZoneActive: false,
+                    vo2GraceStart: null,
+                    vo2StartTime: null,
+                    vo2TimeSeconds: 0,
+                    vo2LastUpdate: 0
+                })) || [];
+
+                console.log('[LOAD] Alunos carregados:', participants.length);
+                if (typeof renderParticipantList === 'function') {
+                    renderParticipantList();
+                }
+            } catch (err) {
+                console.error('[LOAD] Erro:', err.message);
             }
         }
 
-        async function deleteAllSessions() {
-            if (!confirm("Apagar histórico?")) return;
-            const baseUrl = 'https://wodpulse-back.onrender.com';
-            try {
-                await fetch(`${baseUrl}/api/sessions/delete-all`, { method: 'DELETE' });
-                alert("Apagado!");
-            } catch (err) { alert(err.message); }
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[INIT] DOM carregado – pulando login (modo dev)');
+
+            const savedToken = localStorage.getItem('wodpulse_token');
+            if (savedToken) {
+                authToken = savedToken;
+                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
+            }
+
+            // Força exibição do conteúdo principal
+            showAppContent();
+            loadParticipantsFromBackend();
+
+            // Evento de login comentado completamente
+            /*
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => { ... });
+            }
+            */
+        });
     </script>
 </body>
 </html>
