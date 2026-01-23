@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V6 WODPulse - Leaderboard</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
-    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
 
-    <!-- Estilos que adicionamos antes (mantendo a correção da lista com scroll) -->
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             font-family: 'Roboto', sans-serif;
             background: #0d1117;
             color: #e6edf3;
@@ -22,41 +25,133 @@
 
         .hidden { display: none !important; }
 
+        /* Layout Principal */
         #app-content {
             padding: 16px;
-            box-sizing: border-box;
+            min-height: 100vh;
         }
 
+        /* ===== TELA SETUP ===== */
         #setup {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        #addParticipant {
+        #setup h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #f0f6fc;
             display: flex;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #da3633;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #f85149;
+        }
+
+        /* Formulário de Adicionar Aluno */
+        #addParticipant {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
-            margin: 20px 0;
+            margin: 30px 0;
+            padding: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
         }
 
         #addParticipant input,
         #addParticipant select {
-            padding: 10px;
-            font-size: 15px;
+            padding: 10px 12px;
+            font-size: 14px;
             border-radius: 6px;
             border: 1px solid #444;
-            background: #161b22;
+            background: #0d1117;
+            color: #e6edf3;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #addParticipant input:focus,
+        #addParticipant select:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        #addParticipant label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #addParticipant input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        #addBtn {
+            grid-column: span 1;
+            padding: 10px 16px;
+            background: #238636;
             color: white;
-            min-width: 140px;
-            flex: 1 1 180px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        #addBtn:hover {
+            background: #2ea043;
+        }
+
+        /* Seção Lista de Alunos */
+        #participantListContainer {
+            margin: 30px 0;
+            padding: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+        }
+
+        #participantListContainer h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #f0f6fc;
+        }
+
+        #participantListContainer p {
+            font-size: 13px;
+            color: #8b949e;
+            margin-bottom: 16px;
         }
 
         #participantList {
             max-height: 50vh;
             overflow-y: auto;
             list-style: none;
-            padding: 0;
-            margin: 0;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #0d1117;
         }
 
         #participantList li {
@@ -65,6 +160,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s;
+        }
+
+        #participantList li:last-child {
+            border-bottom: none;
+        }
+
+        #participantList li:hover {
+            background: #161b22;
+        }
+
+        #participantList li strong {
+            color: #f0f6fc;
+            font-size: 15px;
+        }
+
+        #participantList li span {
+            color: #8b949e;
+            font-size: 13px;
         }
 
         #participantList::-webkit-scrollbar {
@@ -79,50 +193,523 @@
             background: #444;
             border-radius: 4px;
         }
+
+        #participantList::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Seção Última Aula */
+        #last-class-summary {
+            margin: 30px 0;
+            padding: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+        }
+
+        #last-class-summary h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #f0f6fc;
+        }
+
+        #summary-content {
+            color: #8b949e;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Seção Check-ins */
+        #checkins-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+        }
+
+        #checkins-section h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #f0f6fc;
+        }
+
+        #checkins-section p {
+            font-size: 13px;
+            color: #8b949e;
+            margin-bottom: 12px;
+        }
+
+        #checkinsList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #checkinsList li {
+            padding: 8px 0;
+            color: #8b949e;
+            font-size: 13px;
+        }
+
+        /* Botão Iniciar Aula */
+        #startScanBtn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 30px auto;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+        }
+
+        #startScanBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
+        }
+
+        #startScanBtn:active {
+            transform: translateY(0);
+        }
+
+        /* ===== TELA DASHBOARD ===== */
+        #dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        #toggleCompactBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            z-index: 100;
+            transition: background 0.2s;
+        }
+
+        #toggleCompactBtn:hover {
+            background: #2ea043;
+        }
+
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Monitor Panel - Header */
+        #monitor-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            border-bottom: 1px solid #30363d;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        #header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #current-class-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+
+        #daily-leader,
+        #daily-calories-leader {
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        #timer {
+            font-size: 32px;
+            font-weight: 700;
+            color: #58a6ff;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        #leaderboard-top {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f6fc;
+            padding: 12px 16px;
+            background: #0d1117;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        #header button {
+            padding: 8px 12px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        #header button:hover {
+            background: #2ea043;
+        }
+
+        #header button.hidden {
+            display: none;
+        }
+
+        /* Weekly Rankings */
+        #weekly-rankings {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ranking-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .ranking-block h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #30363d;
+        }
+
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ranking-list .rank-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: #161b22;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .ranking-list .rank-item .rank-name {
+            font-weight: 500;
+            color: #f0f6fc;
+        }
+
+        .ranking-list .rank-item .rank-value {
+            color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .ranking-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            padding: 16px 0 0 0;
+            border-top: 1px solid #30363d;
+        }
+
+        .ranking-actions button {
+            padding: 8px 16px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .ranking-actions button:hover {
+            background: #2ea043;
+        }
+
+        /* Participants Container */
+        #participants {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .participant-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .participant-card:hover {
+            border-color: #58a6ff;
+            box-shadow: 0 0 12px rgba(88, 166, 255, 0.1);
+        }
+
+        .participant-card.connected {
+            border-color: #238636;
+            box-shadow: 0 0 12px rgba(35, 134, 54, 0.2);
+        }
+
+        .participant-card .name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 8px;
+        }
+
+        .participant-card .status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .participant-card .status.connected {
+            background: rgba(35, 134, 54, 0.2);
+            color: #3fb950;
+        }
+
+        .participant-card .status.disconnected {
+            background: rgba(218, 54, 51, 0.2);
+            color: #f85149;
+        }
+
+        .participant-card .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .participant-card .metric {
+            padding: 8px;
+            background: #161b22;
+            border-radius: 4px;
+            border-left: 3px solid #58a6ff;
+        }
+
+        .participant-card .metric-label {
+            color: #8b949e;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .participant-card .metric-value {
+            color: #f0f6fc;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Botões Flutuantes */
+        #addNewParticipantBtn,
+        #backBtn {
+            position: fixed;
+            bottom: 20px;
+            padding: 12px 20px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            z-index: 50;
+        }
+
+        #addNewParticipantBtn {
+            right: 20px;
+            background: #238636;
+        }
+
+        #addNewParticipantBtn:hover {
+            background: #2ea043;
+        }
+
+        #backBtn {
+            right: 160px;
+            background: #da3633;
+        }
+
+        #backBtn:hover {
+            background: #f85149;
+        }
+
+        /* Modal Ranking Completo */
+        #full-ranking-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        #full-ranking-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #full-ranking-modal > div {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        #full-ranking-modal span {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #8b949e;
+            transition: color 0.2s;
+        }
+
+        #full-ranking-modal span:hover {
+            color: #f0f6fc;
+        }
+
+        #full-ranking-modal h2 {
+            font-size: 20px;
+            color: #f0f6fc;
+            margin-bottom: 20px;
+            margin-top: 12px;
+        }
+
+        #full-ranking-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .ranking-section {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .ranking-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #58a6ff;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .ranking-section ol {
+            list-style: decimal;
+            padding-left: 20px;
+        }
+
+        .ranking-section li {
+            padding: 4px 0;
+            font-size: 12px;
+            color: #e6edf3;
+            margin-bottom: 4px;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            #addParticipant {
+                grid-template-columns: 1fr;
+            }
+
+            #header {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            #timer {
+                font-size: 24px;
+            }
+
+            #participants {
+                grid-template-columns: 1fr;
+            }
+
+            #addNewParticipantBtn,
+            #backBtn {
+                position: static;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            #backBtn {
+                right: auto;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Tela de Login – COMENTADA para pular autenticação temporariamente -->
-    <!--
-    <div id="login-screen">
-        <h1>V6 WODPulse - Login</h1>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Box (slug):</label>
-                <select name="slug" required>
-                    <option value="">Selecione seu box</option>
-                    <option value="v6">V6 CrossFit</option>
-                    <option value="uranium">CrossFit Uranium</option>
-                    <option value="apolo">CrossFit Apolo</option>
-                </select>
-            </div>
+    <!-- Conteúdo Principal -->
+    <div id="app-content">
 
-            <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" name="username" placeholder="ex: adminv6" required />
-            </div>
-
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" name="password" required />
-            </div>
-
-            <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-
-        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
-    </div>
-    -->
-
-    <!-- Conteúdo principal (agora visível diretamente) -->
-    <div id="app-content"> <!-- removido .hidden -->
-
+        <!-- ===== TELA SETUP ===== -->
         <div id="setup">
-            <h1>V6 WODPulse - Configurar Aula</h1>
-            <button onclick="logout()" class="btn-logout">Sair</button>
+            <h1>
+                V6 WODPulse - Configurar Aula
+                <button onclick="logout()" class="btn-logout">Sair</button>
+            </h1>
             
+            <!-- Formulário de Adicionar Aluno -->
             <div id="addParticipant">
                 <input type="text" id="nameInput" placeholder="Nome do Aluno">
                 <input type="number" id="ageInput" placeholder="Idade">
@@ -137,22 +724,25 @@
                 <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
                 <input type="email" id="emailInput" placeholder="Email (opcional)">
                 <label>
-                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
+                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka
                 </label>
                 <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
 
+            <!-- Lista de Alunos -->
             <div id="participantListContainer">
                 <h2>Alunos Cadastrados</h2>
                 <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
                 <ul id="participantList"></ul>
             </div>
 
+            <!-- Última Aula -->
             <div id="last-class-summary" class="hidden">
                 <h2>Última Aula Finalizada</h2>
                 <div id="summary-content"></div>
             </div>
 
+            <!-- Check-ins -->
             <div id="checkins-section">
                 <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
                 <p>Alunos com check-in hoje aparecerão aqui.</p>
@@ -161,14 +751,17 @@
                 </ul>
             </div>
 
+            <!-- Botão Iniciar Aula -->
             <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
         </div>
 
+        <!-- ===== TELA DASHBOARD ===== -->
         <div id="dashboard" class="hidden">
             <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
 
             <div id="main-container">
                 <div id="monitor-panel">
+                    <!-- Header -->
                     <div id="header">
                         <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
                         
@@ -182,11 +775,12 @@
                         
                         <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
 
-                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar Pulseiras</button>
-                        <button id="authorizeReconnectBtn" class="hidden">Autorizar Reconexão Automática</button>
+                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
+                        <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
                         <button id="reportsBtn">📅 Relatórios</button>
                     </div>
 
+                    <!-- Weekly Rankings -->
                     <div id="weekly-rankings">
                         <div class="ranking-block pontos">
                             <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
@@ -210,10 +804,12 @@
                         </div>
                     </div>
 
+                    <!-- Participants Grid -->
                     <div id="participants"></div>
                 </div>
             </div>
             
+            <!-- Botões Flutuantes -->
             <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
             <button id="backBtn">🏁 Finalizar</button>
         </div>
@@ -221,7 +817,7 @@
         <!-- Modal Ranking Completo -->
         <div id="full-ranking-modal">
             <div>
-                <span onclick="document.getElementById('full-ranking-modal').style.display='none'">×</span>
+                <span onclick="document.getElementById('full-ranking-modal').classList.remove('show')">×</span>
                 <h2>Ranking Completo da Semana</h2>
                 <div id="full-ranking-content"></div>
             </div>
@@ -229,10 +825,11 @@
 
     </div>
 
+    <!-- Scripts -->
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação – partes de login comentadas -->
+    <!-- Script de Autenticação e Inicialização -->
     <script>
         // Variáveis globais necessárias
         let authToken = null;
@@ -240,13 +837,10 @@
 
         function showLoginScreen() {
             console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
-            // document.getElementById('login-screen')?.classList.remove('hidden');
-            // document.getElementById('app-content')?.classList.add('hidden');
         }
 
         function showAppContent() {
             console.log('[LOGIN] Mostrando conteúdo principal');
-            // document.getElementById('login-screen')?.classList.add('hidden');
             document.getElementById('app-content')?.classList.remove('hidden');
         }
 
@@ -256,14 +850,12 @@
             localStorage.removeItem('wodpulse_box');
             authToken = null;
             currentBox = null;
-            // showLoginScreen();  // desativado temporariamente
-            location.reload();     // recarrega pra manter sem login
+            location.reload();
         }
 
         async function loadParticipantsFromBackend() {
             if (!authToken) {
                 console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
-                // return;  // comentado para permitir teste sem autenticação
             }
 
             console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
@@ -281,7 +873,6 @@
 
                 if (!response.ok) {
                     console.warn('[LOAD] Falha na requisição. Status:', response.status);
-                    // throw new Error(...);  // comentado para não travar
                     return;
                 }
 
@@ -339,17 +930,8 @@
                 currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
             }
 
-            // Força exibição do conteúdo principal
             showAppContent();
             loadParticipantsFromBackend();
-
-            // Evento de login comentado completamente
-            /*
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', async (e) => { ... });
-            }
-            */
         });
     </script>
 </body>
