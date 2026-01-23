@@ -3,1092 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Leaderboard</title>
+    <title>V6 WODPulse - Configuração</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
-
     <style>
-        * {
+        /* CSS COMPACTO PARA EVITAR ZOOM */
+        body {
+            background: #121212;
+            color: #eee;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
+        }
+
+        #app-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* Header Compacto */
+        .setup-header-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #FF5722;
+            padding: 5px 0;
+            margin-bottom: 10px;
+        }
+
+        .setup-header-compact h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #FF5722;
+        }
+
+        /* Grid de Topo */
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .card-compact {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #FF9800;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        /* Formulário de Cadastro - IDs ORIGINAIS */
+        #addParticipant {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+        }
+
+        #addParticipant input, #addParticipant select {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            width: 100%;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            min-height: 100vh;
-        }
-
-        .hidden { display: none !important; }
-
-        /* Layout Principal */
-        #app-content {
-            padding: 16px;
-            min-height: 100vh;
-        }
-
-        /* ===== TELA SETUP ===== */
-        #setup {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        #setup h1 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #f0f6fc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-logout {
-            padding: 8px 16px;
-            background: #da3633;
+        /* Botões ORIGINAIS */
+        #startScanBtn {
+            background: #FF5722;
             color: white;
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
             border: none;
-            border-radius: 6px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .reset-btn {
+            background: #f44336 !important;
+            color: white;
+            padding: 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .btn-logout:hover {
-            background: #f85149;
-        }
-
-        /* Formulário de Adicionar Aluno */
-        #addParticipant {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin: 30px 0;
-            padding: 20px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-        }
-
-        #addParticipant input,
-        #addParticipant select {
-            padding: 10px 12px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #0d1117;
-            color: #e6edf3;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        #addParticipant input:focus,
-        #addParticipant select:focus {
-            outline: none;
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
-        }
-
-        #addParticipant label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 0;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        #addParticipant input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
+            width: 100%;
+            border: none;
+            font-weight: bold;
         }
 
         #addBtn {
-            grid-column: span 1;
-            padding: 10px 16px;
-            background: #238636;
+            background: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        #addBtn:hover {
-            background: #2ea043;
-        }
-
-        /* Seção Lista de Alunos */
-        #participantListContainer {
-            margin: 30px 0;
-            padding: 20px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-        }
-
-        #participantListContainer h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: #f0f6fc;
-        }
-
-        #participantListContainer p {
-            font-size: 13px;
-            color: #8b949e;
-            margin-bottom: 16px;
-        }
-
-        #participantList {
-            max-height: 50vh;
-            overflow-y: auto;
-            list-style: none;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            background: #0d1117;
-        }
-
-        #participantList li {
-            padding: 12px 16px;
-            border-bottom: 1px solid #30363d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-
-        #participantList li:last-child {
-            border-bottom: none;
-        }
-
-        #participantList li:hover {
-            background: #161b22;
-        }
-
-        #participantList li strong {
-            color: #f0f6fc;
-            font-size: 15px;
-        }
-
-        #participantList li span {
-            color: #8b949e;
-            font-size: 13px;
-        }
-
-        #participantList::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #participantList::-webkit-scrollbar-track {
-            background: #0d1117;
-        }
-
-        #participantList::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 4px;
-        }
-
-        #participantList::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        /* Seção Última Aula */
-        #last-class-summary {
-            margin: 30px 0;
-            padding: 20px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-        }
-
-        #last-class-summary h2 {
-            font-size: 18px;
-            margin-bottom: 16px;
-            color: #f0f6fc;
-        }
-
-        #summary-content {
-            color: #8b949e;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* Seção Check-ins */
-        #checkins-section {
-            margin: 30px 0;
-            padding: 20px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-        }
-
-        #checkins-section h2 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: #f0f6fc;
-        }
-
-        #checkins-section p {
-            font-size: 13px;
-            color: #8b949e;
-            margin-bottom: 12px;
-        }
-
-        #checkinsList {
-            list-style: none;
-            padding: 0;
-        }
-
-        #checkinsList li {
-            padding: 8px 0;
-            color: #8b949e;
-            font-size: 13px;
-        }
-
-        /* Botão Iniciar Aula */
-        #startScanBtn {
-            display: block;
-            width: 100%;
-            max-width: 300px;
-            margin: 30px auto;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
-        }
-
-        #startScanBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
-        }
-
-        #startScanBtn:active {
-            transform: translateY(0);
-        }
-
-        /* ===== TELA DASHBOARD ===== */
-        #dashboard {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        #toggleCompactBtn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: #238636;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            z-index: 100;
-            transition: background 0.2s;
-        }
-
-        #toggleCompactBtn:hover {
-            background: #2ea043;
-        }
-
-        #main-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Monitor Panel - Header */
-        #monitor-panel {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        #header {
-            padding: 20px;
-            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
-            border-bottom: 1px solid #30363d;
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
-            gap: 20px;
-            align-items: center;
-        }
-
-        #header img {
-            width: 60px;
-            height: 60px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
-        .header-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        #current-class-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f0f6fc;
-        }
-
-        #daily-leader,
-        #daily-calories-leader {
-            font-size: 13px;
-            color: #8b949e;
-        }
-
-        #timer {
-            font-size: 32px;
-            font-weight: 700;
-            color: #58a6ff;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            min-width: 120px;
-        }
-
-        #leaderboard-top {
-            font-size: 14px;
-            font-weight: 600;
-            color: #f0f6fc;
-            padding: 12px 16px;
-            background: #0d1117;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-        }
-
-        #header button {
-            padding: 8px 12px;
-            background: #238636;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        #header button:hover {
-            background: #2ea043;
-        }
-
-        #header button.hidden {
-            display: none;
-        }
-
-        /* Weekly Rankings */
-        #weekly-rankings {
-            padding: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            background: #0d1117;
-        }
-
-        .ranking-block {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .ranking-block h3 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #30363d;
-        }
-
-        .ranking-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .ranking-list .rank-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #0d1117;
-            border-radius: 6px;
-            font-size: 13px;
-            border-left: 3px solid #58a6ff;
-        }
-
-        .ranking-list .rank-item:nth-child(1) {
-            border-left-color: #ffd700;
-        }
-
-        .ranking-list .rank-item:nth-child(2) {
-            border-left-color: #c0c0c0;
-        }
-
-        .ranking-list .rank-item:nth-child(3) {
-            border-left-color: #cd7f32;
-        }
-
-        .ranking-list .rank-item .rank-name {
-            font-weight: 600;
-            color: #f0f6fc;
-        }
-
-        .ranking-list .rank-item .rank-value {
-            color: #58a6ff;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-        }
-
-        .ranking-actions {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            padding: 16px 0 0 0;
-            border-top: 1px solid #30363d;
-            flex-wrap: wrap;
-        }
-
-        .ranking-actions button {
-            padding: 10px 16px;
-            background: #238636;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .ranking-actions button:hover {
-            background: #2ea043;
-        }
-
-        /* Participants Container - NOVO DESIGN */
-        #participants {
-            padding: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            background: #0d1117;
-        }
-
-        .participant-card {
-            background: linear-gradient(135deg, #1a1f26 0%, #0d1117 100%);
-            border: 2px solid #30363d;
-            border-radius: 12px;
-            padding: 0;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .participant-card:hover {
-            border-color: #58a6ff;
-            box-shadow: 0 12px 32px rgba(88, 166, 255, 0.2);
-            transform: translateY(-4px);
-        }
-
-        .participant-card.connected {
-            border-color: #238636;
-        }
-
-        .participant-card.connected:hover {
-            box-shadow: 0 12px 32px rgba(35, 134, 54, 0.2);
-        }
-
-        /* Card Header - Nome e Device */
-        .participant-card .card-header {
-            padding: 16px;
-            background: linear-gradient(135deg, #1a1f26 0%, #161b22 100%);
-            border-bottom: 2px solid #30363d;
-        }
-
-        .participant-card .name {
-            font-size: 22px;
-            font-weight: 900;
-            color: #ffffff;
-            margin-bottom: 4px;
-            letter-spacing: 0.5px;
-        }
-
-        .participant-card .device-info {
-            font-size: 11px;
-            color: #58a6ff;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Card Body - HR e Métricas */
-        .participant-card .card-body {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        /* HR Display */
-        .participant-card .hr-display {
-            text-align: center;
-            padding: 16px;
-            background: #0d1117;
-            border-radius: 10px;
-            border: 2px solid #58a6ff;
-        }
-
-        .participant-card .hr-label {
-            font-size: 10px;
-            color: #8b949e;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-            font-weight: 700;
-        }
-
-        .participant-card .hr-value {
-            font-size: 48px;
-            font-weight: 900;
-            color: #ffffff;
-            font-family: 'Courier New', monospace;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .participant-card .hr-unit {
-            font-size: 12px;
-            color: #8b949e;
-            font-weight: 600;
-        }
-
-        /* Max HR Info */
-        .participant-card .hr-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #ffffff;
-            background: #161b22;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-
-        .participant-card .hr-info span {
-            font-weight: 600;
-        }
-
-        .participant-card .hr-info .label {
-            color: #ffa657;
-            font-weight: 700;
-        }
-
-        /* Percentage */
-        .participant-card .percentage {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffffff;
-            text-align: center;
             padding: 8px;
-            background: #161b22;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-
-        /* PTS - Destaque Laranja */
-        .participant-card .pts-display {
-            background: linear-gradient(135deg, #ff6b00 0%, #ffa657 100%);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
-            margin-bottom: 12px;
-        }
-
-        .participant-card .pts-label {
-            font-size: 10px;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            opacity: 0.9;
-        }
-
-        .participant-card .pts-value {
-            font-size: 28px;
-            font-weight: 900;
-            color: #ffffff;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Calorias - Destaque Verde */
-        .participant-card .calories-display {
-            background: linear-gradient(135deg, #238636 0%, #3fb950 100%);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
-        }
-
-        .participant-card .calories-label {
-            font-size: 10px;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            opacity: 0.9;
-        }
-
-        .participant-card .calories-value {
-            font-size: 24px;
-            font-weight: 900;
-            color: #ffffff;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Status */
-        .participant-card .status {
-            font-size: 11px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .participant-card .status.connected {
-            background: rgba(35, 134, 54, 0.25);
-            color: #3fb950;
-            border: 1px solid rgba(35, 134, 54, 0.5);
-        }
-
-        .participant-card .status.connected::before {
-            content: '● ';
-            font-weight: 900;
-        }
-
-        .participant-card .status.disconnected {
-            background: rgba(218, 54, 51, 0.25);
-            color: #f85149;
-            border: 1px solid rgba(218, 54, 51, 0.5);
-        }
-
-        .participant-card .status.disconnected::before {
-            content: '○ ';
-        }
-
-        /* Botões Flutuantes */
-        #addNewParticipantBtn,
-        #backBtn {
-            position: fixed;
-            bottom: 20px;
-            padding: 12px 20px;
-            color: white;
+            border-radius: 4px;
+            cursor: pointer;
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-            z-index: 50;
+            font-weight: bold;
+            grid-column: span 3;
+            margin-top: 5px;
         }
 
-        #addNewParticipantBtn {
-            right: 20px;
-            background: #238636;
-        }
-
-        #addNewParticipantBtn:hover {
-            background: #2ea043;
-        }
-
-        #backBtn {
-            right: 160px;
-            background: #da3633;
-        }
-
-        #backBtn:hover {
-            background: #f85149;
-        }
-
-        /* Modal Ranking Completo */
-        #full-ranking-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
+        /* TABELA DE ALUNOS - ESTILO QUE SOBRESCREVE O SCRIPT.JS */
+        #participantListContainer {
+            margin-top: 10px;
+            max-height: 400px;
             overflow-y: auto;
-            padding: 20px;
-        }
-
-        #full-ranking-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #full-ranking-modal > div {
-            background: #161b22;
-            border: 1px solid #30363d;
+            border: 1px solid #333;
             border-radius: 8px;
-            padding: 24px;
-            max-width: 800px;
+            background: #1e1e1e;
+            padding: 5px;
+        }
+
+        /* Forçando estilo na tabela que o script.js cria dinamicamente */
+        #participantListContainer table {
             width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
+            border-collapse: collapse;
+            font-size: 0.8rem !important;
         }
 
-        #full-ranking-modal span {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 28px;
-            cursor: pointer;
-            color: #8b949e;
-            transition: color 0.2s;
+        #participantListContainer th {
+            background: #252525;
+            color: #FF9800;
+            padding: 8px !important;
+            text-align: left;
+            position: sticky;
+            top: 0;
         }
 
-        #full-ranking-modal span:hover {
-            color: #f0f6fc;
+        #participantListContainer td {
+            padding: 5px 8px !important;
+            border-bottom: 1px solid #2a2a2a;
         }
 
-        #full-ranking-modal h2 {
-            font-size: 20px;
-            color: #f0f6fc;
-            margin-bottom: 20px;
-            margin-top: 12px;
+        .action-buttons button {
+            padding: 3px 8px !important;
+            font-size: 0.7rem !important;
+            margin-right: 4px;
         }
 
-        #full-ranking-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
+        /* Dashboard e Outros */
+        .hidden { display: none !important; }
+        #dashboard { background: #000; min-height: 100vh; }
 
-        .ranking-section {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 12px;
-        }
-
-        .ranking-section h3 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #58a6ff;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #30363d;
-        }
-
-        .ranking-section ol {
-            list-style: decimal;
-            padding-left: 20px;
-        }
-
-        .ranking-section li {
-            padding: 4px 0;
-            font-size: 12px;
-            color: #e6edf3;
-            margin-bottom: 4px;
-        }
-
-        /* Responsivo */
-        @media (max-width: 768px) {
-            #addParticipant {
-                grid-template-columns: 1fr;
-            }
-
-            #header {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            #timer {
-                font-size: 24px;
-            }
-
-            #participants {
-                grid-template-columns: 1fr;
-            }
-
-            #addNewParticipantBtn,
-            #backBtn {
-                position: static;
-                width: 100%;
-                margin-top: 10px;
-            }
-
-            #backBtn {
-                right: auto;
-            }
+        @media (max-width: 800px) {
+            .top-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Conteúdo Principal -->
     <div id="app-content">
 
-        <!-- ===== TELA SETUP ===== -->
+        <!-- TELA DE SETUP (ESTRUTURA ORIGINAL PRESERVADA) -->
         <div id="setup">
-            <h1>
-                V6 WODPulse - Configurar Aula
-                <button onclick="logout()" class="btn-logout">Sair</button>
-            </h1>
+            <header class="setup-header-compact">
+                <h1>V6 WODPulse - Configurar Aula</h1>
+                <div style="display: flex; gap: 8px;">
+                    <button class="reset-btn" style="background:#333 !important; width: auto; padding: 5px 15px;" onclick="window.location.href='/tv'">📺 TV</button>
+                    <button id="reportsBtn" class="reset-btn" style="background:#FF5722 !important; width: auto; padding: 5px 15px;">📅 Relatórios</button>
+                </div>
+            </header>
             
-            <!-- Formulário de Adicionar Aluno -->
-            <div id="addParticipant">
-                <input type="text" id="nameInput" placeholder="Nome do Aluno">
-                <input type="number" id="ageInput" placeholder="Idade">
-                <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
-                <input type="number" id="heightInput" placeholder="Altura (cm)">
-                <select id="genderInput">
-                    <option value="">Gênero</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                    <option value="O">Outro</option>
-                </select>
-                <input type="number" id="restingHRInput" placeholder="FC Repouso (opcional)">
-                <input type="email" id="emailInput" placeholder="Email (opcional)">
-                <label>
-                    <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka
-                </label>
-                <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
+            <div class="top-grid">
+                <div class="card-compact">
+                    <div class="card-title">🚀 Comandos</div>
+                    <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <button class="reset-btn" onclick="resetAllUserCounters()">Reset FC</button>
+                        <button class="reset-btn" onclick="deleteAllSessions()">Limpar Tudo</button>
+                    </div>
+                </div>
+
+                <div class="card-compact">
+                    <div class="card-title">👤 Novo Aluno</div>
+                    <div id="addParticipant">
+                        <input type="text" id="nameInput" placeholder="Nome do Aluno">
+                        <input type="number" id="ageInput" placeholder="Idade">
+                        <select id="genderInput">
+                            <option value="">Gênero</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                            <option value="O">Outro</option>
+                        </select>
+                        <input type="number" id="weightInput" step="0.1" placeholder="Peso (kg)">
+                        <input type="number" id="heightInput" placeholder="Altura (cm)">
+                        <input type="email" id="emailInput" placeholder="Email (opcional)">
+                        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #888; grid-column: span 3;">
+                            <input type="checkbox" id="useTanakaInput"> Tanaka?
+                        </label>
+                        <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Lista de Alunos -->
+            <!-- O SCRIPT.JS VAI APAGAR O CONTEÚDO DISSO AQUI E CRIAR A TABELA -->
             <div id="participantListContainer">
                 <h2>Alunos Cadastrados</h2>
-                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
-                <ul id="participantList"></ul>
+                <p>Carregando alunos...</p>
+                <!-- O script.js injeta a tabela aqui -->
             </div>
-
-            <!-- Última Aula -->
-            <div id="last-class-summary" class="hidden">
-                <h2>Última Aula Finalizada</h2>
-                <div id="summary-content"></div>
-            </div>
-
-            <!-- Check-ins -->
-            <div id="checkins-section">
-                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
-                <p>Alunos com check-in hoje aparecerão aqui.</p>
-                <ul id="checkinsList">
-                    <li>(Integração pendente)</li>
-                </ul>
-            </div>
-
-            <!-- Botão Iniciar Aula -->
-            <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
         </div>
 
-        <!-- ===== TELA DASHBOARD ===== -->
+        <!-- TELA DE DASHBOARD (ESTRUTURA ORIGINAL PRESERVADA) -->
         <div id="dashboard" class="hidden">
-            <button id="toggleCompactBtn" title="Alternar modo compacto">↕</button>
-
             <div id="main-container">
                 <div id="monitor-panel">
-                    <!-- Header -->
-                    <div id="header">
-                        <img src="logo-v6.png" alt="V6 CrossFit" id="logo">
-                        
-                        <div class="header-info">
-                            <div id="current-class-name">Aula: --</div>
-                            <div id="daily-leader">Campeão do Dia: -- (0 PONTOS)</div>
-                            <div id="daily-calories-leader">Mais calorias hoje: -- (0 kcal)</div>
-                        </div>
-                        
-                        <div id="timer">00:00</div>
-                        
-                        <div id="leaderboard-top">Líder Aula: -- (0 PONTOS BPM)</div>
-
-                        <button id="reconnectDevicesBtn" class="hidden">🔄 Reconectar</button>
-                        <button id="authorizeReconnectBtn" class="hidden">Autorizar</button>
-                        <button id="reportsBtn">📅 Relatórios</button>
+                    <div id="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #1a1a1a;">
+                        <img src="logo-v6.png" alt="V6" style="height: 40px;">
+                        <div id="timer" style="font-size: 3rem; font-weight: 900; color: #FF5722;">00:00</div>
+                        <button id="backBtn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">🏁 Finalizar</button>
                     </div>
-
-                    <!-- Weekly Rankings -->
-                    <div id="weekly-rankings">
-                        <div class="ranking-block pontos">
-                            <h3>🔥 TOP 5 PONTOS BPM (Semana)</h3>
-                            <div id="queima-ranking-top5" class="ranking-list"></div>
+                    
+                    <div id="monitor-content" style="padding: 20px;">
+                        <div id="current-class-name" style="color: #FF9800; font-weight: bold; margin-bottom: 10px;">Aula: --</div>
+                        
+                        <div id="weekly-rankings" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
+                                <h3 style="color: #FF5722; font-size: 0.9rem; margin-top: 0;">🔥 TOP 5 PONTOS</h3>
+                                <div id="queima-ranking-top5"></div>
+                            </div>
+                            <div style="background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #333;">
+                                <h3 style="color: #FF9800; font-size: 0.9rem; margin-top: 0;">⚡ TOP 5 CALORIAS</h3>
+                                <div id="calorias-ranking-top5"></div>
+                            </div>
                         </div>
 
-                        <div class="ranking-block calorias">
-                            <h3>🔥 TOP 5 CALORIAS (Semana)</h3>
-                            <div id="calorias-ranking-top5" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-block vo2ZoneActive">
-                            <h3>🔥 TOP 5 VO2_ATIVO (Semana)</h3>
-                            <div id="vo2ZoneActive" class="ranking-list"></div>
-                        </div>
-
-                        <div class="ranking-actions">
-                            <button id="resetWeeklyBtn">🔄 Resetar Semana</button>
-                            <button id="fullRankingBtn">📊 Ranking Completo</button>
-                            <button id="exportPdfBtn">📄 Exportar PDF</button>
+                        <div id="participants" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                            <!-- Tiles de monitoramento -->
                         </div>
                     </div>
-
-                    <!-- Participants Grid -->
-                    <div id="participants"></div>
                 </div>
             </div>
             
-            <!-- Botões Flutuantes -->
-            <button id="addNewParticipantBtn" onclick="addParticipantDuringClass()">+ Aluno</button>
-            <button id="backBtn">🏁 Finalizar</button>
-        </div>
-
-        <!-- Modal Ranking Completo -->
-        <div id="full-ranking-modal">
-            <div>
-                <span onclick="document.getElementById('full-ranking-modal').classList.remove('show')">×</span>
-                <h2>Ranking Completo da Semana</h2>
-                <div id="full-ranking-content"></div>
+            <!-- Elementos invisíveis necessários para o script.js não dar erro -->
+            <div style="display:none;">
+                <div id="daily-leader"></div>
+                <div id="daily-calories-leader"></div>
+                <div id="leaderboard-top"></div>
+                <button id="fullRankingBtn"></button>
+                <button id="exportPdfBtn"></button>
+                <button id="resetWeeklyBtn"></button>
+                <button id="reconnectDevicesBtn"></button>
+                <button id="authorizeReconnectBtn"></button>
             </div>
         </div>
 
     </div>
 
-    <!-- Scripts -->
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de Autenticação e Inicialização -->
     <script>
-        // Variáveis globais necessárias
-        let authToken = null;
-        let currentBox = null;
-
-        function showLoginScreen() {
-            console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
-        }
-
-        function showAppContent() {
-            console.log('[LOGIN] Mostrando conteúdo principal');
-            document.getElementById('app-content')?.classList.remove('hidden');
-        }
-
-        function logout() {
-            console.log('[LOGOUT] Limpando sessão');
-            localStorage.removeItem('wodpulse_token');
-            localStorage.removeItem('wodpulse_box');
-            authToken = null;
-            currentBox = null;
-            location.reload();
-        }
-
-        async function loadParticipantsFromBackend() {
-            if (!authToken) {
-                console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
-            }
-
-            console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/participants`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': authToken ? `Bearer ${authToken}` : '',
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                console.log('[LOAD] Status:', response.status);
-
-                if (!response.ok) {
-                    console.warn('[LOAD] Falha na requisição. Status:', response.status);
-                    return;
+        // Forçar o carregamento inicial
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (typeof loadParticipantsFromBackend === 'function') {
+                    loadParticipantsFromBackend();
                 }
-
-                const data = await response.json();
-                console.log('[LOAD] Dados:', data);
-
-                participants = data.participants?.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    age: p.age,
-                    weight: p.weight,
-                    heightCm: p.height_cm,
-                    gender: p.gender,
-                    restingHR: p.resting_hr,
-                    email: p.email,
-                    useTanaka: p.use_tanaka,
-                    maxHR: p.max_hr,
-                    historicalMaxHR: p.historical_max_hr,
-                    deviceId: p.device_id,
-                    deviceName: p.device_name,
-                    hr: 0,
-                    connected: false,
-                    lastUpdate: 0,
-                    lastZone: 'gray',
-                    queimaPoints: 0,
-                    trimpPoints: 0,
-                    lastSampleTime: null,
-                    calories: 0,
-                    minOrange: 0,
-                    minRed: 0,
-                    epocEstimated: 0,
-                    redStartTime: null,
-                    vo2ZoneActive: false,
-                    vo2GraceStart: null,
-                    vo2StartTime: null,
-                    vo2TimeSeconds: 0,
-                    vo2LastUpdate: 0
-                })) || [];
-
-                console.log('[LOAD] Alunos carregados:', participants.length);
-                if (typeof renderParticipantList === 'function') {
-                    renderParticipantList();
-                }
-            } catch (err) {
-                console.error('[LOAD] Erro:', err.message);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('[INIT] DOM carregado – pulando login (modo dev)');
-
-            const savedToken = localStorage.getItem('wodpulse_token');
-            if (savedToken) {
-                authToken = savedToken;
-                currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
-            }
-
-            showAppContent();
-            loadParticipantsFromBackend();
+            }, 1000);
         });
+
+        async function resetAllUserCounters() {
+            if (!confirm("Zerar contadores?")) return;
+            if (typeof participants !== 'undefined') {
+                participants.forEach(p => { p.todayMaxHR = 0; p.calories = 0; p.queimaPoints = 0; });
+                if (typeof renderParticipantList === 'function') renderParticipantList();
+                alert("Resetado!");
+            }
+        }
+
+        async function deleteAllSessions() {
+            if (!confirm("Apagar histórico?")) return;
+            const baseUrl = 'https://wodpulse-back.onrender.com';
+            try {
+                await fetch(`${baseUrl}/api/sessions/delete-all`, { method: 'DELETE' });
+                alert("Apagado!");
+            } catch (err) { alert(err.message); }
+        }
     </script>
 </body>
 </html>
