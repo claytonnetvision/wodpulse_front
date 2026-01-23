@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 WODPulse - Painel & Cadastro</title>
+    <title>V6 WODPulse - Painel Admin & Cadastro</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="logo-v6.png" type="image/png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
 
     <style>
@@ -27,11 +26,13 @@
             --radius: 8px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
         }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Roboto', sans-serif;
             background: var(--dark-bg);
@@ -39,14 +40,17 @@
             min-height: 100vh;
             line-height: 1.6;
         }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
+
         .hidden {
             display: none !important;
         }
+
         /* HEADER */
         .header {
             display: flex;
@@ -56,15 +60,18 @@
             margin-bottom: 30px;
             border-bottom: 1px solid var(--dark-border);
         }
+
         .logo-section {
             display: flex;
             align-items: center;
             gap: 15px;
         }
+
         .logo-img {
             height: 50px;
             width: auto;
         }
+
         .logo-text h1 {
             font-size: 24px;
             font-weight: 900;
@@ -74,10 +81,12 @@
             color: transparent;
             margin-bottom: 4px;
         }
+
         .logo-text p {
             color: var(--muted-text);
             font-size: 14px;
         }
+
         /* CARD STYLES */
         .card {
             background: var(--dark-card);
@@ -87,6 +96,7 @@
             border: 1px solid var(--dark-border);
             margin-bottom: 24px;
         }
+
         .card-title {
             font-size: 20px;
             font-weight: 700;
@@ -96,9 +106,11 @@
             gap: 10px;
             color: var(--light-text);
         }
+
         .card-title i {
             color: var(--primary);
         }
+
         /* BUTTONS */
         .btn {
             padding: 12px 24px;
@@ -113,51 +125,64 @@
             gap: 8px;
             transition: all 0.2s ease;
         }
+
         .btn-primary {
             background: var(--primary);
             color: white;
         }
+
         .btn-primary:hover {
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
+
         .btn-secondary {
             background: var(--secondary);
             color: white;
         }
+
         .btn-secondary:hover {
             background: #6d28d9;
         }
+
         .btn-danger {
             background: var(--danger);
             color: white;
         }
+
         .btn-danger:hover {
             background: var(--danger-dark);
         }
+
         .btn-success {
             background: var(--success);
             color: white;
         }
+
         .btn-warning {
             background: var(--warning);
             color: white;
         }
+
         .btn-outline {
             background: transparent;
             color: var(--primary);
             border: 1px solid var(--primary);
         }
+
         .btn-outline:hover {
             background: rgba(37, 99, 235, 0.1);
         }
+
         .btn-sm {
             padding: 6px 12px;
             font-size: 14px;
         }
+
         .btn-block {
             width: 100%;
         }
+
         /* FORM STYLES */
         .form-grid {
             display: grid;
@@ -165,16 +190,19 @@
             gap: 16px;
             margin-bottom: 24px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
         }
+
         .form-group label {
             margin-bottom: 6px;
             font-weight: 500;
             color: var(--muted-text);
             font-size: 14px;
         }
+
         .form-control {
             padding: 12px;
             background: rgba(30, 41, 59, 0.7);
@@ -184,21 +212,25 @@
             font-size: 15px;
             transition: border-color 0.2s;
         }
+
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
+
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-top: 8px;
         }
+
         .checkbox-group input {
             width: 18px;
             height: 18px;
         }
+
         /* TABLE STYLES */
         .table-container {
             overflow-x: auto;
@@ -206,11 +238,13 @@
             border: 1px solid var(--dark-border);
             background: var(--dark-card);
         }
+
         .table {
             width: 100%;
             border-collapse: collapse;
             min-width: 1000px;
         }
+
         .table th {
             background: rgba(30, 41, 59, 0.8);
             padding: 16px;
@@ -222,17 +256,21 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .table td {
             padding: 14px 16px;
             border-bottom: 1px solid var(--dark-border);
             vertical-align: middle;
         }
+
         .table tbody tr:hover {
             background: rgba(30, 41, 59, 0.5);
         }
+
         .table tbody tr:last-child td {
             border-bottom: none;
         }
+
         /* STATS CARDS */
         .stats-grid {
             display: grid;
@@ -240,6 +278,7 @@
             gap: 20px;
             margin-bottom: 30px;
         }
+
         .stat-card {
             background: var(--dark-card);
             border-radius: var(--radius);
@@ -248,20 +287,25 @@
             flex-direction: column;
             border-left: 4px solid var(--primary);
         }
+
         .stat-card.warning {
             border-left-color: var(--warning);
         }
+
         .stat-card.danger {
             border-left-color: var(--danger);
         }
+
         .stat-card.success {
             border-left-color: var(--success);
         }
+
         .stat-value {
             font-size: 32px;
             font-weight: 900;
             margin: 10px 0;
         }
+
         .stat-label {
             color: var(--muted-text);
             font-size: 14px;
@@ -269,6 +313,7 @@
             align-items: center;
             gap: 6px;
         }
+
         /* MODAL */
         .modal {
             display: none;
@@ -283,6 +328,7 @@
             justify-content: center;
             padding: 20px;
         }
+
         .modal-content {
             background: var(--dark-card);
             border-radius: var(--radius);
@@ -294,16 +340,19 @@
             position: relative;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
         }
+
         .modal-title {
             font-size: 24px;
             font-weight: 700;
         }
+
         .close-btn {
             background: none;
             border: none;
@@ -317,17 +366,19 @@
             justify-content: center;
             border-radius: 50%;
         }
+
         .close-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             color: white;
         }
+
         /* TABS */
         .tabs {
             display: flex;
             border-bottom: 1px solid var(--dark-border);
             margin-bottom: 24px;
-            flex-wrap: wrap;
         }
+
         .tab-btn {
             padding: 14px 24px;
             background: none;
@@ -340,13 +391,12 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex: 1 1 auto;
-            text-align: center;
-            justify-content: center;
         }
+
         .tab-btn.active {
             color: var(--primary);
         }
+
         .tab-btn.active::after {
             content: '';
             position: absolute;
@@ -357,12 +407,15 @@
             background: var(--primary);
             border-radius: 3px 3px 0 0;
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
+
         /* ALUNOS LIST */
         .alunos-list {
             max-height: 400px;
@@ -371,6 +424,7 @@
             border-radius: var(--radius);
             background: rgba(30, 41, 59, 0.5);
         }
+
         .aluno-item {
             padding: 16px;
             border-bottom: 1px solid var(--dark-border);
@@ -378,28 +432,34 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .aluno-item:last-child {
             border-bottom: none;
         }
+
         .aluno-info h4 {
             font-weight: 600;
             margin-bottom: 4px;
         }
+
         .aluno-details {
             display: flex;
             gap: 12px;
             font-size: 14px;
             color: var(--muted-text);
         }
+
         .aluno-actions {
             display: flex;
             gap: 8px;
         }
+
         /* SEARCH */
         .search-box {
             position: relative;
             margin-bottom: 20px;
         }
+
         .search-box input {
             width: 100%;
             padding: 12px 16px 12px 44px;
@@ -408,6 +468,7 @@
             border-radius: var(--radius);
             color: var(--light-text);
         }
+
         .search-box i {
             position: absolute;
             left: 16px;
@@ -415,6 +476,7 @@
             transform: translateY(-50%);
             color: var(--muted-text);
         }
+
         /* BADGES */
         .badge {
             display: inline-block;
@@ -424,18 +486,22 @@
             font-weight: 600;
             text-transform: uppercase;
         }
+
         .badge-primary {
             background: rgba(37, 99, 235, 0.2);
             color: #60a5fa;
         }
+
         .badge-success {
             background: rgba(5, 150, 105, 0.2);
             color: #34d399;
         }
+
         .badge-warning {
             background: rgba(217, 119, 6, 0.2);
             color: #fbbf24;
         }
+
         /* ACTION BAR */
         .action-bar {
             display: flex;
@@ -445,22 +511,27 @@
             flex-wrap: wrap;
             gap: 15px;
         }
+
         /* RESPONSIVE */
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
+            
             .stats-grid {
                 grid-template-columns: 1fr;
             }
+            
             .header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 15px;
             }
+            
             .tabs {
                 flex-wrap: wrap;
             }
+            
             .table-container {
                 border-radius: 0;
                 border-left: none;
@@ -491,7 +562,7 @@
             </div>
         </div>
 
-        <!-- MAIN CONTENT -->
+        <!-- MAIN CONTENT (SETUP) -->
         <div id="main-content">
             <!-- STATS -->
             <div class="stats-grid">
@@ -541,7 +612,7 @@
                 </button>
             </div>
 
-            <!-- TAB CADASTRO -->
+            <!-- TAB 1: CADASTRO -->
             <div id="cadastro" class="tab-content active">
                 <div class="card">
                     <h2 class="card-title">
@@ -550,24 +621,28 @@
                     <p style="color: var(--muted-text); margin-bottom: 20px;">
                         Preencha os dados do aluno. Campos com * são obrigatórios.
                     </p>
-
+                    
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="nameInput"><i class="fas fa-user"></i> Nome Completo *</label>
                             <input type="text" id="nameInput" class="form-control" placeholder="Ex: João Silva" required>
                         </div>
+                        
                         <div class="form-group">
                             <label for="ageInput"><i class="fas fa-birthday-cake"></i> Idade</label>
                             <input type="number" id="ageInput" class="form-control" placeholder="Ex: 30" min="10" max="100">
                         </div>
+                        
                         <div class="form-group">
                             <label for="weightInput"><i class="fas fa-weight"></i> Peso (kg)</label>
                             <input type="number" step="0.1" id="weightInput" class="form-control" placeholder="Ex: 75.5" min="30" max="200">
                         </div>
+                        
                         <div class="form-group">
                             <label for="heightInput"><i class="fas fa-ruler-vertical"></i> Altura (cm)</label>
                             <input type="number" id="heightInput" class="form-control" placeholder="Ex: 175" min="100" max="250">
                         </div>
+                        
                         <div class="form-group">
                             <label for="genderInput"><i class="fas fa-venus-mars"></i> Gênero</label>
                             <select id="genderInput" class="form-control">
@@ -577,41 +652,44 @@
                                 <option value="O">Outro</option>
                             </select>
                         </div>
+                        
                         <div class="form-group">
                             <label for="emailInput"><i class="fas fa-envelope"></i> Email</label>
                             <input type="email" id="emailInput" class="form-control" placeholder="exemplo@email.com">
                         </div>
+                        
                         <div class="form-group">
                             <label for="restingHRInput"><i class="fas fa-heartbeat"></i> FC Repouso (bpm)</label>
                             <input type="number" id="restingHRInput" class="form-control" placeholder="Ex: 65" min="40" max="120">
                         </div>
+                        
                         <div class="form-group">
                             <label for="maxHRInput"><i class="fas fa-heart"></i> FC Máxima (bpm)</label>
                             <input type="number" id="maxHRInput" class="form-control" placeholder="Calculado automaticamente" min="120" max="220">
                         </div>
                     </div>
-
+                    
                     <div class="checkbox-group">
                         <input type="checkbox" id="useTanakaInput">
                         <label for="useTanakaInput" style="color: var(--muted-text); margin: 0;">
                             Usar fórmula Tanaka (mais precisa para cálculo de FC máxima)
                         </label>
                     </div>
-
+                    
                     <div class="checkbox-group">
                         <input type="checkbox" id="autoCalculateHR">
                         <label for="autoCalculateHR" style="color: var(--muted-text); margin: 0;">
                             Calcular FC máxima automaticamente (208 - 0.7 × idade)
                         </label>
                     </div>
-
+                    
                     <button class="btn btn-success btn-block" onclick="addNewParticipantFromSetup()" style="margin-top: 24px;">
                         <i class="fas fa-save"></i> Salvar Aluno
                     </button>
                 </div>
             </div>
 
-            <!-- TAB LISTA ALUNOS -->
+            <!-- TAB 2: LISTA DE ALUNOS -->
             <div id="lista" class="tab-content">
                 <div class="card">
                     <div class="action-bar">
@@ -623,7 +701,7 @@
                             <i class="fas fa-download"></i> Exportar CSV
                         </button>
                     </div>
-
+                    
                     <div class="table-container">
                         <table class="table">
                             <thead>
@@ -638,17 +716,19 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="alunosTableBody"></tbody>
+                            <tbody id="alunosTableBody">
+                                <!-- Preenchido por JavaScript -->
+                            </tbody>
                         </table>
                     </div>
-
+                    
                     <div style="text-align: center; margin-top: 20px; color: var(--muted-text);">
                         <i class="fas fa-info-circle"></i> Mostrando <span id="alunosCount">0</span> alunos cadastrados
                     </div>
                 </div>
             </div>
 
-            <!-- TAB AULAS -->
+            <!-- TAB 3: AULAS -->
             <div id="aulas" class="tab-content">
                 <div class="card">
                     <div class="action-bar">
@@ -662,12 +742,14 @@
                             </button>
                         </div>
                     </div>
-
+                    
                     <div class="table-container">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th width="50"><input type="checkbox" id="selectAllAulas" onchange="selecionarTodasAulas(this.checked)"></th>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAllAulas" onchange="selecionarTodasAulas(this.checked)">
+                                    </th>
                                     <th>ID</th>
                                     <th>Aula</th>
                                     <th>Data/Hora</th>
@@ -677,13 +759,15 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="aulasTableBody"></tbody>
+                            <tbody id="aulasTableBody">
+                                <!-- Preenchido por JavaScript -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB CHECK-INS -->
+            <!-- TAB 4: CHECK-INS -->
             <div id="checkin" class="tab-content">
                 <div class="card">
                     <h2 class="card-title">
@@ -692,6 +776,7 @@
                     <p style="color: var(--muted-text); margin-bottom: 20px;">
                         Alunos que fizeram check-in na academia hoje (integração Tecnofit - em desenvolvimento)
                     </p>
+                    
                     <div id="checkinsList">
                         <div style="text-align: center; padding: 40px; color: var(--muted-text);">
                             <i class="fas fa-tools fa-3x" style="margin-bottom: 15px;"></i>
@@ -702,7 +787,7 @@
                 </div>
             </div>
 
-            <!-- Botão Iniciar Aula -->
+            <!-- START BUTTON -->
             <div style="text-align: center; margin-top: 40px;">
                 <button class="btn btn-primary" id="startScanBtn" style="padding: 18px 40px; font-size: 18px;">
                     <i class="fas fa-play-circle"></i> Iniciar Nova Aula
@@ -713,7 +798,7 @@
             </div>
         </div>
 
-        <!-- PAINEL ADMIN (HIDDEN) -->
+        <!-- ADMIN PANEL (HIDDEN BY DEFAULT) -->
         <div id="admin-panel" class="hidden">
             <div class="header">
                 <div>
@@ -727,31 +812,45 @@
                 <div></div>
             </div>
 
+            <!-- ADMIN STATS -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label"><i class="fas fa-users"></i> Total Alunos</div>
+                    <div class="stat-label">
+                        <i class="fas fa-users"></i> Total Alunos
+                    </div>
                     <div class="stat-value" id="adminTotalAlunos">0</div>
                 </div>
                 <div class="stat-card warning">
-                    <div class="stat-label"><i class="fas fa-dumbbell"></i> Total Aulas</div>
+                    <div class="stat-label">
+                        <i class="fas fa-dumbbell"></i> Total Aulas
+                    </div>
                     <div class="stat-value" id="adminTotalAulas">0</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-label"><i class="fas fa-database"></i> Tamanho DB</div>
+                    <div class="stat-label">
+                        <i class="fas fa-database"></i> Tamanho DB
+                    </div>
                     <div class="stat-value" id="dbSize">0 MB</div>
                 </div>
                 <div class="stat-card danger">
-                    <div class="stat-label"><i class="fas fa-calendar"></i> Última Aula</div>
+                    <div class="stat-label">
+                        <i class="fas fa-calendar"></i> Última Aula
+                    </div>
                     <div class="stat-value" id="adminUltimaAula">--</div>
                 </div>
             </div>
 
+            <!-- ADMIN TABLES -->
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-user-edit"></i> Gerenciamento de Alunos</h2>
+                <h2 class="card-title">
+                    <i class="fas fa-user-edit"></i> Gerenciamento de Alunos
+                </h2>
+                
                 <div class="search-box" style="margin-bottom: 20px;">
                     <i class="fas fa-search"></i>
                     <input type="text" id="buscaAluno" placeholder="Buscar aluno por nome, email ou dispositivo...">
                 </div>
+                
                 <div class="table-container">
                     <table class="table" id="tabelaAlunos">
                         <thead>
@@ -768,13 +867,18 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <!-- Preenchido por JavaScript -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-history"></i> Gerenciamento de Aulas</h2>
+                <h2 class="card-title">
+                    <i class="fas fa-history"></i> Gerenciamento de Aulas
+                </h2>
+                
                 <div class="action-bar">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
@@ -784,11 +888,14 @@
                         <i class="fas fa-trash"></i> Excluir Selecionadas
                     </button>
                 </div>
+                
                 <div class="table-container">
                     <table class="table" id="tabelaAulas">
                         <thead>
                             <tr>
-                                <th width="50"><input type="checkbox" id="adminSelectAllAulas" onchange="selecionarTodasAulas(this.checked, true)"></th>
+                                <th width="50">
+                                    <input type="checkbox" id="adminSelectAllAulas" onchange="selecionarTodasAulas(this.checked, true)">
+                                </th>
                                 <th>ID</th>
                                 <th>Aula</th>
                                 <th>Início</th>
@@ -798,34 +905,48 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <!-- Preenchido por JavaScript -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- ADMIN TOOLS -->
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-tools"></i> Ferramentas Administrativas</h2>
+                <h2 class="card-title">
+                    <i class="fas fa-tools"></i> Ferramentas Administrativas
+                </h2>
+                
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                     <div>
                         <h3 style="margin-bottom: 15px; color: var(--light-text);">Limpeza de Dados</h3>
                         <button class="btn btn-danger btn-block" onclick="limparDadosAntigos()">
                             <i class="fas fa-broom"></i> Limpar Dados Antigos
                         </button>
-                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">Remove aulas com mais de 90 dias</p>
+                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">
+                            Remove aulas com mais de 90 dias
+                        </p>
                     </div>
+                    
                     <div>
                         <h3 style="margin-bottom: 15px; color: var(--light-text);">Exportação</h3>
                         <button class="btn btn-outline btn-block" onclick="exportarBackup()">
                             <i class="fas fa-file-export"></i> Exportar Backup
                         </button>
-                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">Exporta todos os dados como JSON</p>
+                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">
+                            Exporta todos os dados como JSON
+                        </p>
                     </div>
+                    
                     <div>
                         <h3 style="margin-bottom: 15px; color: var(--light-text);">Sistema</h3>
                         <button class="btn btn-warning btn-block" onclick="recalcularMetricas()">
                             <i class="fas fa-calculator"></i> Recalcular Métricas
                         </button>
-                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">Recalcula FC máxima de todos alunos</p>
+                        <p style="color: var(--muted-text); font-size: 14px; margin-top: 8px;">
+                            Recalcula FC máxima de todos alunos
+                        </p>
                     </div>
                 </div>
             </div>
@@ -836,7 +957,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 class="modal-title">Detalhes da Aula</h2>
-                    <button class="close-btn" onclick="document.getElementById('modalDetalhes').style.display='none'">×</button>
+                    <button class="close-btn" onclick="document.getElementById('modalDetalhes').style.display='none'">&times;</button>
                 </div>
                 <div id="detalhesConteudo"></div>
             </div>
@@ -846,10 +967,11 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 class="modal-title">Editar Aluno</h2>
-                    <button class="close-btn" onclick="document.getElementById('modalEditarAluno').style.display='none'">×</button>
+                    <button class="close-btn" onclick="document.getElementById('modalEditarAluno').style.display='none'">&times;</button>
                 </div>
                 <form id="formEditarAluno">
                     <input type="hidden" id="editId">
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                         <div class="form-group">
                             <label>Nome:</label>
@@ -888,12 +1010,14 @@
                             <input type="number" id="editRestingHR" class="form-control">
                         </div>
                     </div>
+                    
                     <div class="checkbox-group" style="margin-bottom: 20px;">
                         <input type="checkbox" id="editUseTanaka">
                         <label for="editUseTanaka" style="color: var(--muted-text); margin: 0;">
                             Usar fórmula Tanaka (mais precisa)
                         </label>
                     </div>
+                    
                     <div style="display: flex; gap: 10px;">
                         <button type="button" class="btn btn-success" onclick="salvarEdicaoAluno()" style="flex: 1;">
                             <i class="fas fa-save"></i> Salvar Alterações
@@ -908,18 +1032,18 @@
     </div>
 
     <script>
-        // Configuração da API
+        // API Configuration
         const API = 'https://wodpulse-back.onrender.com';
         let participants = [];
-        let sessions = [];
 
         // DOM Ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Carrega dados iniciais
             carregarAlunos();
             carregarAulas();
             atualizarStats();
-
-            // Listeners
+            
+            // Configura listeners
             document.getElementById('autoCalculateHR').addEventListener('change', function() {
                 const age = document.getElementById('ageInput').value;
                 if (this.checked && age) {
@@ -927,14 +1051,15 @@
                     document.getElementById('maxHRInput').value = maxHR;
                 }
             });
-
+            
             document.getElementById('ageInput').addEventListener('input', function() {
                 if (document.getElementById('autoCalculateHR').checked) {
                     const maxHR = Math.round(208 - (0.7 * this.value));
                     document.getElementById('maxHRInput').value = maxHR;
                 }
             });
-
+            
+            // Busca em tempo real
             document.getElementById('searchAluno')?.addEventListener('input', buscarAlunos);
             document.getElementById('buscaAluno')?.addEventListener('input', buscarAlunosAdmin);
             document.getElementById('searchAula')?.addEventListener('input', buscarAulas);
@@ -943,26 +1068,39 @@
 
         // Tab Management
         function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            // Esconde todas as tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostra a tab selecionada
             document.getElementById(tabName).classList.add('active');
             event.currentTarget.classList.add('active');
         }
 
-        // Toggle Painel Admin
+        // Admin Panel Toggle
         function toggleAdminPanel() {
             const adminPanel = document.getElementById('admin-panel');
             const mainContent = document.getElementById('main-content');
+            const adminBtn = document.getElementById('adminToggleBtn');
+            
             adminPanel.classList.toggle('hidden');
             mainContent.classList.toggle('hidden');
+            
             if (!adminPanel.classList.contains('hidden')) {
+                adminBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Voltar ao Principal';
                 carregarAlunosAdmin();
                 carregarAulasAdmin();
                 atualizarAdminStats();
+            } else {
+                adminBtn.innerHTML = '<i class="fas fa-cogs"></i> Painel Admin';
             }
         }
 
-        // Carregar Alunos (Principal)
+        // Load Functions
         async function carregarAlunos() {
             try {
                 const res = await fetch(`${API}/api/participants`);
@@ -979,6 +1117,7 @@
         function atualizarListaAlunos() {
             const tbody = document.getElementById('alunosTableBody');
             if (!tbody) return;
+            
             tbody.innerHTML = '';
             participants.forEach(aluno => {
                 const tr = document.createElement('tr');
@@ -994,30 +1133,30 @@
                         <button class="btn btn-sm btn-outline" onclick="editarAlunoModal(${aluno.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="excluirAluno(${aluno.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            
             document.getElementById('alunosCount').textContent = participants.length;
         }
 
         function buscarAlunos() {
             const termo = document.getElementById('searchAluno').value.toLowerCase();
-            document.querySelectorAll('#alunosTableBody tr').forEach(linha => {
-                linha.style.display = linha.textContent.toLowerCase().includes(termo) ? '' : 'none';
+            const linhas = document.querySelectorAll('#alunosTableBody tr');
+            
+            linhas.forEach(linha => {
+                const texto = linha.textContent.toLowerCase();
+                linha.style.display = texto.includes(termo) ? '' : 'none';
             });
         }
 
-        // Carregar Aulas (Principal)
         async function carregarAulas() {
             try {
                 const res = await fetch(`${API}/api/sessions`);
                 if (!res.ok) throw new Error('Falha ao carregar aulas');
                 const data = await res.json();
-                sessions = data.sessions || [];
+                window.sessions = data.sessions || [];
                 atualizarListaAulas();
                 atualizarStats();
             } catch (err) {
@@ -1027,12 +1166,14 @@
 
         function atualizarListaAulas() {
             const tbody = document.getElementById('aulasTableBody');
-            if (!tbody) return;
+            if (!tbody || !window.sessions) return;
+            
             tbody.innerHTML = '';
-            sessions.forEach(aula => {
+            window.sessions.forEach(aula => {
                 const inicio = new Date(aula.date_start);
                 const fim = new Date(aula.date_end);
                 const duracao = aula.duration_minutes || Math.round((fim - inicio) / 60000);
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="select-aula" data-id="${aula.id}" onchange="atualizarBotaoBulk()"></td>
@@ -1053,34 +1194,43 @@
                 `;
                 tbody.appendChild(tr);
             });
+            
             atualizarBotaoBulk();
         }
 
         function buscarAulas() {
             const termo = document.getElementById('searchAula').value.toLowerCase();
-            document.querySelectorAll('#aulasTableBody tr').forEach(linha => {
-                linha.style.display = linha.textContent.toLowerCase().includes(termo) ? '' : 'none';
+            const linhas = document.querySelectorAll('#aulasTableBody tr');
+            
+            linhas.forEach(linha => {
+                const texto = linha.textContent.toLowerCase();
+                linha.style.display = texto.includes(termo) ? '' : 'none';
             });
         }
 
-        // Atualizar Stats
+        // Stats Functions
         function atualizarStats() {
             document.getElementById('totalAlunosMain').textContent = participants.length;
-            document.getElementById('totalAulasMain').textContent = sessions.length;
-            if (sessions.length > 0) {
-                const ultima = sessions[0];
+            document.getElementById('totalAulasMain').textContent = window.sessions ? window.sessions.length : 0;
+            
+            if (window.sessions && window.sessions.length > 0) {
+                const ultima = window.sessions[0];
                 const dataUltima = new Date(ultima.date_start);
                 const agora = new Date();
                 const diffHoras = Math.round((agora - dataUltima) / (1000 * 60 * 60));
+                
                 document.getElementById('ultimaAulaMain').textContent = `${diffHoras}h atrás`;
             }
         }
 
-        // Cadastrar Aluno
+        // Add Participant
         async function addNewParticipantFromSetup() {
             const name = document.getElementById('nameInput').value.trim();
-            if (!name) return alert('Por favor, insira o nome do aluno.');
-
+            if (!name) {
+                alert('Por favor, insira o nome do aluno.');
+                return;
+            }
+            
             const age = document.getElementById('ageInput').value;
             const weight = document.getElementById('weightInput').value;
             const height = document.getElementById('heightInput').value;
@@ -1089,11 +1239,16 @@
             const restingHR = document.getElementById('restingHRInput').value;
             let maxHR = document.getElementById('maxHRInput').value;
             const useTanaka = document.getElementById('useTanakaInput').checked;
-
+            
+            // Calcula FC máxima se não fornecida
             if (!maxHR && age) {
-                maxHR = Math.round(useTanaka ? 208 - (0.7 * age) : 220 - age);
+                if (useTanaka) {
+                    maxHR = Math.round(208 - (0.7 * age));
+                } else {
+                    maxHR = Math.round(220 - age);
+                }
             }
-
+            
             const alunoData = {
                 name,
                 age: age ? parseInt(age) : null,
@@ -1105,21 +1260,34 @@
                 max_hr: maxHR ? parseInt(maxHR) : null,
                 use_tanaka: useTanaka
             };
-
+            
             try {
                 const res = await fetch(`${API}/api/participants`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(alunoData)
                 });
+                
                 if (res.ok) {
                     alert('Aluno cadastrado com sucesso!');
-                    limparFormularioCadastro();
+                    // Limpa o formulário
+                    document.getElementById('nameInput').value = '';
+                    document.getElementById('ageInput').value = '';
+                    document.getElementById('weightInput').value = '';
+                    document.getElementById('heightInput').value = '';
+                    document.getElementById('genderInput').value = '';
+                    document.getElementById('emailInput').value = '';
+                    document.getElementById('restingHRInput').value = '';
+                    document.getElementById('maxHRInput').value = '';
+                    document.getElementById('useTanakaInput').checked = false;
+                    
+                    // Recarrega a lista
                     carregarAlunos();
+                    // Vai para a lista de alunos
                     openTab('lista');
                 } else {
                     const error = await res.json();
-                    alert('Erro ao cadastrar: ' + (error.error || 'Erro desconhecido'));
+                    alert('Erro ao cadastrar aluno: ' + (error.error || 'Erro desconhecido'));
                 }
             } catch (err) {
                 alert('Erro de rede ao cadastrar aluno');
@@ -1127,37 +1295,31 @@
             }
         }
 
-        function limparFormularioCadastro() {
-            ['nameInput', 'ageInput', 'weightInput', 'heightInput', 'genderInput', 'emailInput', 'restingHRInput', 'maxHRInput'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            document.getElementById('useTanakaInput').checked = false;
-            document.getElementById('autoCalculateHR').checked = false;
-        }
-
-        // Painel Admin Functions
+        // Admin Functions
         async function carregarAlunosAdmin() {
             try {
                 const res = await fetch(`${API}/api/participants`);
-                if (!res.ok) throw new Error('Falha ao carregar');
+                if (!res.ok) throw new Error('Falha ao carregar alunos');
                 const data = await res.json();
                 const alunos = data.participants || [];
+                
                 const tbody = document.querySelector('#tabelaAlunos tbody');
                 tbody.innerHTML = '';
+                
                 alunos.forEach(aluno => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${aluno.id}</td>
                         <td>${aluno.name}</td>
                         <td>${aluno.age || '-'}</td>
-                        <td>${aluno.gender || '-'}</td>
+                        <td>${aluno.gender === 'M' ? 'M' : aluno.gender === 'F' ? 'F' : '-'}</td>
                         <td>${aluno.weight || '-'}</td>
                         <td>${aluno.height_cm || '-'}</td>
                         <td>${aluno.email || '-'}</td>
                         <td>${aluno.max_hr || '-'}</td>
                         <td>${aluno.device_name || aluno.device_id || '-'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline" onclick="editarAluno(${aluno.id}, '${aluno.name.replace(/'/g, "\\'")}', ${aluno.age || 'null'}, ${aluno.weight || 'null'}, ${aluno.height_cm || 'null'}, '${aluno.gender || ''}', '${aluno.email || ''}', ${aluno.max_hr || 'null'}, ${aluno.resting_hr || 'null'}, ${aluno.use_tanaka || false})">
+                            <button class="btn btn-sm" onclick="editarAluno(${aluno.id}, '${aluno.name.replace(/'/g, "\\'")}', ${aluno.age || 'null'}, ${aluno.weight || 'null'}, ${aluno.height_cm || 'null'}, '${aluno.gender || ''}', '${aluno.email || ''}', ${aluno.max_hr || 'null'}, ${aluno.resting_hr || 'null'}, ${aluno.use_tanaka || false})">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="excluirAluno(${aluno.id})">
@@ -1167,24 +1329,38 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                
                 document.getElementById('adminTotalAlunos').textContent = alunos.length;
             } catch (err) {
-                console.error(err);
+                console.error('Erro ao carregar alunos:', err);
             }
+        }
+
+        function buscarAlunosAdmin() {
+            const termo = document.getElementById('buscaAluno').value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabelaAlunos tbody tr');
+            
+            linhas.forEach(linha => {
+                const texto = linha.textContent.toLowerCase();
+                linha.style.display = texto.includes(termo) ? '' : 'none';
+            });
         }
 
         async function carregarAulasAdmin() {
             try {
                 const res = await fetch(`${API}/api/sessions`);
-                if (!res.ok) throw new Error('Falha ao carregar');
+                if (!res.ok) throw new Error('Falha ao carregar aulas');
                 const data = await res.json();
                 const aulas = data.sessions || [];
+                
                 const tbody = document.querySelector('#tabelaAulas tbody');
                 tbody.innerHTML = '';
+                
                 aulas.forEach(aula => {
                     const inicio = new Date(aula.date_start);
                     const fim = new Date(aula.date_end);
                     const duracao = aula.duration_minutes || Math.round((fim - inicio) / 60000);
+                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><input type="checkbox" class="select-aula-admin" data-id="${aula.id}" onchange="atualizarBotaoBulkAdmin()"></td>
@@ -1205,518 +1381,314 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                
                 document.getElementById('adminTotalAulas').textContent = aulas.length;
+                
+                if (aulas.length > 0) {
+                    const ultima = new Date(aulas[0].date_start);
+                    const agora = new Date();
+                    const diffDias = Math.floor((agora - ultima) / (1000 * 60 * 60 * 24));
+                    document.getElementById('adminUltimaAula').textContent = `${diffDias}d atrás`;
+                }
+                
                 atualizarBotaoBulkAdmin();
             } catch (err) {
-                console.error(err);
+                console.error('Erro ao carregar aulas:', err);
             }
         }
 
-        function atualizarBotaoBulkAdmin() {
-            const selecionados = document.querySelectorAll('.select-aula-admin:checked').length;
-            document.getElementById('adminBulkDeleteBtn').style.display = selecionados > 0 ? 'inline-flex' : 'none';
+        function buscarAulasAdmin() {
+            const termo = document.getElementById('buscaAula').value.toLowerCase();
+            const linhas = document.querySelectorAll('#tabelaAulas tbody tr');
+            
+            linhas.forEach(linha => {
+                const texto = linha.textContent.toLowerCase();
+                linha.style.display = texto.includes(termo) ? '' : 'none';
+            });
         }
 
-        // Funções de exclusão (já adaptadas para usar a rota existente)
-        async function excluirAulaIndividual(id) {
-            if (!confirm('Excluir esta aula?')) return;
+        function atualizarAdminStats() {
+            // Aqui você pode adicionar mais estatísticas específicas do admin
+        }
+
+        // Editar Aluno (Admin)
+        function editarAluno(id, nome, idade, peso, altura, genero, email, maxHR, restingHR, useTanaka) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editNome').value = nome;
+            document.getElementById('editIdade').value = idade || '';
+            document.getElementById('editPeso').value = peso || '';
+            document.getElementById('editAltura').value = altura || '';
+            document.getElementById('editGenero').value = genero || 'M';
+            document.getElementById('editEmail').value = email || '';
+            document.getElementById('editMaxHR').value = maxHR || '';
+            document.getElementById('editRestingHR').value = restingHR || '';
+            document.getElementById('editUseTanaka').checked = !!useTanaka;
+            document.getElementById('modalEditarAluno').style.display = 'flex';
+        }
+
+        async function salvarEdicaoAluno() {
+            const id = document.getElementById('editId').value;
+            const body = {
+                name: document.getElementById('editNome').value.trim(),
+                age: parseInt(document.getElementById('editIdade').value) || null,
+                weight: parseFloat(document.getElementById('editPeso').value) || null,
+                height_cm: parseInt(document.getElementById('editAltura').value) || null,
+                gender: document.getElementById('editGenero').value || null,
+                email: document.getElementById('editEmail').value.trim() || null,
+                max_hr: parseInt(document.getElementById('editMaxHR').value) || null,
+                resting_hr: parseInt(document.getElementById('editRestingHR').value) || null,
+                use_tanaka: document.getElementById('editUseTanaka').checked
+            };
+
             try {
-                const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API}/api/participants/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
                 if (res.ok) {
-                    alert('Aula excluída');
-                    carregarAulas();
-                    carregarAulasAdmin();
+                    alert('Aluno atualizado com sucesso!');
+                    document.getElementById('modalEditarAluno').style.display = 'none';
+                    carregarAlunos();
+                    carregarAlunosAdmin();
                 } else {
-                    alert('Erro ao excluir aula');
+                    alert('Erro ao atualizar aluno');
+                }
+            } catch (err) {
+                alert('Erro de rede ao salvar');
+            }
+        }
+
+        async function excluirAluno(id) {
+            if (!confirm('Tem certeza que deseja excluir este aluno permanentemente?\nEsta ação não pode ser desfeita.')) return;
+            try {
+                const res = await fetch(`${API}/api/participants/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Aluno excluído com sucesso!');
+                    carregarAlunos();
+                    carregarAlunosAdmin();
+                } else {
+                    alert('Erro ao excluir aluno');
                 }
             } catch (err) {
                 alert('Erro de rede');
             }
         }
 
-        async function excluirAulasSelecionadas() {
-            const selecionados = Array.from(document.querySelectorAll('.select-aula-admin:checked')).map(cb => cb.dataset.id);
+        // Editar Aluno (Main - simplificado)
+        function editarAlunoModal(id) {
+            const aluno = participants.find(p => p.id == id);
+            if (!aluno) return;
+            
+            editarAluno(
+                aluno.id,
+                aluno.name,
+                aluno.age,
+                aluno.weight,
+                aluno.height_cm,
+                aluno.gender,
+                aluno.email,
+                aluno.max_hr,
+                aluno.resting_hr,
+                aluno.use_tanaka
+            );
+        }
+
+        // Aula Functions
+        async function verDetalhesAula(id) {
+            try {
+                const res = await fetch(`${API}/api/sessions/${id}`);
+                if (!res.ok) throw new Error('Sessão não encontrada');
+                const data = await res.json();
+                
+                let html = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <h3 style="margin-bottom: 10px;">Informações da Aula</h3>
+                            <p><strong>Aula:</strong> ${data.session?.class_name || 'Aula'}</p>
+                            <p><strong>Início:</strong> ${new Date(data.session?.date_start).toLocaleString('pt-BR')}</p>
+                            <p><strong>Fim:</strong> ${new Date(data.session?.date_end).toLocaleString('pt-BR')}</p>
+                            <p><strong>Duração:</strong> ${Math.round(data.session?.duration_minutes || 0)} minutos</p>
+                        </div>
+                        <div>
+                            <h3 style="margin-bottom: 10px;">Resumo</h3>
+                            <p><strong>Total Alunos:</strong> ${data.participants?.length || 0}</p>
+                            <p><strong>Total Calorias:</strong> ${Math.round(data.session?.total_calories || 0)} kcal</p>
+                            <p><strong>Total Pontos Queima:</strong> ${Math.round(data.session?.total_queima_points || 0)}</p>
+                        </div>
+                    </div>
+                `;
+
+                if (data.participants && data.participants.length > 0) {
+                    html += `
+                        <h3 style="margin-bottom: 15px;">Participantes</h3>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Calorias</th>
+                                        <th>Pontos Queima</th>
+                                        <th>VO2 (min)</th>
+                                        <th>Zona Vermelha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.participants.forEach(p => {
+                        html += `
+                            <tr>
+                                <td>${p.name || 'Aluno'}</td>
+                                <td>${Math.round(p.calories_total || 0)}</td>
+                                <td>${Math.round(p.queima_points || 0)}</td>
+                                <td>${Math.round((p.vo2_time_seconds || 0)/60)}</td>
+                                <td>${Math.round(p.min_red || 0)} min</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `</tbody></table></div>`;
+                } else {
+                    html += '<p style="text-align: center; padding: 20px; color: var(--muted-text);">Nenhum aluno registrado nessa aula.</p>';
+                }
+
+                document.getElementById('detalhesConteudo').innerHTML = html;
+                document.getElementById('modalDetalhes').style.display = 'flex';
+            } catch (err) {
+                console.error('Erro detalhes aula:', err);
+                alert('Erro ao carregar detalhes da aula');
+            }
+        }
+
+        function selecionarTodasAulas(checked, isAdmin = false) {
+            const selector = isAdmin ? '.select-aula-admin' : '.select-aula';
+            document.querySelectorAll(selector).forEach(checkbox => {
+                checkbox.checked = checked;
+            });
+            
+            if (isAdmin) {
+                atualizarBotaoBulkAdmin();
+            } else {
+                atualizarBotaoBulk();
+            }
+        }
+
+        function atualizarBotaoBulk() {
+            const selecionados = document.querySelectorAll('.select-aula:checked').length;
+            const btn = document.getElementById('bulkDeleteBtn');
+            if (selecionados > 0) {
+                btn.textContent = `Excluir ${selecionados} Selecionada(s)`;
+                btn.style.display = 'inline-flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        function atualizarBotaoBulkAdmin() {
+            const selecionados = document.querySelectorAll('.select-aula-admin:checked').length;
+            const btn = document.getElementById('adminBulkDeleteBtn');
+            if (selecionados > 0) {
+                btn.textContent = `Excluir ${selecionados} Selecionada(s)`;
+                btn.style.display = 'inline-flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        async function excluirAulaIndividual(id) {
+            if (!confirm('Tem certeza que deseja excluir esta aula?\nEsta ação não pode ser desfeita.')) return;
+            try {
+                const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Aula excluída com sucesso!');
+                    carregarAulas();
+                    carregarAulasAdmin();
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    alert('Erro ao excluir aula: ' + (errorData.error || 'Status ' + res.status));
+                }
+            } catch (err) {
+                alert('Erro de rede ao excluir aula');
+                console.error(err);
+            }
+        }
+
+        async function excluirAulasSelecionadas(isAdmin = false) {
+            const selector = isAdmin ? '.select-aula-admin:checked' : '.select-aula:checked';
+            const selecionados = Array.from(document.querySelectorAll(selector)).map(cb => cb.dataset.id);
+            
             if (selecionados.length === 0) return;
-            if (!confirm(`Excluir ${selecionados.length} aulas?`)) return;
+            if (!confirm(`Tem certeza que deseja excluir ${selecionados.length} aula(s) selecionada(s)?\nEsta ação não pode ser desfeita.`)) return;
 
             let sucesso = 0;
+            let falha = 0;
+            
             for (const id of selecionados) {
                 try {
                     const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
                     if (res.ok) sucesso++;
-                } catch (err) {}
+                    else falha++;
+                } catch (err) {
+                    falha++;
+                }
             }
-            alert(`Excluídas ${sucesso} aulas com sucesso`);
+
+            alert(`Exclusão concluída: ${sucesso} sucesso(s), ${falha} falha(s)`);
+            
             carregarAulas();
             carregarAulasAdmin();
+            
+            if (isAdmin) {
+                document.getElementById('adminSelectAllAulas').checked = false;
+                atualizarBotaoBulkAdmin();
+            } else {
+                document.getElementById('selectAllAulas').checked = false;
+                atualizarBotaoBulk();
+            }
         }
 
-       // ... (adicione aqui as outras funções que já estavam funcionando no seu original, como verDetalhes, editarAluno, salvarEdicaoAluno, etc.)
-
-// Função para ver detalhes de uma aula (adaptada do seu código original)
-async function verDetalhes(id) {
-    try {
-        const res = await fetch(`${API}/api/sessions/${id}`);
-        if (!res.ok) throw new Error('Sessão não encontrada');
-        const data = await res.json();
-
-        let html = `<p><strong>Aula:</strong> ${data.session?.class_name || 'Aula'}</p>
-            <p><strong>Início:</strong> ${new Date(data.session?.date_start).toLocaleString('pt-BR')}</p>
-            <p><strong>Fim:</strong> ${new Date(data.session?.date_end).toLocaleString('pt-BR')}</p>`;
-
-        if (data.participants && data.participants.length > 0) {
-            html += '<h3>Alunos na aula</h3><table><tr><th>Nome</th><th>Calorias</th><th>Queima Points</th><th>VO2 (min)</th><th>Zona Vermelha (min)</th></tr>';
-            data.participants.forEach(p => {
-                html += `<tr><td>${p.name || 'Aluno'}</td><td>${Math.round(p.calories_total || 0)}</td><td>${Math.round(p.queima_points || 0)}</td><td>${Math.round((p.vo2_time_seconds || 0)/60)}</td><td>${Math.round(p.min_red || 0)}</td></tr>`;
-            });
-            html += '</table>';
-        } else {
-            html += '<p>Nenhum aluno registrado nessa aula.</p>';
+        // Admin Tools Functions
+        async function limparDadosAntigos() {
+            if (!confirm('Deseja remover aulas com mais de 90 dias?\nEsta ação não pode ser desfeita.')) return;
+            // Implementar limpeza de dados antigos
+            alert('Funcionalidade em desenvolvimento');
         }
 
-        document.getElementById('detalhesConteudo').innerHTML = html;
-        document.getElementById('modalDetalhes').style.display = 'flex';
-    } catch (err) {
-        console.error('Erro ao carregar detalhes da aula:', err);
-        alert('Erro ao carregar detalhes da aula');
-    }
-}
-
-// Função para editar aluno (adaptada do seu código original + modal)
-function editarAluno(id, nome, idade, peso, altura, genero, email, maxHR, restingHR, useTanaka) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editNome').value = nome;
-    document.getElementById('editIdade').value = idade || '';
-    document.getElementById('editPeso').value = peso || '';
-    document.getElementById('editAltura').value = altura || '';
-    document.getElementById('editGenero').value = genero || 'M';
-    document.getElementById('editEmail').value = email || '';
-    document.getElementById('editMaxHR').value = maxHR || '';
-    document.getElementById('editRestingHR').value = restingHR || '';
-    document.getElementById('editUseTanaka').checked = !!useTanaka;
-    document.getElementById('modalEditarAluno').style.display = 'flex';
-}
-
-// Função para salvar edição de aluno
-async function salvarEdicaoAluno() {
-    const id = document.getElementById('editId').value;
-    const body = {
-        name: document.getElementById('editNome').value.trim(),
-        age: parseInt(document.getElementById('editIdade').value) || null,
-        weight: parseFloat(document.getElementById('editPeso').value) || null,
-        height_cm: parseInt(document.getElementById('editAltura').value) || null,
-        gender: document.getElementById('editGenero').value || null,
-        email: document.getElementById('editEmail').value.trim() || null,
-        max_hr: parseInt(document.getElementById('editMaxHR').value) || null,
-        resting_hr: parseInt(document.getElementById('editRestingHR').value) || null,
-        use_tanaka: document.getElementById('editUseTanaka').checked
-    };
-
-    try {
-        const res = await fetch(`${API}/api/participants/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        if (res.ok) {
-            alert('Aluno atualizado com sucesso!');
-            document.getElementById('modalEditarAluno').style.display = 'none';
-            carregarAlunos();       // atualiza tabela principal
-            carregarAlunosAdmin();  // atualiza tabela admin se aberta
-        } else {
-            alert('Erro ao atualizar aluno');
-        }
-    } catch (err) {
-        alert('Erro de rede ao salvar alterações');
-        console.error(err);
-    }
-}
-
-// Função para exclusão individual de aluno (já estava funcionando)
-async function excluirAluno(id) {
-    if (!confirm('Excluir aluno permanentemente? Isso não pode ser desfeito.')) return;
-    try {
-        const res = await fetch(`${API}/api/participants/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            alert('Aluno excluído com sucesso');
-            carregarAlunos();
-            carregarAlunosAdmin();
-        } else {
-            alert('Erro ao excluir aluno');
-        }
-    } catch (err) {
-        alert('Erro de rede ao excluir aluno');
-        console.error(err);
-    }
-}
-
-// Função para carregar alunos no painel admin (já estava)
-async function carregarAlunosAdmin() {
-    try {
-        const res = await fetch(`${API}/api/participants`);
-        if (!res.ok) throw new Error('Falha ao carregar alunos admin');
-        const data = await res.json();
-        const alunos = data.participants || [];
-        const tbody = document.querySelector('#tabelaAlunos tbody');
-        tbody.innerHTML = '';
-        alunos.forEach(aluno => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${aluno.id}</td>
-                <td>${aluno.name}</td>
-                <td>${aluno.age || '-'}</td>
-                <td>${aluno.gender || '-'}</td>
-                <td>${aluno.weight || '-'}</td>
-                <td>${aluno.height_cm || '-'}</td>
-                <td>${aluno.email || '-'}</td>
-                <td>${aluno.max_hr || '-'}</td>
-                <td>${aluno.device_name || aluno.device_id || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline" onclick="editarAluno(${aluno.id}, '${aluno.name.replace(/'/g, "\\'")}', ${aluno.age || 'null'}, ${aluno.weight || 'null'}, ${aluno.height_cm || 'null'}, '${aluno.gender || ''}', '${aluno.email || ''}', ${aluno.max_hr || 'null'}, ${aluno.resting_hr || 'null'}, ${aluno.use_tanaka || false})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="excluirAluno(${aluno.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('adminTotalAlunos').textContent = alunos.length;
-    } catch (err) {
-        console.error('Erro ao carregar alunos admin:', err);
-    }
-}
-
-// Função para carregar aulas no painel admin (já estava)
-async function carregarAulasAdmin() {
-    try {
-        const res = await fetch(`${API}/api/sessions`);
-        if (!res.ok) throw new Error('Falha ao carregar aulas admin');
-        const data = await res.json();
-        const aulas = data.sessions || [];
-        const tbody = document.querySelector('#tabelaAulas tbody');
-        tbody.innerHTML = '';
-        aulas.forEach(aula => {
-            const inicio = new Date(aula.date_start);
-            const fim = new Date(aula.date_end);
-            const duracao = aula.duration_minutes || Math.round((fim - inicio) / 60000);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="checkbox" class="select-aula-admin" data-id="${aula.id}" onchange="atualizarBotaoBulkAdmin()"></td>
-                <td>${aula.id}</td>
-                <td>${aula.class_name || 'Aula'}</td>
-                <td>${inicio.toLocaleString('pt-BR')}</td>
-                <td>${fim.toLocaleString('pt-BR')}</td>
-                <td>${duracao} min</td>
-                <td>${aula.participant_count || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline" onclick="verDetalhes(${aula.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="excluirAulaIndividual(${aula.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('adminTotalAulas').textContent = aulas.length;
-        atualizarBotaoBulkAdmin();
-    } catch (err) {
-        console.error('Erro ao carregar aulas admin:', err);
-    }
-}
-
-// Função auxiliar para atualizar botão de exclusão em massa (admin)
-function atualizarBotaoBulkAdmin() {
-    const selecionados = document.querySelectorAll('.select-aula-admin:checked').length;
-    document.getElementById('adminBulkDeleteBtn').style.display = selecionados > 0 ? 'inline-flex' : 'none';
-}
-
-// Função auxiliar para selecionar todas aulas no admin
-function selecionarTodasAulas(checked, isAdmin = false) {
-    const selector = isAdmin ? '.select-aula-admin' : '.select-aula';
-    document.querySelectorAll(selector).forEach(checkbox => {
-        checkbox.checked = checked;
-    });
-    if (isAdmin) atualizarBotaoBulkAdmin();
-    else atualizarBotaoBulk();
-}
-
-// Função auxiliar para atualizar botão de exclusão em massa (principal)
-function atualizarBotaoBulk() {
-    const selecionados = document.querySelectorAll('.select-aula:checked').length;
-    document.getElementById('bulkDeleteBtn').style.display = selecionados > 0 ? 'inline-flex' : 'none';
-}
-
-// ... (adicione aqui as outras funções que já estavam funcionando no seu original, como verDetalhes, editarAluno, salvarEdicaoAluno, etc.)
-
-// Função para ver detalhes de uma aula (adaptada do seu código original)
-async function verDetalhes(id) {
-    try {
-        const res = await fetch(`${API}/api/sessions/${id}`);
-        if (!res.ok) throw new Error('Sessão não encontrada');
-        const data = await res.json();
-
-        let html = `<p><strong>Aula:</strong> ${data.session?.class_name || 'Aula'}</p>
-            <p><strong>Início:</strong> ${new Date(data.session?.date_start).toLocaleString('pt-BR')}</p>
-            <p><strong>Fim:</strong> ${new Date(data.session?.date_end).toLocaleString('pt-BR')}</p>`;
-
-        if (data.participants && data.participants.length > 0) {
-            html += '<h3>Alunos na aula</h3><table><tr><th>Nome</th><th>Calorias</th><th>Queima Points</th><th>VO2 (min)</th><th>Zona Vermelha (min)</th></tr>';
-            data.participants.forEach(p => {
-                html += `<tr><td>${p.name || 'Aluno'}</td><td>${Math.round(p.calories_total || 0)}</td><td>${Math.round(p.queima_points || 0)}</td><td>${Math.round((p.vo2_time_seconds || 0)/60)}</td><td>${Math.round(p.min_red || 0)}</td></tr>`;
-            });
-            html += '</table>';
-        } else {
-            html += '<p>Nenhum aluno registrado nessa aula.</p>';
+        async function exportarBackup() {
+            try {
+                // Implementar exportação
+                alert('Funcionalidade em desenvolvimento');
+            } catch (err) {
+                alert('Erro ao exportar backup');
+            }
         }
 
-        document.getElementById('detalhesConteudo').innerHTML = html;
-        document.getElementById('modalDetalhes').style.display = 'flex';
-    } catch (err) {
-        console.error('Erro ao carregar detalhes da aula:', err);
-        alert('Erro ao carregar detalhes da aula');
-    }
-}
-
-// Função para editar aluno (abre o modal com dados preenchidos)
-function editarAluno(id, nome, idade, peso, altura, genero, email, maxHR, restingHR, useTanaka) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editNome').value = nome;
-    document.getElementById('editIdade').value = idade || '';
-    document.getElementById('editPeso').value = peso || '';
-    document.getElementById('editAltura').value = altura || '';
-    document.getElementById('editGenero').value = genero || 'M';
-    document.getElementById('editEmail').value = email || '';
-    document.getElementById('editMaxHR').value = maxHR || '';
-    document.getElementById('editRestingHR').value = restingHR || '';
-    document.getElementById('editUseTanaka').checked = !!useTanaka;
-    document.getElementById('modalEditarAluno').style.display = 'flex';
-}
-
-// Função para salvar edição do aluno
-async function salvarEdicaoAluno() {
-    const id = document.getElementById('editId').value;
-    const body = {
-        name: document.getElementById('editNome').value.trim(),
-        age: parseInt(document.getElementById('editIdade').value) || null,
-        weight: parseFloat(document.getElementById('editPeso').value) || null,
-        height_cm: parseInt(document.getElementById('editAltura').value) || null,
-        gender: document.getElementById('editGenero').value || null,
-        email: document.getElementById('editEmail').value.trim() || null,
-        max_hr: parseInt(document.getElementById('editMaxHR').value) || null,
-        resting_hr: parseInt(document.getElementById('editRestingHR').value) || null,
-        use_tanaka: document.getElementById('editUseTanaka').checked
-    };
-
-    try {
-        const res = await fetch(`${API}/api/participants/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        if (res.ok) {
-            alert('Aluno atualizado com sucesso!');
-            document.getElementById('modalEditarAluno').style.display = 'none';
-            carregarAlunos();         // atualiza lista principal
-            carregarAlunosAdmin();    // atualiza lista admin se aberta
-        } else {
-            alert('Erro ao atualizar aluno');
+        async function recalcularMetricas() {
+            if (!confirm('Recalcular métricas de todos os alunos?\nIsso pode levar alguns minutos.')) return;
+            // Implementar recálculo
+            alert('Funcionalidade em desenvolvimento');
         }
-    } catch (err) {
-        alert('Erro de rede ao salvar alterações');
-        console.error(err);
-    }
-}
 
-// Função para exclusão individual de aluno
-async function excluirAluno(id) {
-    if (!confirm('Excluir aluno permanentemente? Isso não pode ser desfeito.')) return;
-    try {
-        const res = await fetch(`${API}/api/participants/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            alert('Aluno excluído com sucesso');
-            carregarAlunos();
-            carregarAlunosAdmin();
-        } else {
-            alert('Erro ao excluir aluno');
+        // Utility Functions
+        function exportAlunosCSV() {
+            // Implementar exportação CSV
+            alert('Exportação CSV em desenvolvimento');
         }
-    } catch (err) {
-        alert('Erro de rede ao excluir aluno');
-        console.error(err);
-    }
-}
 
-// Função para carregar alunos no painel admin
-async function carregarAlunosAdmin() {
-    try {
-        const res = await fetch(`${API}/api/participants`);
-        if (!res.ok) throw new Error('Falha ao carregar alunos admin');
-        const data = await res.json();
-        const alunos = data.participants || [];
-        const tbody = document.querySelector('#tabelaAlunos tbody');
-        tbody.innerHTML = '';
-        alunos.forEach(aluno => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${aluno.id}</td>
-                <td>${aluno.name}</td>
-                <td>${aluno.age || '-'}</td>
-                <td>${aluno.gender || '-'}</td>
-                <td>${aluno.weight || '-'}</td>
-                <td>${aluno.height_cm || '-'}</td>
-                <td>${aluno.email || '-'}</td>
-                <td>${aluno.max_hr || '-'}</td>
-                <td>${aluno.device_name || aluno.device_id || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline" onclick="editarAluno(${aluno.id}, '${aluno.name.replace(/'/g, "\\'")}', ${aluno.age || 'null'}, ${aluno.weight || 'null'}, ${aluno.height_cm || 'null'}, '${aluno.gender || ''}', '${aluno.email || ''}', ${aluno.max_hr || 'null'}, ${aluno.resting_hr || 'null'}, ${aluno.use_tanaka || false})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="excluirAluno(${aluno.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('adminTotalAlunos').textContent = alunos.length;
-    } catch (err) {
-        console.error('Erro ao carregar alunos admin:', err);
-    }
-}
-
-// Função para carregar aulas no painel admin
-async function carregarAulasAdmin() {
-    try {
-        const res = await fetch(`${API}/api/sessions`);
-        if (!res.ok) throw new Error('Falha ao carregar aulas admin');
-        const data = await res.json();
-        const aulas = data.sessions || [];
-        const tbody = document.querySelector('#tabelaAulas tbody');
-        tbody.innerHTML = '';
-        aulas.forEach(aula => {
-            const inicio = new Date(aula.date_start);
-            const fim = new Date(aula.date_end);
-            const duracao = aula.duration_minutes || Math.round((fim - inicio) / 60000);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="checkbox" class="select-aula-admin" data-id="${aula.id}" onchange="atualizarBotaoBulkAdmin()"></td>
-                <td>${aula.id}</td>
-                <td>${aula.class_name || 'Aula'}</td>
-                <td>${inicio.toLocaleString('pt-BR')}</td>
-                <td>${fim.toLocaleString('pt-BR')}</td>
-                <td>${duracao} min</td>
-                <td>${aula.participant_count || '-'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline" onclick="verDetalhes(${aula.id})">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="excluirAulaIndividual(${aula.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        document.getElementById('adminTotalAulas').textContent = aulas.length;
-        atualizarBotaoBulkAdmin();
-    } catch (err) {
-        console.error('Erro ao carregar aulas admin:', err);
-    }
-}
-
-// Função auxiliar para atualizar botão de exclusão em massa (admin)
-function atualizarBotaoBulkAdmin() {
-    const selecionados = document.querySelectorAll('.select-aula-admin:checked').length;
-    document.getElementById('adminBulkDeleteBtn').style.display = selecionados > 0 ? 'inline-flex' : 'none';
-}
-
-// Função auxiliar para selecionar todas aulas no admin
-function selecionarTodasAulas(checked, isAdmin = false) {
-    const selector = isAdmin ? '.select-aula-admin' : '.select-aula';
-    document.querySelectorAll(selector).forEach(checkbox => {
-        checkbox.checked = checked;
-    });
-    if (isAdmin) atualizarBotaoBulkAdmin();
-    else atualizarBotaoBulk();
-}
-
-// Função auxiliar para atualizar botão de exclusão em massa (principal)
-function atualizarBotaoBulk() {
-    const selecionados = document.querySelectorAll('.select-aula:checked').length;
-    document.getElementById('bulkDeleteBtn').style.display = selecionados > 0 ? 'inline-flex' : 'none';
-}
-
-// Função para exclusão individual de aula
-async function excluirAulaIndividual(id) {
-    if (!confirm('Excluir esta aula? Isso não pode ser desfeito.')) return;
-    try {
-        const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            alert('Aula excluída com sucesso');
-            carregarAulas();
-            carregarAulasAdmin();
-        } else {
-            const errorData = await res.json().catch(() => ({}));
-            alert('Erro ao excluir aula: ' + (errorData.error || 'Status ' + res.status));
+        function logout() {
+            if (confirm('Deseja sair do sistema?')) {
+                localStorage.removeItem('wodpulse_token');
+                localStorage.removeItem('wodpulse_box');
+                // Redirecionar para login
+                window.location.reload();
+            }
         }
-    } catch (err) {
-        alert('Erro de rede ao excluir aula');
-        console.error(err);
-    }
-}
 
-// Função para exclusão múltipla de aulas
-async function excluirAulasSelecionadas() {
-    const selecionados = Array.from(document.querySelectorAll('.select-aula:checked')).map(cb => cb.dataset.id);
-    if (selecionados.length === 0) return;
-    if (!confirm(`Excluir ${selecionados.length} aula(s) selecionada(s)? Isso não pode ser desfeito.`)) return;
-
-    let sucesso = 0;
-    let falha = 0;
-    for (const id of selecionados) {
-        try {
-            const res = await fetch(`${API}/api/sessions/${id}`, { method: 'DELETE' });
-            if (res.ok) sucesso++;
-            else falha++;
-        } catch (err) {
-            falha++;
+        // Ver Detalhes (Admin - mantendo compatibilidade)
+        function verDetalhes(id) {
+            verDetalhesAula(id);
         }
-    }
-
-    alert(`Exclusão concluída: ${sucesso} sucesso(s), ${falha} falha(s)`);
-    carregarAulas();
-    carregarAulasAdmin();
-    document.getElementById('selectAllAulas').checked = false;
-    atualizarBotaoBulk();
-}
-
-// Função para exportar alunos CSV (opcional - pode remover se não quiser)
-function exportAlunosCSV() {
-    if (participants.length === 0) return alert('Nenhum aluno para exportar');
-
-    let csv = 'ID,Nome,Idade,Gênero,Peso,Altura,Email,FC Máx,Dispositivo\n';
-    participants.forEach(aluno => {
-        csv += `${aluno.id},"${aluno.name.replace(/"/g, '""')}",${aluno.age || ''},${aluno.gender || ''},${aluno.weight || ''},${aluno.height_cm || ''},"${(aluno.email || '').replace(/"/g, '""')}",${aluno.max_hr || ''},${aluno.device_name || aluno.device_id || ''}\n`;
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'alunos_wodpulse.csv';
-    link.click();
-}
-
-// Função placeholder para limpar dados antigos (pode implementar depois)
-function limparDadosAntigos() {
-    alert('Limpeza de dados antigos em desenvolvimento');
-}
-
-// Função placeholder para recalcular métricas (pode implementar depois)
-function recalcularMetricas() {
-    alert('Recálculo de métricas em desenvolvimento');
-}    </script>
+    </script>
 </body>
 </html>
