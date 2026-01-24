@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <!-- Conteúdo principal -->
+    <!-- Conteúdo principal (login comentado temporariamente) -->
     <div id="app-content">
 
         <div id="setup">
@@ -43,13 +43,21 @@
 
             <div id="participantListContainer">
                 <h2>Alunos Cadastrados</h2>
-                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição ou exclusão.</p>
+                <p>Pulseiras ficam vinculadas permanentemente ao aluno até edição/exclusão.</p>
                 <ul id="participantList"></ul>
             </div>
 
             <div id="last-class-summary" class="hidden">
                 <h2>Última Aula Finalizada</h2>
                 <div id="summary-content"></div>
+            </div>
+
+            <div id="checkins-section">
+                <h2>Check-ins do Dia (Tecnofit - futuro)</h2>
+                <p>Alunos com check-in hoje aparecerão aqui.</p>
+                <ul id="checkinsList">
+                    <li>(Integração pendente)</li>
+                </ul>
             </div>
 
             <button id="startScanBtn">🚀 Iniciar Aula / Escaneamento</button>
@@ -123,7 +131,7 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação e load -->
+    <!-- Script de autenticação e load (mantido como estava) -->
     <script>
         // Variáveis globais necessárias
         let authToken = null;
