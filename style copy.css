@@ -1,193 +1,107 @@
-/* ============================================================================
-   RESET & BASE
-============================================================================ */
-* {
-    box-sizing: border-box;
-}
-
 body {
+    background: #101010;
+    color: #EAEAEA;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
     margin: 0;
     padding: 0;
-    font-family: 'Roboto', sans-serif;
-    background: #0d1117;
-    color: #e6edf3;
-    min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .hidden { display: none !important; }
 
-/* ============================================================================
-   TELA DE SETUP / CONFIGURAÇÃO (primeira tela)
-============================================================================ */
-#app-content {
-    padding: 16px;
-}
-
 #setup {
-    max-width: 1100px;
-    margin: 0 auto 60px;
-    padding: 0 16px;
+    max-width: 1000px;
+    margin: 40px auto;
+    background: #1C1C1C;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 #setup h1 {
-    font-size: 2.8rem;
+    font-size: 3.2rem;
     font-weight: 900;
     color: #FF5722;
-    text-align: center;
-    margin: 20px 0 30px;
-}
-
-#setup .btn-logout {
-    background: #E91E63;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
+    margin-bottom: 30px;
 }
 
 #addParticipant {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin: 24px 0 32px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
 }
 
-#addParticipant input,
-#addParticipant select {
-    padding: 14px 16px;
-    font-size: 1.1rem;
+#setup input, #setup select {
+    font-size: 1.3rem;
+    padding: 16px;
     border-radius: 8px;
     border: 1px solid #444;
-    background: #161b22;
-    color: #e6edf3;
+    background: #252525;
+    color: #FFF;
+    flex-grow: 1;
+    min-width: 140px;
 }
 
-#addParticipant label {
-    font-size: 1rem;
-    align-self: center;
-    white-space: nowrap;
-    color: #aaa;
-}
-
-#addBtn {
-    grid-column: 1 / -1;
-    padding: 16px;
+#setup button {
     font-size: 1.3rem;
-    font-weight: bold;
-    background: #FF5722;
-    color: white;
-    border: none;
+    padding: 16px 35px;
     border-radius: 8px;
+    border: none;
     cursor: pointer;
-    margin-top: 8px;
+    background: #E63946;
+    color: white;
+    font-weight: 700;
+    transition: background 0.3s;
 }
 
-#addBtn:hover { background: #E64A19; }
+#setup button:hover { background: #D62839; }
 
-#participantListContainer {
-    margin: 40px 0 60px;
+#startScanBtn {
+    font-size: 1.8rem !important;
+    padding: 25px 60px !important;
+    margin-top: 40px;
+    width: 100%;
+    background: #FF5722 !important;
 }
 
 #participantListContainer h2 {
-    font-size: 2.1rem;
+    font-size: 2rem;
     color: #FF5722;
-    margin-bottom: 16px;
-    text-align: center;
+    border-bottom: 2px solid #444;
+    padding-bottom: 12px;
+    margin-bottom: 25px;
+    text-align: left;
 }
 
-#participantListContainer p {
-    text-align: center;
-    color: #888;
-    margin: 0 0 20px;
-    font-size: 1rem;
-}
-
-#participantList {
-    max-height: 60vh;
-    overflow-y: auto;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    background: #161b22;
-}
+#participantList { list-style: none; padding: 0; }
 
 #participantList li {
-    padding: 16px 20px;
-    border-bottom: 1px solid #30363d;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.15rem;
+    background: #2a2a2a;
+    padding: 18px 25px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 1.4rem;
 }
-
-#participantList li:last-child { border-bottom: none; }
 
 .participant-actions button {
     background: none;
     border: none;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     cursor: pointer;
-    margin-left: 16px;
+    margin-left: 20px;
+    color: #aaa;
 }
 
-.participant-actions .edit-btn   { color: #4CAF50; }
+.participant-actions .edit-btn { color: #4CAF50; }
 .participant-actions .delete-btn { color: #E63946; }
 
-#participantList::-webkit-scrollbar {
-    width: 10px;
-}
-
-#participantList::-webkit-scrollbar-track {
-    background: #0d1117;
-    border-radius: 0 12px 12px 0;
-}
-
-#participantList::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 5px;
-    border: 2px solid #0d1117;
-}
-
-#participantList::-webkit-scrollbar-thumb:hover {
-    background: #777;
-}
-
-#startScanBtn {
-    display: block;
-    width: 100%;
-    max-width: 600px;
-    margin: 40px auto;
-    padding: 20px 40px;
-    font-size: 1.9rem;
-    font-weight: bold;
-    background: #FF5722;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-#startScanBtn:hover { background: #E64A19; }
-
-/* ============================================================================
-   RESPONSIVIDADE – SETUP
-============================================================================ */
-@media (max-width: 768px) {
-    #addParticipant {
-        grid-template-columns: 1fr;
-    }
-    #setup h1 { font-size: 2.4rem; }
-    #startScanBtn { font-size: 1.7rem; padding: 18px 30px; }
-}
-
-/* ============================================================================
-   DASHBOARD (mantido do seu original, com pequenas correções de consistência)
-============================================================================ */
+/* LAYOUT DASHBOARD */
 #dashboard { 
     height: 100vh; 
     width: 100vw; 
@@ -208,9 +122,12 @@ body {
     width: 100%;
     padding: 15px 25px;
     overflow-y: auto;
+    overflow-x: hidden;
     background: #101010;
+    box-sizing: border-box;
 }
 
+/* CABEÇALHO */
 #header {
     display: grid;
     grid-template-columns: 140px 2fr 1fr 180px;
@@ -221,6 +138,8 @@ body {
     margin-bottom: 16px;
     gap: 16px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #logo { width: 120px; height: auto; }
@@ -231,11 +150,35 @@ body {
     gap: 4px;
 }
 
-#current-class-name { font-size: 1.9rem; font-weight: 900; color: #FF9800; }
-#daily-leader        { font-size: 1.7rem; color: #FF5722; }
-#daily-calories-leader { font-size: 1.6rem; color: #4CAF50; }
-#timer               { font-size: 5.2rem; font-weight: 900; color: #4CAF50; text-align: right; }
-#leaderboard-top     { font-size: 1.8rem; color: #FFC107; text-align: right; grid-column: 2 / 4; }
+#current-class-name {
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: #FF9800;
+}
+
+#daily-leader {
+    font-size: 1.7rem;
+    color: #FF5722;
+}
+
+#daily-calories-leader {
+    font-size: 1.6rem;
+    color: #4CAF50;
+}
+
+#timer { 
+    font-size: 5.2rem; 
+    font-weight: 900; 
+    color: #4CAF50; 
+    text-align: right; 
+}
+
+#leaderboard-top {
+    font-size: 1.8rem;
+    color: #FFC107;
+    text-align: right;
+    grid-column: 2 / 4;
+}
 
 /* Rankings */
 #weekly-rankings {
@@ -260,7 +203,7 @@ body {
 
 .ranking-block.pontos { border-left-color: #FF5722; }
 .ranking-block.calorias { border-left-color: #4CAF50; }
-.ranking-block.vo2ZoneActive { border-left-color: #FF1744; }
+.ranking-block.vo2 { border-left-color: #FF1744; }
 
 .ranking-block h3 {
     margin: 0 0 10px 0;
@@ -302,7 +245,7 @@ body {
 #fullRankingBtn:hover { background: #1976D2; }
 #exportPdfBtn:hover { background: #F57C00; }
 
-/* Tiles */
+/* TILES */
 #participants {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -458,13 +401,31 @@ body {
     white-space: nowrap;
 }
 
+/* Ajustes responsivos para telas menores / mais tiles */
+@media (max-width: 1400px) {
+    .vo2-indicator {
+        font-size: 3.8rem;
+        top: 15px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .vo2-indicator {
+        font-size: 3.2rem;
+        top: 12px;
+        right: 12px;
+    }
+}
+
+/* Pulso do VO2 */
 @keyframes vo2Pulse {
     0%   { transform: scale(1);   opacity: 1;   text-shadow: 0 0 15px #FF1744, 0 0 30px #FF1744; }
     50%  { transform: scale(1.12); opacity: 0.85; text-shadow: 0 0 35px #FF1744, 0 0 55px #F44336; }
     100% { transform: scale(1);   opacity: 1;   text-shadow: 0 0 15px #FF1744, 0 0 30px #FF1744; }
 }
 
-/* MODO COMPACTO */
+/* MODO COMPACTO: ESCONDE HEADER + RANKINGS SEMANAIS */
 .compact-mode #header,
 .compact-mode #weekly-rankings {
     display: none !important;
@@ -474,7 +435,7 @@ body {
     padding-top: 10px;
 }
 
-/* Botão flutuante compacto */
+/* Botão flutuante para alternar modo compacto */
 #toggleCompactBtn {
     position: fixed;
     top: 20px;
@@ -513,7 +474,7 @@ body {
 #addNewParticipantBtn { left: 25px; background: #4CAF50; }
 #backBtn { right: 25px; background: #E63946; }
 
-/* Modal Ranking Completo */
+/* Modal */
 #full-ranking-modal {
     position: fixed;
     inset: 0;
@@ -555,3 +516,111 @@ body {
     overflow-x: hidden;
     box-sizing: border-box;
 }
+
+/* ── TELA DE LOGIN ──────────────────────────────────────────────────────────────── */
+#login-screen {
+    max-width: 480px;
+    margin: 100px auto;
+    padding: 40px;
+    background: #1C1C1C;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+#login-screen h1 {
+    font-size: 2.8rem;
+    color: #FF5722;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #ccc;
+    font-size: 1.1rem;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.2rem;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #252525;
+    color: #FFF;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: #FF5722;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #E64A19;
+}
+
+.btn-logout {
+    float: right;
+    background: #E91E63;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+/* ========================================
+   BOTÃO TREINOS - V6 CROSSFIT
+   ======================================== */
+
+.treinos-btn {
+    background: linear-gradient(135deg, #00D9FF, #00B8D4);
+    color: #000;
+    font-size: 1.1rem;
+    padding: 15px 30px;
+    margin: 10px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 400px;
+    font-weight: bold;
+    border: 2px solid #00D9FF;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+    text-align: center;
+}
+
+.treinos-btn:hover {
+    background: linear-gradient(135deg, #00B8D4, #0099AA);
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.treinos-btn:active {
+    transform: scale(0.98);
+}
+#login-result {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    min-height: 60px;
+}
+
+.success { color: #4CAF50; font-weight: bold; }
+.error   { color: #E63946; font-weight: bold; }

@@ -9,119 +9,18 @@
     <link rel="icon" href="logo-v6.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"></script>
-
-    <!-- Estilos que adicionamos antes (mantendo a correção da lista com scroll) -->
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            min-height: 100vh;
-        }
-
-        .hidden { display: none !important; }
-
-        #app-content {
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        #setup {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        #addParticipant {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        #addParticipant input,
-        #addParticipant select {
-            padding: 10px;
-            font-size: 15px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #161b22;
-            color: white;
-            min-width: 140px;
-            flex: 1 1 180px;
-        }
-
-        #participantList {
-            max-height: 50vh;
-            overflow-y: auto;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #participantList li {
-            padding: 12px 16px;
-            border-bottom: 1px solid #30363d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #participantList::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #participantList::-webkit-scrollbar-track {
-            background: #0d1117;
-        }
-
-        #participantList::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- Tela de Login – COMENTADA para pular autenticação temporariamente -->
-    <!--
-    <div id="login-screen">
-        <h1>V6 WODPulse - Login</h1>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Box (slug):</label>
-                <select name="slug" required>
-                    <option value="">Selecione seu box</option>
-                    <option value="v6">V6 CrossFit</option>
-                    <option value="uranium">CrossFit Uranium</option>
-                    <option value="apolo">CrossFit Apolo</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Usuário:</label>
-                <input type="text" name="username" placeholder="ex: adminv6" required />
-            </div>
-
-            <div class="form-group">
-                <label>Senha:</label>
-                <input type="password" name="password" required />
-            </div>
-
-            <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-
-        <div id="login-result" style="margin-top:20px; min-height:80px;"></div>
-    </div>
-    -->
-
-    <!-- Conteúdo principal (agora visível diretamente) -->
-    <div id="app-content"> <!-- removido .hidden -->
+    <!-- Conteúdo principal (login comentado temporariamente) -->
+    <div id="app-content">
 
         <div id="setup">
             <h1>V6 WODPulse - Configurar Aula</h1>
-            <button onclick="logout()" class="btn-logout">Sair</button>
+            
+            <div style="text-align: right; margin: 0 0 20px;">
+                <button onclick="logout()" class="btn-logout">Sair</button>
+            </div>
             
             <div id="addParticipant">
                 <input type="text" id="nameInput" placeholder="Nome do Aluno">
@@ -232,7 +131,7 @@
     <script src="db.js"></script>
     <script src="script.js"></script>
 
-    <!-- Script de autenticação – partes de login comentadas -->
+    <!-- Script de autenticação e load (mantido como estava) -->
     <script>
         // Variáveis globais necessárias
         let authToken = null;
@@ -240,13 +139,10 @@
 
         function showLoginScreen() {
             console.log('[LOGIN] Mostrando tela de login – FUNÇÃO DESATIVADA TEMPORARIAMENTE');
-            // document.getElementById('login-screen')?.classList.remove('hidden');
-            // document.getElementById('app-content')?.classList.add('hidden');
         }
 
         function showAppContent() {
             console.log('[LOGIN] Mostrando conteúdo principal');
-            // document.getElementById('login-screen')?.classList.add('hidden');
             document.getElementById('app-content')?.classList.remove('hidden');
         }
 
@@ -256,14 +152,12 @@
             localStorage.removeItem('wodpulse_box');
             authToken = null;
             currentBox = null;
-            // showLoginScreen();  // desativado temporariamente
-            location.reload();     // recarrega pra manter sem login
+            location.reload();
         }
 
         async function loadParticipantsFromBackend() {
             if (!authToken) {
                 console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
-                // return;  // comentado para permitir teste sem autenticação
             }
 
             console.log('[LOAD] Iniciando busca de alunos. Token:', authToken ? authToken.substring(0, 20) + '...' : 'NENHUM');
@@ -281,7 +175,6 @@
 
                 if (!response.ok) {
                     console.warn('[LOAD] Falha na requisição. Status:', response.status);
-                    // throw new Error(...);  // comentado para não travar
                     return;
                 }
 
@@ -339,17 +232,8 @@
                 currentBox = JSON.parse(localStorage.getItem('wodpulse_box') || '{}');
             }
 
-            // Força exibição do conteúdo principal
             showAppContent();
             loadParticipantsFromBackend();
-
-            // Evento de login comentado completamente
-            /*
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', async (e) => { ... });
-            }
-            */
         });
     </script>
 </body>
