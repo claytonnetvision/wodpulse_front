@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - WODPulse</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos específicos para admin */
+    body.admin { background: #0a0e14; }
+    .admin-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    .section { background: #161b22; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
+    .section h2 { color: #FF5722; margin-top: 0; }
+    table.admin-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    table.admin-table th, table.admin-table td { padding: 12px; border-bottom: 1px solid #30363d; text-align: left; }
+    table.admin-table th { background: #0d1117; color: #aaa; }
+    .btn-admin { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 6px; }
+    .btn-edit   { background: #4CAF50; color: white; }
+    .btn-delete { background: #E63946; color: white; }
+    .btn-details { background: #2196F3; color: white; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-content { background: #1c1c1c; padding: 30px; border-radius: 12px; max-width: 90%; max-height: 90vh; overflow-y: auto; width: 1000px; }
+    .close-modal { float: right; font-size: 2.5rem; cursor: pointer; color: #aaa; }
+  </style>
+</head>
+<body class="admin">
+
+  <div class="admin-container">
+    <h1 style="color:#FF5722; text-align:center;">Admin - WODPulse</h1>
+    <p style="text-align:center; color:#888;">Gerencie alunos e aulas (use com cuidado)</p>
+
+    <!-- Seção Alunos -->
+    <div class="section">
+      <h2>Alunos Cadastrados</h2>
+      <table class="admin-table" id="alunosTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Peso</th>
+            <th>Altura</th>
+            <th>Gênero</th>
+            <th>Email</th>
+            <th>Pulseira</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Seção Aulas -->
+    <div class="section">
+      <h2>Aulas Registradas</h2>
+      <table class="admin-table" id="aulasTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome da Aula</th>
+            <th>Data/Hora Início</th>
+            <th>Duração (min)</th>
+            <th>Alunos</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal detalhes -->
+  <div id="detailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="document.getElementById('detailsModal').style.display='none'">&times;</span>
+      <h2 id="modalTitle">Detalhes</h2>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

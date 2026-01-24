@@ -548,7 +548,10 @@ body {
 #full-ranking-modal span:hover {
     color: white;
 }
-
+/* Admin extras */
+.admin-table th { background: #0d1117; color: #FF5722; }
+.admin-table tr:hover { background: #1e1e1e; }
+.modal-content h3 { color: #FF9800; margin: 20px 0 10px; }
 /* Evita scroll lateral */
 #monitor-panel, #participants, #weekly-rankings, #header {
     max-width: 100%;
