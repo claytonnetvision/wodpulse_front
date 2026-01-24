@@ -42,7 +42,7 @@ const classTimes = [
     { name: "Aula das 18:00", start: "18:00", end: "19:00" },
     { name: "Aula das 19:00", start: "19:00", end: "20:00" }
 ];
-// NOVO: Timer para captura de FC repouso após 60 segundos
+// Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
@@ -106,7 +106,7 @@ function stopAllTimersAndLoops() {
         restingHRCaptureTimer = null;
     }
 }
-// NOVO: Captura FC repouso após 60 segundos
+// Captura FC repouso após 60 segundos
 function startRestingHRCapture() {
     if (restingHRCaptureTimer) clearTimeout(restingHRCaptureTimer);
     console.log('[RESTING HR] Agendando captura em 60 segundos');
@@ -146,7 +146,6 @@ async function loadParticipantsFromBackend() {
             throw new Error(`Erro HTTP ${response.status}`);
         }
         const data = await response.json();
-        console.log('[LOAD DEBUG] Dados brutos do backend:', data);
         participants = data.participants.map(p => ({
             id: p.id,
             name: p.name,
@@ -161,7 +160,7 @@ async function loadParticipantsFromBackend() {
             historicalMaxHR: p.historical_max_hr,
             deviceId: p.device_id,
             deviceName: p.device_name,
-            device: null, // ← importante para reconexão
+            device: null,
             hr: 0,
             connected: false,
             lastUpdate: 0,
@@ -190,7 +189,7 @@ async function loadParticipantsFromBackend() {
             zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
             lastHR: null,
             lastZone: null,
-            _hrListener: null // evita duplicar eventos de HR
+            _hrListener: null
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
@@ -349,21 +348,17 @@ async function pairDeviceToParticipant(p) {
 
         await connectDevice(device, false);
 
-        // ── ADIÇÃO: FORÇA LIMPEZA E RECONEXÃO FRESCA PARA GARANTIR NOTIFICAÇÕES ───────
+        // Força limpeza e reconexão fresca para garantir notificações
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
-                console.log(`[PAIR CLEANUP] Desconectado forçadamente ${p.name} para reset limpo`);
+                console.log(`[PAIR] Desconectado forçadamente ${p.name} para reset limpo`);
             }
-            // Limpa listener antigo
             p._hrListener = null;
-            console.log(`[PAIR CLEANUP] Listener de HR limpo para ${p.name}`);
-            // Reconecta do zero
             await connectDevice(device, false);
-            console.log(`[PAIR CLEANUP] Reconexão forçada concluída para ${p.name}`);
+            console.log(`[PAIR] Reconexão segura concluída para ${p.name}`);
         } catch (cleanupErr) {
-            console.warn(`[PAIR CLEANUP] Erro na limpeza/reconexão: ${cleanupErr.message}`);
-            // Continua mesmo assim
+            console.warn(`[PAIR] Erro na limpeza/reconexão: ${cleanupErr.message}`);
         }
 
         alert(`Pulseira pareada com sucesso para ${p.name}! (${p.deviceName})`);
@@ -565,18 +560,17 @@ window.addParticipantDuringClass = async function() {
 
         await connectDevice(device, false);
 
-        // ── ADIÇÃO: FORÇA LIMPEZA E RECONEXÃO FRESCA PARA NOVOS ALUNOS ───────────────
+        // Força limpeza e reconexão fresca
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
-                console.log(`[ADD DURING CLASS CLEANUP] Desconectado forçadamente ${p.name} para reset`);
+                console.log(`[ADD] Desconectado forçadamente ${p.name} para reset`);
             }
             p._hrListener = null;
-            console.log(`[ADD DURING CLASS CLEANUP] Listener de HR limpo para ${p.name}`);
             await connectDevice(device, false);
-            console.log(`[ADD DURING CLASS CLEANUP] Reconexão forçada concluída para ${p.name}`);
+            console.log(`[ADD] Reconexão forçada concluída para ${p.name}`);
         } catch (cleanupErr) {
-            console.warn(`[ADD DURING CLASS CLEANUP] Erro na limpeza: ${cleanupErr.message}`);
+            console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
 
         renderTiles();
@@ -661,7 +655,6 @@ async function autoStartClass(className) {
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
         if (!currentSessionId) return;
-        console.log("[HR Sample] Tentando salvar amostras...");
         let savedCount = 0;
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
@@ -670,7 +663,6 @@ async function autoStartClass(className) {
                 savedCount++;
             }
         }
-        console.log(`[HR Sample] ${savedCount} amostras salvas nesta rodada.`);
     }, 120000);
     if (trimpInterval) clearInterval(trimpInterval);
     trimpInterval = setInterval(calculateTRIMPIncrement, 15000);
@@ -781,7 +773,6 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
             hrValue,
             isValid: hrValue >= 30 && hrValue <= 120
         });
-        console.log(`[RESTING HR] Medição salva: ${hrValue} bpm (participante ${participantId}, sessão ${sessionId})`);
     } catch (err) {
         console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
     }
@@ -793,7 +784,6 @@ async function autoEndClass() {
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
-    console.log(`[DEBUG FINALIZAR] wodStartTime: ${wodStartTime}, duration: ${durationMinutes} min`);
     // Atualiza FC média apenas dos ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
@@ -807,21 +797,14 @@ async function autoEndClass() {
                 .where('[participantId+sessionId]')
                 .equals([p.id, currentSessionId])
                 .toArray();
-            console.log(`[DEBUG FC REPOUSO] Aluno ${p.name} (ID ${p.id}): ${restingSamples.length} amostras totais na sessão ${currentSessionId}`);
             if (restingSamples.length >= 1) {
                 const validHRs = restingSamples
                     .map(s => s.hrValue)
                     .filter(v => v >= 30 && v <= 120);
-                console.log(`[DEBUG FC REPOUSO] Aluno ${p.name}: ${validHRs.length} amostras válidas (30-120 bpm)`);
                 if (validHRs.length >= 1) {
                     const avgResting = Math.round(validHRs.reduce((a,b)=>a+b,0) / validHRs.length);
                     p.realRestingHR = avgResting;
-                    console.log(`[RESTING HR] FC repouso calculada para ${p.name}: ${avgResting} bpm (${validHRs.length} medições válidas)`);
-                } else {
-                    console.log(`[RESTING HR] Nenhuma amostra válida para ${p.name} (${validHRs.length})`);
                 }
-            } else {
-                console.log(`[RESTING HR] Nenhuma amostra para ${p.name} (${restingSamples.length})`);
             }
         }
     }
@@ -835,35 +818,27 @@ async function autoEndClass() {
             const trimpBonus = (p.trimpPoints || 0) * 0.15;
             const vo2Bonus = (p.vo2TimeSeconds || 0) / 60 * 15;
             p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
-            console.log(`[EPOC] Estimado para ${p.name}: ${p.epocEstimated} kcal`);
         }
     });
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
-    activeParticipants.forEach(id => {
-        const p = participants.find(p => p.id === id);
-        if (p) console.log(`[DEBUG CALORIAS ANTES DE ENVIAR] ${p.name}: ${p.calories || 0} kcal (calories_total será ${Math.round(p.calories || 0)})`);
-    });
-    const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => {
-        console.log(`[DEBUG PARTICIPANT] ${p.name}: id=${p.id}, connected=${p.connected}, hr=${p.hr}, minRed=${p.minRed || 0}, trimp=${p.trimpPoints || 0}, real_resting_hr=${p.realRestingHR || p.restingHR || 'null'}`);
-        return {
-            participantId: p.id,
-            avg_hr: p.avg_hr,
-            min_gray: Math.round(p.minGray || 0),
-            min_green: Math.round(p.minGreen || 0),
-            min_blue: Math.round(p.minBlue || 0),
-            min_yellow: Math.round(p.minYellow || 0),
-            min_orange: Math.round(p.minOrange || 0),
-            min_red: Math.round(p.minRed || 0),
-            trimp_total: Number(p.trimpPoints.toFixed(2)),
-            calories_total: Math.round(p.calories || 0),
-            vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
-            epoc_estimated: p.epocEstimated || 0,
-            max_hr_reached: p.maxHRReached || null,
-            real_resting_hr: p.realRestingHR || p.restingHR || null
-        };
-    });
+    const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
+        participantId: p.id,
+        avg_hr: p.avg_hr,
+        min_gray: Math.round(p.minGray || 0),
+        min_green: Math.round(p.minGreen || 0),
+        min_blue: Math.round(p.minBlue || 0),
+        min_yellow: Math.round(p.minYellow || 0),
+        min_orange: Math.round(p.minOrange || 0),
+        min_red: Math.round(p.minRed || 0),
+        trimp_total: Number(p.trimpPoints.toFixed(2)),
+        calories_total: Math.round(p.calories || 0),
+        vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
+        epoc_estimated: p.epocEstimated || 0,
+        max_hr_reached: p.maxHRReached || null,
+        real_resting_hr: p.realRestingHR || p.restingHR || null
+    }));
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
         date_start: sessionStart.toISOString(),
@@ -872,11 +847,6 @@ async function autoEndClass() {
         box_id: 1,
         participantsData
     };
-    console.log("[SALVAR AUTOMÁTICO] Salvando sessão sem confirmação do usuário");
-    console.log('[SESSION DEBUG] Enviando sessão para o backend:');
-    console.log('JSON completo:', JSON.stringify(sessionData, null, 2));
-    console.log('participantsData length:', participantsData.length);
-    console.log('duration_minutes enviado:', durationMinutes);
     try {
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
@@ -885,11 +855,9 @@ async function autoEndClass() {
         });
         if (!res.ok) {
             const errText = await res.text();
-            console.error('[SESSION DEBUG] Erro na resposta do backend:', errText);
             throw new Error(`Erro ao salvar sessão: ${errText}`);
         }
         const json = await res.json();
-        console.log('[SESSION] Sessão salva com ID:', json.sessionId);
         lastSessionSummary = {
             className: currentActiveClassName,
             dateTime: sessionEnd.toLocaleString('pt-BR'),
@@ -909,7 +877,7 @@ async function autoEndClass() {
         }
         currentActiveClassName = "";
         isManualClass = false;
-        activeParticipants = []; // limpa seleção após finalizar
+        activeParticipants = [];
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
@@ -919,7 +887,6 @@ async function autoEndClass() {
         if (autoClassInterval) {
             clearInterval(autoClassInterval);
             autoClassInterval = null;
-            console.log("Monitor automático pausado após sair da aula");
         }
         alert('Aula finalizada e salva automaticamente no banco!');
     } catch (err) {
@@ -936,7 +903,6 @@ async function limitManualSessionsToday() {
     while (manualsToday.length > 3) {
         const oldest = manualsToday.shift();
         await db.sessions.delete(oldest.id);
-        console.log(`Aula manual mais antiga deletada (limite de 3/dia): ${oldest.id}`);
     }
 }
 function renderLastSessionSummary() {
@@ -1019,7 +985,6 @@ function renderParticipantList() {
             } else {
                 activeParticipants = activeParticipants.filter(i => i !== id);
             }
-            console.log('[SELEÇÃO] Alunos ativos para aula:', activeParticipants);
             const startBtn = document.getElementById('startScanBtn');
             if (startBtn) {
                 startBtn.disabled = activeParticipants.length === 0;
@@ -1071,21 +1036,15 @@ function updateQueimaCaloriesAndTimer() {
             }
             const percent = Math.round((p.hr / p.maxHR) * 100);
             const zone = getZone(percent);
-            // Contador de segundos na zona
             if (!p.zoneSeconds) p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
             p.zoneSeconds[zone] += 1;
-            // Incremento de pontos a cada 60 segundos na zona
             if (p.zoneSeconds[zone] >= 60) {
                 let pontosThisMinute = pontosPorMinuto[zone] || 0;
-                // Penalidade se >3 minutos em red
                 if (zone === 'red' && (p.minRed || 0) > 3) {
                     pontosThisMinute *= 0.5;
-                    console.log(`[QUEIMA PENALIDADE] ${p.name} - >3 min em red → pontos reduzidos para ${pontosThisMinute.toFixed(4)} pts/min`);
                 }
-                // Bônus TRIMP ×10
                 const trimpBonus = p.trimpPoints > 0 ? p.trimpPoints * 10 : 0;
                 p.queimaPoints += pontosThisMinute + trimpBonus;
-                console.log(`[QUEIMA MINUTO] ${p.name} | Zona:${zone} | +${pontosThisMinute.toFixed(4)} pts | TRIMP bonus:${trimpBonus.toFixed(2)} | Total:${p.queimaPoints.toFixed(2)}`);
                 p.zoneSeconds[zone] = 0;
             }
             if (zone === 'gray') p.minGray = (p.minGray || 0) + 1/60;
@@ -1102,10 +1061,8 @@ function updateQueimaCaloriesAndTimer() {
             } else {
                 p.redStartTime = null;
             }
-            // AJUSTADO: Bônus de recuperação rápida
             if (p.lastHR && p.lastZone === 'red' && zone !== 'red' && (p.lastHR - p.hr > 25)) {
-                p.queimaPoints += 5; // +5 pontos por recuperação rápida
-                console.log(`[QUEIMA BÔNUS] ${p.name} - Recuperação rápida (+5 pts)`);
+                p.queimaPoints += 5;
             }
             p.lastHR = p.hr;
             p.lastZone = zone;
@@ -1177,30 +1134,22 @@ function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
    
     reconnectInterval = setInterval(async () => {
-        console.log("[RECONNECT LOOP] Verificando dispositivos desconectados...");
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
             if (!p || !p.device || p.connected) continue;
-            console.log(`[RECONNECT] Tentando reconectar ${p.name} (${p.deviceName || p.deviceId})`);
             try {
                 if (p.device.gatt?.connected) {
-                    console.log(`[${p.name}] Já está conectado no GATT → ignorando`);
                     p.connected = true;
                     continue;
                 }
-                console.log(`[${p.name}] Executando device.gatt.connect()...`);
                 await p.device.gatt.connect();
-                // Reativa notificações
                 const server = p.device.gatt;
                 const service = await server.getPrimaryService('heart_rate');
                 const char = await service.getCharacteristic('heart_rate_measurement');
-                // Remove listener antigo se existir
                 if (p._hrListener) {
                     char.removeEventListener('characteristicvaluechanged', p._hrListener);
-                    console.log(`[RECONNECT] Listener antigo removido para ${p.name}`);
                 }
                 p._hrListener = (e) => {
-                    console.log(`[HR EVENT RECEBIDO via RECONNECT] ${p.name} - Raw value:`, e.target.value);
                     const val = e.target.value;
                     const flags = val.getUint8(0);
                     let hr = (flags & 0x01) ? val.getUint16(1, true) : val.getUint8(1);
@@ -1210,18 +1159,14 @@ function startReconnectLoop() {
                     renderTiles();
                 };
                 char.addEventListener('characteristicvaluechanged', p._hrListener);
-                console.log(`[RECONNECT] Novo listener de HR adicionado para ${p.name}`);
                 await char.startNotifications();
                 p.connected = true;
-                console.log(`[${p.name}] Reconectado com sucesso via gatt.connect()`);
-                renderTiles();
             } catch (err) {
-                console.warn(`[${p.name}] Falha na reconexão automática: ${err.name} - ${err.message}`);
                 p.connected = false;
                 renderTiles();
             }
         }
-    }, 5000); // 5 segundos – pode mudar para 3000 ou 8000 se quiser testar
+    }, 5000);
 }
 function stopReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
@@ -1229,38 +1174,25 @@ function stopReconnectLoop() {
 async function connectDevice(device, isReconnect = false) {
     let p = participants.find(x => x.device?.id === device.id || x.deviceId === device.id);
     if (!p) {
-        console.log("Device não encontrado no array de participants");
         return;
     }
    
-    console.log(`[CONNECT] Iniciando conexão para ${p.name} - Device ID: ${device.id}, Reconnect: ${isReconnect}`);
     try {
         const server = await device.gatt.connect();
-        console.log(`[CONNECT] GATT server conectado para ${p.name}`);
         device.addEventListener('gattserverdisconnected', () => {
             p.connected = false;
             p.hr = 0;
             renderTiles();
-            console.log(`Device de ${p.name} desconectado`);
         });
         const service = await server.getPrimaryService('heart_rate');
         const char = await service.getCharacteristic('heart_rate_measurement');
         await char.startNotifications();
-        console.log(`[CONNECT] Notificações iniciadas para ${p.name}`);
 
-        // Remove listener antigo para evitar duplicação
         if (p._hrListener) {
-            try {
-                char.removeEventListener('characteristicvaluechanged', p._hrListener);
-                console.log(`[HR CLEANUP] Listener antigo removido para ${p.name}`);
-            } catch (e) {
-                console.warn(`[HR CLEANUP] Erro ao remover listener antigo: ${e.message}`);
-            }
+            char.removeEventListener('characteristicvaluechanged', p._hrListener);
         }
 
-        // Cria e salva o listener
         p._hrListener = (e) => {
-            console.log(`[HR EVENT RECEBIDO] ${p.name} - Raw value:`, e.target.value);
             const val = e.target.value;
             const flags = val.getUint8(0);
             let hr;
@@ -1281,23 +1213,12 @@ async function connectDevice(device, isReconnect = false) {
             renderTiles();
         };
         char.addEventListener('characteristicvaluechanged', p._hrListener);
-        console.log(`[HR LISTENER] Adicionado com sucesso para ${p.name}`);
 
         p.connected = true;
         p.lastUpdate = Date.now();
         p.lastSampleTime = p.lastSampleTime || Date.now();
         renderTiles();
-        console.log(`Conectado com sucesso: ${p.name} (${p.hr || 'aguardando HR'})`);
-        if (currentSessionId && p.connected && p.lastSampleTime === p.lastUpdate) {
-            if (p.hr >= 30 && p.hr <= 120) {
-                console.log(`[RESTING HR ON CONNECT] Primeira conexão de ${p.name} - salvando amostra inicial: ${p.hr} bpm`);
-                await saveRestingHRSample(p.id, currentSessionId, p.hr);
-            } else {
-                console.log(`[RESTING HR ON CONNECT] HR inicial inválido para ${p.name}: ${p.hr} bpm`);
-            }
-        }
     } catch (e) {
-        console.error(`[CONNECT ERROR] ${p.name}:`, e.message, e.stack);
         p.connected = false;
         renderTiles();
     }
@@ -1507,5 +1428,5 @@ function getTodayDate() {
     return new Date().toISOString().split('T')[0];
 }
 // Placeholders Tecnofit
-async function checkTecnofitStatus() { console.log("Buscando check-ins..."); }
-async function fetchDailyWorkout() { console.log("Buscando WOD..."); }
+async function checkTecnofitStatus() { }
+async function fetchDailyWorkout() { }
