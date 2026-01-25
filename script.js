@@ -10,7 +10,6 @@ let burnInterval = null;
 let trimpInterval = null;
 let reconnectInterval = null;
 let autoClassInterval = null;
-let zoneCounterInterval = null; // Novo: contador de zonas a cada 60s
 let currentActiveClassName = "";
 let isManualClass = false;
 let autoClassMonitorActive = true; // controla se o monitor automático está ativo
@@ -106,7 +105,6 @@ function stopAllTimersAndLoops() {
         clearTimeout(restingHRCaptureTimer);
         restingHRCaptureTimer = null;
     }
-    if (zoneCounterInterval) clearInterval(zoneCounterInterval);
 }
 // Captura FC repouso após 60 segundos
 function startRestingHRCapture() {
@@ -191,12 +189,7 @@ async function loadParticipantsFromBackend() {
             zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
             lastHR: null,
             lastZone: null,
-            _hrListener: null,
-            // NOVO: contadores de minutos por zona (acumulados durante a aula)
-            min_zone2: 0,
-            min_zone3: 0,
-            min_zone4: 0,
-            min_zone5: 0
+            _hrListener: null
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
@@ -285,11 +278,7 @@ window.addNewParticipantFromSetup = async function() {
             zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
             lastHR: null,
             lastZone: null,
-            _hrListener: null,
-            min_zone2: 0,
-            min_zone3: 0,
-            min_zone4: 0,
-            min_zone5: 0
+            _hrListener: null
         });
         renderParticipantList();
         document.getElementById('nameInput').value = '';
@@ -356,7 +345,9 @@ async function pairDeviceToParticipant(p) {
         if (!response.ok) {
             throw new Error('Falha ao salvar pulseira');
         }
+
         await connectDevice(device, false);
+
         // Força limpeza e reconexão fresca para garantir notificações
         try {
             if (device.gatt && device.gatt.connected) {
@@ -369,6 +360,7 @@ async function pairDeviceToParticipant(p) {
         } catch (cleanupErr) {
             console.warn(`[PAIR] Erro na limpeza/reconexão: ${cleanupErr.message}`);
         }
+
         alert(`Pulseira pareada com sucesso para ${p.name}! (${p.deviceName})`);
         renderParticipantList();
         if (currentActiveClassName) renderTiles();
@@ -550,11 +542,7 @@ window.addParticipantDuringClass = async function() {
                 vo2TimeSeconds: 0,
                 vo2LastUpdate: 0,
                 zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
-                _hrListener: null,
-                min_zone2: 0,
-                min_zone3: 0,
-                min_zone4: 0,
-                min_zone5: 0
+                _hrListener: null
             };
             participants.push(p);
         }
@@ -655,20 +643,14 @@ async function autoStartClass(className) {
             p.minYellow = 0;
             p.realRestingHR = null;
             p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
-            // NOVO: reset contadores de zona
-            p.min_zone2 = 0;
-            p.min_zone3 = 0;
-            p.min_zone4 = 0;
-            p.min_zone5 = 0;
         }
     });
     wodStartTime = Date.now();
     currentSessionId = null;
     startRestingHRCapture();
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
-    // NOVO: Iniciar contador de zonas a cada 60 segundos
-    if (zoneCounterInterval) clearInterval(zoneCounterInterval);
-    zoneCounterInterval = setInterval(countZones, 60000);
+   
+   
     startReconnectLoop();
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
@@ -687,28 +669,113 @@ async function autoStartClass(className) {
     renderTiles();
     updateReconnectButtonVisibility();
 }
-// NOVO: Função que roda a cada 60 segundos para contar minutos por zona
-function countZones() {
+async function reconnectAllSavedDevices() {
+    console.log("Reconexão manual solicitada...");
+    let connectedCount = 0;
+    let failedCount = 0;
+    for (const id of activeParticipants) {
+        const p = participants.find(p => p.id === id);
+        if (p && p.deviceId && !p.connected) {
+            console.log(`Tentando reconectar ${p.name} (ID salvo: ${p.deviceId})`);
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['heart_rate'] }],
+                    optionalServices: ['heart_rate']
+                });
+                if (device.id === p.deviceId) {
+                    p.device = device;
+                    await connectDevice(device, true);
+                    connectedCount++;
+                    console.log(`Reconectado manualmente: ${p.name}`);
+                } else {
+                    console.log(`Device errado selecionado para ${p.name}`);
+                    failedCount++;
+                    alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
+                }
+            } catch (e) {
+                console.error(`Falha ao reconectar ${p.name}:`, e);
+                failedCount++;
+            }
+        }
+    }
+    alert(`Reconexão manual concluída!\nConectados: ${connectedCount}\nFalhas: ${failedCount}`);
+    if (connectedCount > 0) {
+        document.getElementById('authorizeReconnectBtn')?.classList.add('hidden');
+    }
+}
+function updateReconnectButtonVisibility() {
+    const btn = document.getElementById('reconnectDevicesBtn');
+    if (btn) {
+        btn.classList.toggle('hidden', !currentActiveClassName);
+    }
+}
+// ── CÁLCULO TRIMP COM BANISTER ──────────────────────────────────────────────────
+function calculateTRIMPIncrement() {
+    const now = Date.now();
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
+        const deltaMs = now - p.lastSampleTime;
+        if (deltaMs < 5000) return;
+        const deltaMin = deltaMs / 60000;
+        const resting = Number(p.realRestingHR || p.restingHR) || 60;
+        const hrr = p.maxHR - resting;
+        if (hrr <= 0) return;
+        let ratio = (p.hr - resting) / hrr;
+        ratio = Math.max(0, Math.min(1, ratio));
+        const y = p.gender === 'F' ? 1.67 : 1.92;
+        const factor = 0.64 * Math.exp(y * ratio);
+        const weight = Number(p.weight) || 70;
+        const increment = deltaMin * ratio * factor * weight * 0.00008;
+        p.trimpPoints += increment;
+        p.trimpPoints = Number(p.trimpPoints.toFixed(2));
+        p.lastSampleTime = now;
+    });
+    renderTiles();
+    updateLeaderboard();
+    updateVO2Leaderboard();
+}
+// ── CÁLCULO DO VO2 TIME ─────────────────────────────────────────────────────────
+function updateVO2Time() {
     const now = Date.now();
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
-
-        const percent = (p.hr / p.maxHR) * 100;
-
-        if (percent >= 60 && percent < 70) {
-            p.min_zone2 = (p.min_zone2 || 0) + 1;
-        } else if (percent >= 70 && percent < 80) {
-            p.min_zone3 = (p.min_zone3 || 0) + 1;
-        } else if (percent >= 80 && percent < 90) {
-            p.min_zone4 = (p.min_zone4 || 0) + 1;
-        } else if (percent >= 90) {
-            p.min_zone5 = (p.min_zone5 || 0) + 1;
+        const percentMax = (p.hr / p.maxHR) * 100;
+        const isInVO2Zone = percentMax >= 92;
+        if (isInVO2Zone) {
+            if (!p.vo2ZoneActive) {
+                p.vo2ZoneActive = true;
+                p.vo2GraceStart = now;
+                p.vo2StartTime = null;
+            }
+            if (p.vo2GraceStart && (now - p.vo2GraceStart >= 60000)) {
+                if (!p.vo2StartTime) p.vo2StartTime = now;
+                const deltaSec = (now - (p.vo2LastUpdate || p.vo2StartTime)) / 1000;
+                p.vo2TimeSeconds += deltaSec;
+            }
+        } else {
+            p.vo2ZoneActive = false;
+            p.vo2GraceStart = null;
+            p.vo2StartTime = null;
         }
-
-        console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
+        p.vo2LastUpdate = now;
     });
-    renderTiles(); // atualiza a interface (opcional, mas ajuda a ver em tempo real)
+}
+// ── SALVAR MEDIÇÃO DE FC REPOUSO ───────────────────────────────────────────────
+async function saveRestingHRSample(participantId, sessionId, hrValue) {
+    if (!currentSessionId) return;
+    try {
+        await db.restingHrMeasurements.add({
+            participantId,
+            sessionId,
+            measuredAt: new Date().toISOString(),
+            hrValue,
+            isValid: hrValue >= 30 && hrValue <= 120
+        });
+    } catch (err) {
+        console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
+    }
 }
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
@@ -717,13 +784,11 @@ async function autoEndClass() {
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
-
     // Atualiza FC média apenas dos ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
-
     // Calcular FC de repouso dinâmica para cada aluno ativo
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
@@ -743,7 +808,6 @@ async function autoEndClass() {
             }
         }
     }
-
     // EPOC apenas para ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
@@ -756,11 +820,9 @@ async function autoEndClass() {
             p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
         }
     });
-
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
-
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
         avg_hr: p.avg_hr,
@@ -775,14 +837,8 @@ async function autoEndClass() {
         vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
         epoc_estimated: p.epocEstimated || 0,
         max_hr_reached: p.maxHRReached || null,
-        real_resting_hr: p.realRestingHR || p.restingHR || null,
-        // NOVO: tempos acumulados por zona (em minutos)
-        min_zone2: Math.round(p.min_zone2 || 0),
-        min_zone3: Math.round(p.min_zone3 || 0),
-        min_zone4: Math.round(p.min_zone4 || 0),
-        min_zone5: Math.round(p.min_zone5 || 0)
+        real_resting_hr: p.realRestingHR || p.restingHR || null
     }));
-
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
         date_start: sessionStart.toISOString(),
@@ -791,7 +847,6 @@ async function autoEndClass() {
         box_id: 1,
         participantsData
     };
-
     try {
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
