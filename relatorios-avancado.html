@@ -118,6 +118,11 @@
                         <th data-sort="total_queima_points" title="Soma total de pontos de queima (baseado em TRIMP)">Total Queima Points</th>
                         <th data-sort="trimp_medio" title="Média de TRIMP (carga de treino) por aula">TRIMP Médio</th>
                         <th data-sort="epoc_medio" title="Média de EPOC estimado (dívida de oxigênio pós-treino)">EPOC Médio</th>
+                        <!-- NOVAS COLUNAS DE ZONAS -->
+                        <th data-sort="total_min_zone2" title="Tempo acumulado em Zona 2 (60-70% da FCmáx)">Zona 2 (min)</th>
+                        <th data-sort="total_min_zone3" title="Tempo acumulado em Zona 3 (70-80% da FCmáx)">Zona 3 (min)</th>
+                        <th data-sort="total_min_zone4" title="Tempo acumulado em Zona 4 (80-90% da FCmáx)">Zona 4 (min)</th>
+                        <th data-sort="total_min_zone5" title="Tempo acumulado em Zona 5 (>90% da FCmáx)">Zona 5 (min)</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -132,6 +137,7 @@
                     <li><strong>FC Média Geral</strong>: Média simples de todas as FC médias das aulas do aluno.</li>
                     <li><strong>FC Máx Geral</strong>: Maior FC atingida em qualquer momento de qualquer aula.</li>
                     <li><strong>Total Zona Vermelha (min)</strong>: Tempo acumulado com FC ≥ 90% da FC máx.</li>
+                    <li><strong>Zona 2 / 3 / 4 / 5 (min)</strong>: Tempo acumulado em cada faixa de intensidade (% da FC máx) – ajuda a entender o tipo de treino (endurance, limiar, VO2, etc.).</li>
                     <li><strong>Total Queima Points / TRIMP Médio</strong>: Carga de treino (fórmula Banister/TRIMP) – média e soma de todas as aulas.</li>
                     <li><strong>EPOC Médio</strong>: Estimativa de dívida de oxigênio pós-treino (baseado em tempo em zona alta + TRIMP + VO2).</li>
                 </ul>
@@ -164,6 +170,11 @@
                         <th data-sort="trimp_total">TRIMP Total</th>
                         <th data-sort="epoc_estimated">EPOC Estimado</th>
                         <th data-sort="real_resting_hr">FC Repouso</th>
+                        <!-- NOVAS COLUNAS DE ZONAS -->
+                        <th data-sort="min_zone2">Zona 2 (min)</th>
+                        <th data-sort="min_zone3">Zona 3 (min)</th>
+                        <th data-sort="min_zone4">Zona 4 (min)</th>
+                        <th data-sort="min_zone5">Zona 5 (min)</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -229,7 +240,7 @@
             const dataFim = document.getElementById('filter-data-fim').value;
 
             try {
-                // Ranking Acumulado
+                // Ranking Acumulado (agora com zonas)
                 let urlRanking = `${API_BASE_URL}/api/participants/ranking-acumulado`;
                 const params = [];
                 if (alunoId) params.push(`alunoId=${alunoId}`);
@@ -268,7 +279,7 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
             } else {
                 data.forEach((item, index) => {
                     const tr = document.createElement('tr');
@@ -288,12 +299,17 @@
                         <td>${Math.round(item.total_queima_points || 0)} pts</td>
                         <td>${item.trimp_medio ? Number(item.trimp_medio).toFixed(2) : '0.00'}</td>
                         <td>${item.epoc_medio ? Number(item.epoc_medio).toFixed(2) : '0.00'} kcal</td>
+                        <!-- NOVAS COLUNAS DE ZONAS -->
+                        <td>${Math.round(item.total_min_zone2 || 0)} min</td>
+                        <td>${Math.round(item.total_min_zone3 || 0)} min</td>
+                        <td>${Math.round(item.total_min_zone4 || 0)} min</td>
+                        <td>${Math.round(item.total_min_zone5 || 0)} min</td>
                     `;
                     tbody.appendChild(tr);
                 });
             }
 
-            // Gráfico Dispersão FC Máx vs Calorias
+            // Gráfico Dispersão FC Máx vs Calorias (mantido como estava)
             const ctx = document.getElementById('dispersaoChart').getContext('2d');
             if (dispersaoChart) dispersaoChart.destroy();
             dispersaoChart = new Chart(ctx, {
@@ -334,7 +350,7 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="15" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="19" class="no-data">Nenhum dado encontrado com os filtros.</td></tr>';
                 document.getElementById('linhaChartContainer').style.display = 'none';
                 return;
             }
@@ -359,11 +375,16 @@
                     <td>${Number(item.trimp_total || 0).toFixed(2)}</td>
                     <td>${Math.round(item.epoc_estimated || 0)} kcal</td>
                     <td>${item.real_resting_hr || '--'} bpm</td>
+                    <!-- NOVAS COLUNAS DE ZONAS -->
+                    <td>${Math.round(item.min_zone2 || 0)} min</td>
+                    <td>${Math.round(item.min_zone3 || 0)} min</td>
+                    <td>${Math.round(item.min_zone4 || 0)} min</td>
+                    <td>${Math.round(item.min_zone5 || 0)} min</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // Gráfico Linha: FC Média + FC Máx + FC Repouso
+            // Gráfico Linha: FC Média + FC Máx + FC Repouso (mantido como estava)
             if (document.getElementById('filter-aluno').value) {
                 document.getElementById('linhaChartContainer').style.display = 'block';
                 document.getElementById('alunoSelecionado').textContent = document.getElementById('filter-aluno').options[document.getElementById('filter-aluno').selectedIndex].text;
