@@ -1,7 +1,6 @@
 // script.js - Frontend WODPulse (modificado para Vercel + Render)
 // Use API_BASE_URL para o domínio do backend (Render)
-const API_BASE_URL = 'https://wodpulse-back.onrender.com';  // seu backend no Render
-
+const API_BASE_URL = 'https://wodpulse-back.onrender.com'; // seu backend no Render
 let participants = [];
 let activeParticipants = []; // IDs dos alunos selecionados para a aula atual
 let tecnofitEnabled = false;
@@ -14,20 +13,16 @@ let autoClassInterval = null;
 let zoneCounterInterval = null; // Novo: contador de zonas a cada 60s
 let currentActiveClassName = "";
 let isManualClass = false;
-let autoClassMonitorActive = true;  // controla se o monitor automático está ativo
-
+let autoClassMonitorActive = true; // controla se o monitor automático está ativo
 // Controle de sessão e amostras HR
 let currentSessionId = null;
 let hrSampleInterval = null;
-
 // Resumo da última aula para mostrar no setup
 let lastSessionSummary = null;
-
 // Histórico semanal e Campeão do dia
 let weeklyHistory = { weekStart: "", participants: {} };
 let dailyLeader = { date: "", name: "", queimaPoints: 0 };
 let dailyCaloriesLeader = { date: "", name: "", calories: 0 };
-
 // Tabela de pontos (como você deixou - valores por MINUTO)
 const pontosPorMinuto = {
     gray: 0,
@@ -37,7 +32,6 @@ const pontosPorMinuto = {
     orange: 0.03,
     red: 0.05
 };
-
 const classTimes = [
     { name: "Aula das 06:00", start: "06:00", end: "07:00" },
     { name: "Aula das 07:15", start: "07:15", end: "08:15" },
@@ -49,73 +43,59 @@ const classTimes = [
     { name: "Aula das 18:00", start: "18:00", end: "19:00" },
     { name: "Aula das 19:00", start: "19:00", end: "20:00" }
 ];
-
 // Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
-
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
         console.warn("A página não está em HTTPS. Web Bluetooth pode não funcionar.");
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
     }
-
     participants = await loadParticipantsFromDB();
-    
+  
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
     renderWeeklyRankings();
     renderDailyLeader();
     renderDailyCaloriesLeader();
-
     document.getElementById('dashboard').classList.add('hidden');
     document.getElementById('setup').classList.remove('hidden');
     currentActiveClassName = "";
     isManualClass = false;
     stopAllTimersAndLoops();
-
     autoClassMonitorActive = true;
     startAutoClassMonitor();
-
     document.getElementById('startScanBtn')?.addEventListener('click', () => {
         autoClassMonitorActive = true;
         autoStartClass("Aula Manual");
     });
-
     document.getElementById('fullRankingBtn')?.addEventListener('click', showFullRanking);
     document.getElementById('exportPdfBtn')?.addEventListener('click', exportRankingToPDF);
     document.getElementById('resetWeeklyBtn')?.addEventListener('click', resetWeeklyRanking);
-
     document.getElementById('reportsBtn')?.addEventListener('click', () => {
         window.open('relatorios-avancado.html', '_blank');
     });
-
     document.getElementById('reconnectDevicesBtn')?.addEventListener('click', async () => {
         await reconnectAllSavedDevices();
         alert("Reconexão manual solicitada!");
     });
-
     document.getElementById('authorizeReconnectBtn')?.addEventListener('click', async () => {
         await reconnectAllSavedDevices();
         alert("Autorização concluída!");
     });
-
     document.getElementById('backBtn')?.addEventListener('click', () => {
         if (confirm("Finalizar aula e voltar para cadastro?")) {
             autoEndClass();
         }
     });
-
     renderParticipantList();
     renderLastSessionSummary();
 });
-
 function stopAllTimersAndLoops() {
     if (burnInterval) clearInterval(burnInterval);
     if (trimpInterval) clearInterval(trimpInterval);
     if (reconnectInterval) clearInterval(reconnectInterval);
-    if (zoneCounterInterval) clearInterval(zoneCounterInterval);
     stopWODTimer();
     stopReconnectLoop();
     if (hrSampleInterval) {
@@ -126,21 +106,17 @@ function stopAllTimersAndLoops() {
         clearTimeout(restingHRCaptureTimer);
         restingHRCaptureTimer = null;
     }
+    if (zoneCounterInterval) clearInterval(zoneCounterInterval);
 }
-
 // Captura FC repouso após 60 segundos
 function startRestingHRCapture() {
     if (restingHRCaptureTimer) clearTimeout(restingHRCaptureTimer);
-
     console.log('[RESTING HR] Agendando captura em 60 segundos');
-
     restingHRCaptureTimer = setTimeout(() => {
         console.log('[RESTING HR] === CAPTURA EXECUTANDO ===');
-
         let minHR = Infinity;
         let capturedCount = 0;
         let capturedDetails = [];
-
         activeParticipants.forEach(id => {
             const p = participants.find(part => part.id === id);
             if (p && p.connected && p.hr >= 30 && p.hr <= 120) {
@@ -149,11 +125,9 @@ function startRestingHRCapture() {
                 capturedDetails.push({ name: p.name, hr: p.hr });
             }
         });
-
         if (capturedCount > 0 && minHR !== Infinity) {
             const restingValue = Math.round(minHR);
             console.log(`[RESTING HR] Captura OK: ${restingValue} bpm (${capturedCount} medições)`, capturedDetails);
-
             activeParticipants.forEach(id => {
                 const p = participants.find(part => part.id === id);
                 if (p) {
@@ -164,21 +138,16 @@ function startRestingHRCapture() {
         } else {
             console.warn('[RESTING HR] Nenhuma HR válida 30-120 bpm após 60s');
         }
-    }, 60000);  // 60 segundos
+    }, 60000); // 60 segundos
 }
-
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
 async function loadParticipantsFromBackend() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/participants`);
-
         if (!response.ok) {
             throw new Error(`Erro HTTP ${response.status}`);
         }
-
         const data = await response.json();
-        console.log('[LOAD DEBUG] Dados brutos do backend:', data);
-
         participants = data.participants.map(p => ({
             id: p.id,
             name: p.name,
@@ -223,12 +192,12 @@ async function loadParticipantsFromBackend() {
             lastHR: null,
             lastZone: null,
             _hrListener: null,
+            // NOVO: contadores de minutos por zona (acumulados durante a aula)
             min_zone2: 0,
             min_zone3: 0,
             min_zone4: 0,
             min_zone5: 0
-        })) || [];
-
+        }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
     } catch (err) {
@@ -237,7 +206,6 @@ async function loadParticipantsFromBackend() {
         renderParticipantList();
     }
 }
-
 // ── CADASTRO MANUAL ─────────────────────────────────────────────────────────────
 window.addNewParticipantFromSetup = async function() {
     const name = document.getElementById('nameInput')?.value.trim();
@@ -247,13 +215,10 @@ window.addNewParticipantFromSetup = async function() {
     const gender = document.getElementById('genderInput')?.value || null;
     const email = document.getElementById('emailInput')?.value.trim() || null;
     const useTanaka = document.getElementById('useTanakaInput')?.checked || false;
-
     if (!name) {
         return alert("Preencha pelo menos o nome do aluno!");
     }
-
     const estimatedMaxHR = useTanaka ? Math.round(208 - 0.7 * (age || 30)) : (220 - (age || 30));
-
     const data = {
         name,
         age,
@@ -267,19 +232,16 @@ window.addNewParticipantFromSetup = async function() {
         device_id: null,
         device_name: null
     };
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/participants`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-
         const json = await response.json();
         if (!response.ok) {
             throw new Error(json.error || 'Erro ao cadastrar aluno');
         }
-
         const newP = json.participant;
         participants.push({
             id: newP.id,
@@ -329,7 +291,6 @@ window.addNewParticipantFromSetup = async function() {
             min_zone4: 0,
             min_zone5: 0
         });
-
         renderParticipantList();
         document.getElementById('nameInput').value = '';
         document.getElementById('ageInput').value = '';
@@ -340,7 +301,6 @@ window.addNewParticipantFromSetup = async function() {
         if (document.getElementById('useTanakaInput')) {
             document.getElementById('useTanakaInput').checked = false;
         }
-
         alert(`Aluno ${name} cadastrado com sucesso!`);
         if (confirm(`Deseja parear uma pulseira agora para ${name}?`)) {
             await pairDeviceToParticipant(participants[participants.length - 1]);
@@ -350,7 +310,6 @@ window.addNewParticipantFromSetup = async function() {
         alert('Erro ao cadastrar aluno: ' + err.message);
     }
 };
-
 // ── PAIR DEVICE COM EMPRÉSTIMO ─────────────────────────────────────────────────
 async function pairDeviceToParticipant(p) {
     try {
@@ -383,11 +342,9 @@ async function pairDeviceToParticipant(p) {
                 return;
             }
         }
-
         p.device = device;
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
-
         const response = await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -396,18 +353,15 @@ async function pairDeviceToParticipant(p) {
                 device_name: p.deviceName
             })
         });
-
         if (!response.ok) {
             throw new Error('Falha ao salvar pulseira');
         }
-
         await connectDevice(device, false);
-
-        // Força limpeza e reconexão fresca
+        // Força limpeza e reconexão fresca para garantir notificações
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
-                console.log(`[PAIR] Desconectado forçadamente ${p.name} para reset`);
+                console.log(`[PAIR] Desconectado forçadamente ${p.name} para reset limpo`);
             }
             p._hrListener = null;
             await connectDevice(device, false);
@@ -415,7 +369,6 @@ async function pairDeviceToParticipant(p) {
         } catch (cleanupErr) {
             console.warn(`[PAIR] Erro na limpeza/reconexão: ${cleanupErr.message}`);
         }
-
         alert(`Pulseira pareada com sucesso para ${p.name}! (${p.deviceName})`);
         renderParticipantList();
         if (currentActiveClassName) renderTiles();
@@ -424,24 +377,20 @@ async function pairDeviceToParticipant(p) {
         alert("Pulseira não pareada.");
     }
 };
-
 // ── EDITAR ALUNO COM GERENCIAMENTO DE PULSEIRA ──────────────────────────────────
 async function editParticipant(id) {
     const p = participants.find(part => part.id === id);
     if (!p) return alert('Aluno não encontrado');
-
     const action = prompt(
         "O que você quer editar?\n\n" +
         "1 - Nome, idade, peso, altura, email, etc.\n" +
         "2 - Gerenciar pulseira (remover ou trocar)\n\n" +
         "Digite 1 ou 2 (ou cancele):"
     );
-
     if (action === null) {
         alert("Edição cancelada.");
         return;
     }
-
     if (action === "1") {
         const newName = prompt("Novo nome:", p.name);
         if (newName === null) return;
@@ -451,7 +400,6 @@ async function editParticipant(id) {
         const newGender = prompt("Gênero (M/F/O):", p.gender || '') || null;
         const newEmail = prompt("Email:", p.email || '') || null;
         const newUseTanaka = confirm("Usar fórmula Tanaka?", p.useTanaka);
-
         const data = {
             name: newName ? newName.trim() : p.name,
             age: parseInt(newAge) || p.age,
@@ -463,16 +411,13 @@ async function editParticipant(id) {
             max_hr: p.maxHR,
             historical_max_hr: p.historicalMaxHR
         };
-
         try {
             const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
             if (!res.ok) throw new Error('Erro ao editar dados');
-
             Object.assign(p, data);
             renderParticipantList();
             alert('Dados do aluno atualizados com sucesso!');
@@ -510,24 +455,20 @@ async function editParticipant(id) {
         alert("Opção inválida. Edição cancelada.");
     }
 }
-
 // ── EXCLUIR ALUNO ──────────────────────────────────────────────────────────────
 window.deleteParticipant = async function(id) {
     if (!confirm(`Tem certeza que deseja excluir o aluno com ID ${id}? Essa ação não pode ser desfeita.`)) {
         return;
     }
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }
         });
-
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.error || 'Erro ao excluir aluno');
         }
-
         participants = participants.filter(p => p.id !== id);
         renderParticipantList();
         alert('Aluno excluído com sucesso!');
@@ -536,7 +477,6 @@ window.deleteParticipant = async function(id) {
         alert('Erro ao excluir aluno: ' + err.message);
     }
 };
-
 // ── ADICIONAR DURANTE AULA ──────────────────────────────────────────────────────
 window.addParticipantDuringClass = async function() {
     try {
@@ -546,10 +486,9 @@ window.addParticipantDuringClass = async function() {
             alert(`⚠️ Esta pulseira já está cadastrada para o aluno: ${alreadyRegistered.name}`);
             return;
         }
-
         const name = prompt("Nome do Aluno:");
         if (!name) return;
-       
+      
         let p = participants.find(x => x.name.toLowerCase() === name.toLowerCase().trim());
         if (!p) {
             const age = parseInt(prompt("Idade:", "30"));
@@ -558,7 +497,6 @@ window.addParticipantDuringClass = async function() {
             const gender = prompt("Gênero (M/F/O):", "M") || null;
             const email = prompt("Email (opcional):", "") || null;
             const estimatedMaxHR = 220 - age;
-
             const response = await fetch(`${API_BASE_URL}/api/participants`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -576,9 +514,7 @@ window.addParticipantDuringClass = async function() {
                     device_name: null
                 })
             });
-
             if (!response.ok) throw new Error('Erro ao cadastrar aluno no backend');
-
             const json = await response.json();
             p = {
                 id: json.participant.id,
@@ -622,11 +558,9 @@ window.addParticipantDuringClass = async function() {
             };
             participants.push(p);
         }
-
         p.device = device;
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
-
         await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -635,9 +569,7 @@ window.addParticipantDuringClass = async function() {
                 device_name: p.deviceName
             })
         });
-
         await connectDevice(device, false);
-
         // Força limpeza e reconexão fresca
         try {
             if (device.gatt && device.gatt.connected) {
@@ -650,7 +582,6 @@ window.addParticipantDuringClass = async function() {
         } catch (cleanupErr) {
             console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
-
         renderTiles();
         alert(`Aluno ${p.name} adicionado e pulseira pareada!`);
     } catch (e) {
@@ -658,7 +589,6 @@ window.addParticipantDuringClass = async function() {
         alert("Erro ao adicionar aluno durante aula.");
     }
 };
-
 // ── MONITORAMENTO AUTOMÁTICO ────────────────────────────────────────────────────
 function startAutoClassMonitor() {
     if (!autoClassMonitorActive) {
@@ -669,13 +599,12 @@ function startAutoClassMonitor() {
     checkCurrentClassTime();
     autoClassInterval = setInterval(checkCurrentClassTime, 30000);
 }
-
 function checkCurrentClassTime() {
     const now = new Date();
     const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-   
+  
     const activeClass = classTimes.find(c => currentTimeStr >= c.start && currentTimeStr < c.end);
-   
+  
     if (activeClass && currentActiveClassName === "") {
         console.log(`Aula detectada: ${activeClass.name}. Iniciando...`);
         autoStartClass(activeClass.name);
@@ -684,26 +613,21 @@ function checkCurrentClassTime() {
         autoEndClass();
     }
 }
-
 async function autoStartClass(className) {
     if (activeParticipants.length === 0) {
         alert("Selecione pelo menos 1 aluno para iniciar a aula!");
         return;
     }
-
     const nowStr = new Date().toTimeString().slice(0,5);
     const scheduled = classTimes.find(c => nowStr >= c.start && nowStr < c.end);
     if (className === "Aula Manual" && scheduled) {
         className = scheduled.name;
     }
-
     currentActiveClassName = className;
     isManualClass = className === "Aula Manual";
-
     document.getElementById('setup').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     document.getElementById('current-class-name').textContent = className;
-
     // Resetar contadores APENAS dos alunos selecionados
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
@@ -734,18 +658,14 @@ async function autoStartClass(className) {
             p.min_zone5 = 0;
         }
     });
-
     wodStartTime = Date.now();
     currentSessionId = null;
-
     startRestingHRCapture();
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
-
+    // NOVO: Iniciar contador de zonas a cada 60 segundos
     if (zoneCounterInterval) clearInterval(zoneCounterInterval);
     zoneCounterInterval = setInterval(countZones, 60000);
-
     startReconnectLoop();
-
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
         if (!currentSessionId) return;
@@ -758,15 +678,12 @@ async function autoStartClass(className) {
             }
         }
     }, 120000);
-
     if (trimpInterval) clearInterval(trimpInterval);
     trimpInterval = setInterval(calculateTRIMPIncrement, 15000);
-
     renderTiles();
     updateReconnectButtonVisibility();
 }
-
-// Contador de zonas a cada 60 segundos
+// NOVO: Função que roda a cada 60 segundos para contar minutos por zona
 function countZones() {
     const now = Date.now();
     activeParticipants.forEach(id => {
@@ -789,22 +706,20 @@ function countZones() {
     });
     renderTiles();
 }
-
-// ── FINALIZAR AULA (agora com descarte no frontend se < 4 min e manual) ────────
+// ── FINALIZAR AULA (com descarte no frontend para aulas manuais curtas) ────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
-   
+  
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
-    // NOVO: Descarte no frontend para aulas manuais curtas (< 4 minutos)
-    const isManualClass = currentActiveClassName === "Aula Manual" || currentActiveClassName.toLowerCase().includes("manual");
+    // Descarte no frontend para aulas manuais curtas (< 4 minutos)
+    const isManualClass = currentActiveClassName.toLowerCase().includes('manual');
     if (isManualClass && durationMinutes < 4) {
-        console.log(`[DISCARD FRONTEND] Aula manual curta (${durationMinutes} min) - não salva no banco nem envia e-mail`);
-        alert(`Aula manual muito curta (${durationMinutes} minutos). Não foi registrada no sistema para evitar comparativos errados.`);
+        console.log(`[DISCARD FRONTEND] Aula manual curta (${durationMinutes} min) - não salva nem envia e-mail`);
+        alert(`Aula manual muito curta (${durationMinutes} minutos). Não foi registrada para evitar comparativos errados com a IA.`);
         
-        // Volta pro setup sem salvar nada
         stopAllTimersAndLoops();
         currentSessionId = null;
         currentActiveClassName = "";
@@ -816,10 +731,10 @@ async function autoEndClass() {
         renderTiles();
         updateReconnectButtonVisibility();
         if (autoClassInterval) clearInterval(autoClassInterval);
-        return; // Sai da função sem salvar
+        return;
     }
 
-    // Se chegou aqui → aula válida → prossegue com salvamento normal
+    // Se chegou aqui → aula válida → salva normal
     console.log(`[SAVE] Aula válida - duração: ${durationMinutes} min`);
 
     // Atualiza FC média apenas dos ativos
@@ -948,7 +863,6 @@ async function autoEndClass() {
         alert('Erro ao salvar sessão: ' + err.message);
     }
 }
-
 // ── RESTANTE DO CÓDIGO ORIGINAL (continuação exata) ────────────────────────────────
 function renderParticipantList() {
     const container = document.getElementById('participantListContainer');
@@ -1018,7 +932,6 @@ function renderParticipantList() {
         container.innerHTML += '<p style="color:#888;">Nenhum aluno cadastrado ainda.</p>';
     }
 }
-
 function startWODTimer(officialStartTimeStr) {
     if (officialStartTimeStr) {
         const now = new Date();
@@ -1032,19 +945,15 @@ function startWODTimer(officialStartTimeStr) {
     if (burnInterval) clearInterval(burnInterval);
     burnInterval = setInterval(updateQueimaCaloriesAndTimer, 1000);
 }
-
 function stopWODTimer() {
     if (burnInterval) clearInterval(burnInterval);
 }
-
 function updateQueimaCaloriesAndTimer() {
     const elapsedSeconds = Math.floor((Date.now() - wodStartTime) / 1000);
     document.getElementById('timer').textContent = formatTime(Math.max(0, elapsedSeconds));
-
     if (currentActiveClassName) {
         localStorage.setItem(`v6Session_${currentActiveClassName}_${getTodayDate()}`, JSON.stringify(participants));
     }
-
     const now = Date.now();
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
@@ -1097,13 +1006,12 @@ function updateQueimaCaloriesAndTimer() {
     updateDailyCaloriesLeader();
     renderWeeklyRankings();
 }
-
 function renderTiles() {
     const container = document.getElementById('participants');
     if (!container) return;
     const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
     const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
-   
+  
     container.innerHTML = '';
     const now = Date.now();
     sorted.forEach((p, index) => {
@@ -1124,7 +1032,7 @@ function renderTiles() {
             </div>
             <div class="bpm-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 180px;">
                 <div class="bpm">${p.connected && p.hr > 0 ? p.hr : '--'}<span class="bpm-label">BPM</span></div>
-               
+              
                 ${vo2ActiveAndCounting ? `
                     <div class="vo2-indicator" style="position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-size: 5.8rem; font-weight: 900; color: #FF1744; white-space: nowrap; letter-spacing: -2px;">
                         VO2↑
@@ -1151,10 +1059,9 @@ function renderTiles() {
         container.appendChild(tile);
     });
 }
-
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
-   
+  
     reconnectInterval = setInterval(async () => {
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
@@ -1190,17 +1097,15 @@ function startReconnectLoop() {
         }
     }, 5000);
 }
-
 function stopReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
 }
-
 async function connectDevice(device, isReconnect = false) {
     let p = participants.find(x => x.device?.id === device.id || x.deviceId === device.id);
     if (!p) {
         return;
     }
-   
+  
     try {
         const server = await device.gatt.connect();
         device.addEventListener('gattserverdisconnected', () => {
@@ -1211,11 +1116,9 @@ async function connectDevice(device, isReconnect = false) {
         const service = await server.getPrimaryService('heart_rate');
         const char = await service.getCharacteristic('heart_rate_measurement');
         await char.startNotifications();
-
         if (p._hrListener) {
             char.removeEventListener('characteristicvaluechanged', p._hrListener);
         }
-
         p._hrListener = (e) => {
             const val = e.target.value;
             const flags = val.getUint8(0);
@@ -1237,7 +1140,6 @@ async function connectDevice(device, isReconnect = false) {
             renderTiles();
         };
         char.addEventListener('characteristicvaluechanged', p._hrListener);
-
         p.connected = true;
         p.lastUpdate = Date.now();
         p.lastSampleTime = p.lastSampleTime || Date.now();
@@ -1247,7 +1149,6 @@ async function connectDevice(device, isReconnect = false) {
         renderTiles();
     }
 }
-
 // ── RANKINGS ────────────────────────────────────────────────────────────────────
 function updateLeaderboard() {
     if (!participants.length) return;
@@ -1257,7 +1158,6 @@ function updateLeaderboard() {
     const el = document.getElementById('leaderboard-top');
     if (el) el.textContent = `Líder Aula: ${l.name || '--'} (${l.queimaPoints.toFixed(2)} PTS)`;
 }
-
 function updateVO2Leaderboard() {
     const active = participants.filter(p => activeParticipants.includes(p.id));
     const topVO2 = active
@@ -1283,7 +1183,6 @@ function updateVO2Leaderboard() {
         document.getElementById('weekly-rankings')?.insertAdjacentHTML('beforeend', html);
     }
 }
-
 function showFullRanking() {
     const modal = document.getElementById('full-ranking-modal');
     const content = document.getElementById('full-ranking-content');
@@ -1308,7 +1207,6 @@ function showFullRanking() {
     content.innerHTML = html;
     modal.style.display = 'flex';
 }
-
 function exportRankingToPDF() {
     const element = document.getElementById('weekly-rankings');
     const opt = {
@@ -1320,7 +1218,6 @@ function exportRankingToPDF() {
     };
     html2pdf().set(opt).from(element).save();
 }
-
 // ── UTILITÁRIOS ─────────────────────────────────────────────────────────────────
 function getZone(p) {
     if (p < 50) return 'gray';
@@ -1330,11 +1227,9 @@ function getZone(p) {
     if (p < 90) return 'orange';
     return 'red';
 }
-
 function formatTime(s) {
     return Math.floor(s/60).toString().padStart(2,'0') + ":" + (s%60).toString().padStart(2,'0');
 }
-
 function loadWeeklyHistory() {
     const saved = localStorage.getItem('v6WeeklyHistory');
     if (saved) weeklyHistory = JSON.parse(saved);
@@ -1344,11 +1239,9 @@ function loadWeeklyHistory() {
         saveWeeklyHistory();
     }
 }
-
 function saveWeeklyHistory() {
     localStorage.setItem('v6WeeklyHistory', JSON.stringify(weeklyHistory));
 }
-
 function updateWeeklyTotals() {
     loadWeeklyHistory();
     participants.forEach(p => {
@@ -1361,7 +1254,6 @@ function updateWeeklyTotals() {
     saveWeeklyHistory();
     renderWeeklyRankings();
 }
-
 function resetWeeklyRanking() {
     if (!confirm("Resetar ranking semanal? Todos os dados da semana serão perdidos!")) return;
     const currentWeek = getCurrentWeekStart();
@@ -1370,7 +1262,6 @@ function resetWeeklyRanking() {
     renderWeeklyRankings();
     alert("Ranking semanal resetado!");
 }
-
 function loadDailyLeader() {
     const saved = localStorage.getItem('v6DailyLeader');
     if (saved) dailyLeader = JSON.parse(saved);
@@ -1380,11 +1271,9 @@ function loadDailyLeader() {
         saveDailyLeader();
     }
 }
-
 function saveDailyLeader() {
     localStorage.setItem('v6DailyLeader', JSON.stringify(dailyLeader));
 }
-
 function updateDailyLeader() {
     const active = participants.filter(p => activeParticipants.includes(p.id));
     const best = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
@@ -1395,12 +1284,10 @@ function updateDailyLeader() {
     }
     renderDailyLeader();
 }
-
 function renderDailyLeader() {
     const el = document.getElementById('daily-leader');
     if (el) el.textContent = dailyLeader.name ? `Campeão do Dia: ${dailyLeader.name} - ${dailyLeader.queimaPoints.toFixed(2)} PTS` : "Campeão do Dia: --";
 }
-
 function loadDailyCaloriesLeader() {
     const saved = localStorage.getItem('v6DailyCaloriesLeader');
     if (saved) dailyCaloriesLeader = JSON.parse(saved);
@@ -1410,11 +1297,9 @@ function loadDailyCaloriesLeader() {
         saveDailyCaloriesLeader();
     }
 }
-
 function saveDailyCaloriesLeader() {
     localStorage.setItem('v6DailyCaloriesLeader', JSON.stringify(dailyCaloriesLeader));
 }
-
 function updateDailyCaloriesLeader() {
     const active = participants.filter(p => activeParticipants.includes(p.id));
     const best = active.reduce((a, b) => (b.calories || 0) > (a.calories || 0) ? b : a, {calories:0});
@@ -1425,62 +1310,49 @@ function updateDailyCaloriesLeader() {
     }
     renderDailyCaloriesLeader();
 }
-
 function renderDailyCaloriesLeader() {
     const el = document.getElementById('daily-calories-leader');
     if (el) el.textContent = dailyCaloriesLeader.name ? `Mais calorias hoje: ${dailyCaloriesLeader.name} (${dailyCaloriesLeader.calories} kcal)` : "Mais calorias hoje: --";
 }
-
 function renderWeeklyRankings() {
     const queimaEl = document.getElementById('queima-ranking-top5');
     const caloriasEl = document.getElementById('calorias-ranking-top5');
     const vo2El = document.getElementById('vo2-ranking-top5');
-
     if (!queimaEl || !caloriasEl) return;
-
     const queima = Object.entries(weeklyHistory.participants)
         .map(([n, d]) => ({n, p: d.totalQueimaPontos || 0}))
         .sort((a,b)=>b.p-a.p)
         .slice(0,5);
-
     queimaEl.innerHTML = queima.length ? queima.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${x.p.toFixed(2)}</strong></div>`).join('') : 'Nenhum dado ainda';
-
     const calorias = Object.entries(weeklyHistory.participants)
         .map(([n, d]) => ({n, c: d.totalCalorias || 0}))
         .sort((a,b)=>b.c-a.c)
         .slice(0,5);
-
     caloriasEl.innerHTML = calorias.length ? calorias.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${Math.round(x.c)} kcal</strong></div>`).join('') : 'Nenhum dado ainda';
-
     const active = participants.filter(p => activeParticipants.includes(p.id));
     const topVO2 = active
         .filter(p => p.vo2TimeSeconds >= 60)
         .sort((a, b) => b.vo2TimeSeconds - a.vo2TimeSeconds)
         .slice(0,5);
-
     let vo2Html = '';
     if (topVO2.length > 0) {
         vo2Html = topVO2.map((p, i) => `<div class="position-${i+1}">${i+1}º ${p.name}: <strong>${formatTime(Math.round(p.vo2TimeSeconds))}</strong></div>`).join('');
     } else {
         vo2Html = 'Nenhum dado ainda';
     }
-
     if (vo2El) {
         vo2El.innerHTML = vo2Html;
     }
 }
-
 function getCurrentWeekStart() {
     const d = new Date();
     const day = d.getDay();
     const diff = d.getDate() - day + (day == 0 ? -6 : 1);
     return new Date(d.setDate(diff)).toISOString().split('T')[0];
 }
-
 function getTodayDate() {
     return new Date().toISOString().split('T')[0];
 }
-
 // Placeholders Tecnofit
-async function checkTecnofitStatus() { console.log("Buscando check-ins..."); }
-async function fetchDailyWorkout() { console.log("Buscando WOD..."); }
+async function checkTecnofitStatus() { }
+async function fetchDailyWorkout() { }
