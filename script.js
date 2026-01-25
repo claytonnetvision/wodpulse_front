@@ -52,7 +52,7 @@ window.addEventListener('load', async () => {
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
     }
     participants = await loadParticipantsFromDB();
-  
+   
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
@@ -192,6 +192,7 @@ async function loadParticipantsFromBackend() {
             lastHR: null,
             lastZone: null,
             _hrListener: null,
+            // NOVO: contadores de minutos por zona (acumulados durante a aula)
             min_zone2: 0,
             min_zone3: 0,
             min_zone4: 0,
@@ -487,7 +488,7 @@ window.addParticipantDuringClass = async function() {
         }
         const name = prompt("Nome do Aluno:");
         if (!name) return;
-      
+       
         let p = participants.find(x => x.name.toLowerCase() === name.toLowerCase().trim());
         if (!p) {
             const age = parseInt(prompt("Idade:", "30"));
@@ -568,7 +569,9 @@ window.addParticipantDuringClass = async function() {
                 device_name: p.deviceName
             })
         });
+
         await connectDevice(device, false);
+
         // Força limpeza e reconexão fresca
         try {
             if (device.gatt && device.gatt.connected) {
@@ -581,6 +584,7 @@ window.addParticipantDuringClass = async function() {
         } catch (cleanupErr) {
             console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
+
         renderTiles();
         alert(`Aluno ${p.name} adicionado e pulseira pareada!`);
     } catch (e) {
@@ -601,9 +605,9 @@ function startAutoClassMonitor() {
 function checkCurrentClassTime() {
     const now = new Date();
     const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-  
+   
     const activeClass = classTimes.find(c => currentTimeStr >= c.start && currentTimeStr < c.end);
-  
+   
     if (activeClass && currentActiveClassName === "") {
         console.log(`Aula detectada: ${activeClass.name}. Iniciando...`);
         autoStartClass(activeClass.name);
@@ -651,6 +655,7 @@ async function autoStartClass(className) {
             p.minYellow = 0;
             p.realRestingHR = null;
             p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
+            // NOVO: reset contadores de zona
             p.min_zone2 = 0;
             p.min_zone3 = 0;
             p.min_zone4 = 0;
@@ -703,38 +708,15 @@ function countZones() {
 
         console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
     });
-    renderTiles();
+    renderTiles(); // atualiza a interface (opcional, mas ajuda a ver em tempo real)
 }
-// ── FINALIZAR AULA (com descarte no frontend para aulas manuais curtas) ────────
+// ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
-  
+   
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
-
-    // Descarte no frontend para aulas manuais curtas (< 4 minutos)
-    const isManualClass = currentActiveClassName.toLowerCase().includes('manual');
-    if (isManualClass && durationMinutes < 4) {
-        console.log(`[DISCARD FRONTEND] Aula manual curta (${durationMinutes} min) - não salva nem envia e-mail`);
-        alert(`Aula manual muito curta (${durationMinutes} minutos). Não foi registrada para evitar comparativos errados com a IA.`);
-        
-        stopAllTimersAndLoops();
-        currentSessionId = null;
-        currentActiveClassName = "";
-        isManualClass = false;
-        activeParticipants = [];
-        document.getElementById('current-class-name').textContent = "Aula: --";
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('setup').classList.remove('hidden');
-        renderTiles();
-        updateReconnectButtonVisibility();
-        if (autoClassInterval) clearInterval(autoClassInterval);
-        return;
-    }
-
-    // Se chegou aqui → aula válida → salva normal
-    console.log(`[SAVE] Aula válida - duração: ${durationMinutes} min`);
 
     // Atualiza FC média apenas dos ativos
     activeParticipants.forEach(id => {
@@ -775,6 +757,10 @@ async function autoEndClass() {
         }
     });
 
+    if (currentActiveClassName === "Aula Manual") {
+        await limitManualSessionsToday();
+    }
+
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
         avg_hr: p.avg_hr,
@@ -790,6 +776,7 @@ async function autoEndClass() {
         epoc_estimated: p.epocEstimated || 0,
         max_hr_reached: p.maxHRReached || null,
         real_resting_hr: p.realRestingHR || p.restingHR || null,
+        // NOVO: tempos acumulados por zona (em minutos)
         min_zone2: Math.round(p.min_zone2 || 0),
         min_zone3: Math.round(p.min_zone3 || 0),
         min_zone4: Math.round(p.min_zone4 || 0),
@@ -811,12 +798,10 @@ async function autoEndClass() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(sessionData)
         });
-
         if (!res.ok) {
             const errText = await res.text();
             throw new Error(`Erro ao salvar sessão: ${errText}`);
         }
-
         const json = await res.json();
         lastSessionSummary = {
             className: currentActiveClassName,
@@ -826,43 +811,75 @@ async function autoEndClass() {
             topPoints: [...participantsData].sort((a,b)=>b.trimp_total-a.trimp_total).slice(0,3),
             topCalories: [...participantsData].sort((a,b)=>b.calories_total-a.calories_total).slice(0,3)
         };
-
         renderLastSessionSummary();
         updateWeeklyTotals();
         updateDailyLeader();
         updateDailyCaloriesLeader();
-
         stopAllTimersAndLoops();
         currentSessionId = null;
-
         if (currentActiveClassName) {
             localStorage.removeItem(`v6Session_${currentActiveClassName}_${getTodayDate()}`);
         }
-
         currentActiveClassName = "";
         isManualClass = false;
         activeParticipants = [];
-
         document.getElementById('current-class-name').textContent = "Aula: --";
         document.getElementById('dashboard').classList.add('hidden');
         document.getElementById('setup').classList.remove('hidden');
-
         renderTiles();
         updateReconnectButtonVisibility();
-
         autoClassMonitorActive = false;
         if (autoClassInterval) {
             clearInterval(autoClassInterval);
             autoClassInterval = null;
         }
-
         alert('Aula finalizada e salva automaticamente no banco!');
     } catch (err) {
         console.error('[SESSION] Erro ao salvar sessão:', err);
         alert('Erro ao salvar sessão: ' + err.message);
     }
 }
-// ── RESTANTE DO CÓDIGO ORIGINAL (continuação exata) ────────────────────────────────
+async function limitManualSessionsToday() {
+    const todayStart = new Date().toISOString().split('T')[0] + 'T00:00:00.000Z';
+    const manualsToday = await db.sessions
+        .where('className').equals('Aula Manual')
+        .filter(s => s.dateStart >= todayStart)
+        .sortBy('dateStart');
+    while (manualsToday.length > 3) {
+        const oldest = manualsToday.shift();
+        await db.sessions.delete(oldest.id);
+    }
+}
+function renderLastSessionSummary() {
+    const container = document.getElementById('last-class-summary');
+    if (!container) return;
+    if (!lastSessionSummary) {
+        container.classList.add('hidden');
+        return;
+    }
+    container.classList.remove('hidden');
+    let html = `
+        <p><strong>${lastSessionSummary.className}</strong> – ${lastSessionSummary.dateTime}</p>
+        <p><strong>Campeão em Pontos:</strong> ${lastSessionSummary.leaderPoints.name} (${lastSessionSummary.leaderPoints.points} pts)</p>
+        <p><strong>Mais Calorias:</strong> ${lastSessionSummary.leaderCalories.name} (${lastSessionSummary.leaderCalories.calories} kcal)</p>
+        <h3>Top 3 Pontos:</h3>
+        <ul style="margin:5px 0 15px 20px; color:#ccc;">
+    `;
+    lastSessionSummary.topPoints.forEach((p, i) => {
+        html += `<li>${i+1}º ${p.name} - ${p.queimaPoints} pts</li>`;
+    });
+    html += `</ul>
+        <h3 style="margin-top:30px;">Top 3 Calorias:</h3>
+        <ul style="margin:5px 0 15px 20px; color:#ccc;">
+    `;
+    lastSessionSummary.topCalories.forEach((p, i) => {
+        html += `<li>${i+1}º ${p.name} - ${p.calories} kcal</li>`;
+    });
+    html += `</ul>
+        <button onclick="window.open('relatorios-avancado.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Avançado</button>
+    `;
+    document.getElementById('summary-content').innerHTML = html;
+}
 function renderParticipantList() {
     const container = document.getElementById('participantListContainer');
     if (!container) return;
@@ -1010,7 +1027,7 @@ function renderTiles() {
     if (!container) return;
     const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
     const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
-  
+   
     container.innerHTML = '';
     const now = Date.now();
     sorted.forEach((p, index) => {
@@ -1031,7 +1048,7 @@ function renderTiles() {
             </div>
             <div class="bpm-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 180px;">
                 <div class="bpm">${p.connected && p.hr > 0 ? p.hr : '--'}<span class="bpm-label">BPM</span></div>
-              
+               
                 ${vo2ActiveAndCounting ? `
                     <div class="vo2-indicator" style="position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-size: 5.8rem; font-weight: 900; color: #FF1744; white-space: nowrap; letter-spacing: -2px;">
                         VO2↑
@@ -1060,7 +1077,7 @@ function renderTiles() {
 }
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
-  
+   
     reconnectInterval = setInterval(async () => {
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
@@ -1104,7 +1121,7 @@ async function connectDevice(device, isReconnect = false) {
     if (!p) {
         return;
     }
-  
+   
     try {
         const server = await device.gatt.connect();
         device.addEventListener('gattserverdisconnected', () => {
@@ -1115,9 +1132,11 @@ async function connectDevice(device, isReconnect = false) {
         const service = await server.getPrimaryService('heart_rate');
         const char = await service.getCharacteristic('heart_rate_measurement');
         await char.startNotifications();
+
         if (p._hrListener) {
             char.removeEventListener('characteristicvaluechanged', p._hrListener);
         }
+
         p._hrListener = (e) => {
             const val = e.target.value;
             const flags = val.getUint8(0);
@@ -1139,6 +1158,7 @@ async function connectDevice(device, isReconnect = false) {
             renderTiles();
         };
         char.addEventListener('characteristicvaluechanged', p._hrListener);
+
         p.connected = true;
         p.lastUpdate = Date.now();
         p.lastSampleTime = p.lastSampleTime || Date.now();
