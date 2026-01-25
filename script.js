@@ -192,7 +192,6 @@ async function loadParticipantsFromBackend() {
             lastHR: null,
             lastZone: null,
             _hrListener: null,
-            // NOVO: contadores de minutos por zona (acumulados durante a aula)
             min_zone2: 0,
             min_zone3: 0,
             min_zone4: 0,
