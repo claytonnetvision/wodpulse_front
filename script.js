@@ -685,12 +685,20 @@ async function autoStartClass(className) {
             }
         }
     }, 120000);
+    // ADIÇÃO PARA EVITAR ERRO: placeholder para função que estava faltando
+    // Se você tiver a função calculateTRIMPIncrement, descomente e implemente
     if (trimpInterval) clearInterval(trimpInterval);
-    trimpInterval = setInterval(calculateTRIMPIncrement, 15000);
+    trimpInterval = setInterval(() => {
+        console.log('[TRIMP] Placeholder - implemente calculateTRIMPIncrement se necessário');
+        // calculateTRIMPIncrement(); // descomente quando tiver a função
+    }, 15000);
     renderTiles();
+    // ADIÇÃO PARA EVITAR ERRO: placeholder para função que estava faltando
+    updateReconnectButtonVisibility = updateReconnectButtonVisibility || function() {
+        console.log('[RECONNECT] Placeholder - botão de reconexão visível');
+    };
     updateReconnectButtonVisibility();
 }
-// NOVO: Função que roda a cada 60 segundos para contar minutos por zona
 function countZones() {
     const now = Date.now();
     activeParticipants.forEach(id => {
@@ -1017,6 +1025,10 @@ function updateQueimaCaloriesAndTimer() {
             p.lastUpdate = now;
         }
     });
+    // ADIÇÃO PARA EVITAR ERRO: placeholder para função que estava faltando
+    updateVO2Time = updateVO2Time || function() {
+        console.log('[VO2] Placeholder - implemente updateVO2Time se necessário');
+    };
     updateVO2Time();
     renderTiles();
     updateLeaderboard();
@@ -1378,3 +1390,19 @@ function getTodayDate() {
 // Placeholders Tecnofit
 async function checkTecnofitStatus() { }
 async function fetchDailyWorkout() { }
+
+// ADIÇÃO PARA EVITAR ERRO: placeholders para funções que estavam faltando no código enviado
+function calculateTRIMPIncrement() {
+    console.log('[TRIMP] Placeholder - implemente calculateTRIMPIncrement se necessário');
+    // Aqui você coloca a lógica real de cálculo de TRIMP se quiser
+}
+
+function updateVO2Time() {
+    console.log('[VO2] Placeholder - implemente updateVO2Time se necessário');
+    // Aqui você coloca a lógica real de atualização de VO2 se quiser
+}
+
+function updateReconnectButtonVisibility() {
+    console.log('[RECONNECT] Placeholder - botão de reconexão visível');
+    // Aqui você coloca a lógica real de mostrar/esconder o botão de reconexão
+}
