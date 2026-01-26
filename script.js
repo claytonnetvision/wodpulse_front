@@ -10,6 +10,7 @@ let burnInterval = null;
 let trimpInterval = null;
 let reconnectInterval = null;
 let autoClassInterval = null;
+let zoneCounterInterval = null; // Novo: contador de zonas a cada 60s
 let currentActiveClassName = "";
 let isManualClass = false;
 let autoClassMonitorActive = true; // controla se o monitor automático está ativo
@@ -105,6 +106,7 @@ function stopAllTimersAndLoops() {
         clearTimeout(restingHRCaptureTimer);
         restingHRCaptureTimer = null;
     }
+    if (zoneCounterInterval) clearInterval(zoneCounterInterval); // limpa o contador de zonas
 }
 // Captura FC repouso após 60 segundos
 function startRestingHRCapture() {
@@ -643,14 +645,20 @@ async function autoStartClass(className) {
             p.minYellow = 0;
             p.realRestingHR = null;
             p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
+            // ADIÇÃO PARA ZONAS 2-5: reset contadores ao iniciar aula
+            p.min_zone2 = 0;
+            p.min_zone3 = 0;
+            p.min_zone4 = 0;
+            p.min_zone5 = 0;
         }
     });
     wodStartTime = Date.now();
     currentSessionId = null;
     startRestingHRCapture();
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
-   
-   
+    // ADIÇÃO PARA ZONAS 2-5: Iniciar contador de zonas a cada 60 segundos
+    if (zoneCounterInterval) clearInterval(zoneCounterInterval);
+    zoneCounterInterval = setInterval(countZones, 60000);
     startReconnectLoop();
     if (hrSampleInterval) clearInterval(hrSampleInterval);
     hrSampleInterval = setInterval(async () => {
@@ -777,6 +785,30 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
         console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
     }
 }
+// ── CONTADOR DE ZONAS 2 A 5 (a cada 60 segundos) ────────────────────────────────
+function countZones() {
+    const now = Date.now();
+    activeParticipants.forEach(id => {
+        const p = participants.find(p => p.id === id);
+        if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
+
+        const percent = (p.hr / p.maxHR) * 100;
+
+        // ADIÇÃO PARA ZONAS 2-5: incrementa 1 minuto a cada 60s
+        if (percent >= 60 && percent < 70) {
+            p.min_zone2 = (p.min_zone2 || 0) + 1;
+        } else if (percent >= 70 && percent < 80) {
+            p.min_zone3 = (p.min_zone3 || 0) + 1;
+        } else if (percent >= 80 && percent < 90) {
+            p.min_zone4 = (p.min_zone4 || 0) + 1;
+        } else if (percent >= 90) {
+            p.min_zone5 = (p.min_zone5 || 0) + 1;
+        }
+
+        console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
+    });
+    renderTiles(); // atualiza a interface (opcional, mas útil para debug)
+}
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
@@ -784,11 +816,13 @@ async function autoEndClass() {
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
+
     // Atualiza FC média apenas dos ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
     });
+
     // Calcular FC de repouso dinâmica para cada aluno ativo
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
@@ -808,6 +842,7 @@ async function autoEndClass() {
             }
         }
     }
+
     // EPOC apenas para ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
@@ -820,9 +855,11 @@ async function autoEndClass() {
             p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
         }
     });
+
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
+
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
         avg_hr: p.avg_hr,
@@ -837,8 +874,14 @@ async function autoEndClass() {
         vo2_time_seconds: Math.round(p.vo2TimeSeconds || 0),
         epoc_estimated: p.epocEstimated || 0,
         max_hr_reached: p.maxHRReached || null,
-        real_resting_hr: p.realRestingHR || p.restingHR || null
+        real_resting_hr: p.realRestingHR || p.restingHR || null,
+        // ADIÇÃO PARA ENVIAR ZONAS 2-5 PARA O BACKEND (agora salvas no banco)
+        min_zone2: Math.round(p.min_zone2 || 0),
+        min_zone3: Math.round(p.min_zone3 || 0),
+        min_zone4: Math.round(p.min_zone4 || 0),
+        min_zone5: Math.round(p.min_zone5 || 0)
     }));
+
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
         date_start: sessionStart.toISOString(),
@@ -847,6 +890,7 @@ async function autoEndClass() {
         box_id: 1,
         participantsData
     };
+
     try {
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
