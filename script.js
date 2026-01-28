@@ -65,7 +65,8 @@ window.addEventListener('load', async () => {
     isManualClass = false;
     stopAllTimersAndLoops();
     autoClassMonitorActive = true;
-    startAutoClassMonitor();
+    // startAutoClassMonitor(); // COMENTADO: removido o monitoramento automático de horário
+    // A aula agora só inicia e encerra manualmente (botão ou ação do usuário)
     document.getElementById('startScanBtn')?.addEventListener('click', () => {
         autoClassMonitorActive = true;
         autoStartClass("Aula Manual");
@@ -583,29 +584,32 @@ window.addParticipantDuringClass = async function() {
     }
 };
 // ── MONITORAMENTO AUTOMÁTICO ────────────────────────────────────────────────────
-function startAutoClassMonitor() {
-    if (!autoClassMonitorActive) {
-        console.log("Monitor automático pausado manualmente");
-        return;
-    }
-    console.log("Monitor de aulas automático iniciado...");
-    checkCurrentClassTime();
-    autoClassInterval = setInterval(checkCurrentClassTime, 30000);
-}
-function checkCurrentClassTime() {
-    const now = new Date();
-    const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-   
-    const activeClass = classTimes.find(c => currentTimeStr >= c.start && currentTimeStr < c.end);
-   
-    if (activeClass && currentActiveClassName === "") {
-        console.log(`Aula detectada: ${activeClass.name}. Iniciando...`);
-        autoStartClass(activeClass.name);
-    } else if (!activeClass && currentActiveClassName !== "" && !isManualClass) {
-        console.log("Horário de aula encerrado. Finalizando automaticamente...");
-        autoEndClass();
-    }
-}
+// COMENTADO: Removido o monitoramento automático de horário
+// A aula agora só inicia e encerra manualmente (botão ou ação do usuário)
+// function startAutoClassMonitor() {
+//     if (!autoClassMonitorActive) {
+//         console.log("Monitor automático pausado manualmente");
+//         return;
+//     }
+//     console.log("Monitor de aulas automático iniciado...");
+//     checkCurrentClassTime();
+//     autoClassInterval = setInterval(checkCurrentClassTime, 30000);
+// }
+// function checkCurrentClassTime() {
+//     const now = new Date();
+//     const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+//    
+//     const activeClass = classTimes.find(c => currentTimeStr >= c.start && currentTimeStr < c.end);
+//    
+//     if (activeClass && currentActiveClassName === "") {
+//         console.log(`Aula detectada: ${activeClass.name}. Iniciando...`);
+//         autoStartClass(activeClass.name);
+//     } else if (!activeClass && currentActiveClassName !== "" && !isManualClass) {
+//         console.log("Horário de aula encerrado. Finalizando automaticamente...");
+//         autoEndClass();
+//     }
+// }
+// ── INICIAR AULA MANUAL ─────────────────────────────────────────────────────────
 async function autoStartClass(className) {
     if (activeParticipants.length === 0) {
         alert("Selecione pelo menos 1 aluno para iniciar a aula!");
@@ -683,27 +687,26 @@ async function reconnectAllSavedDevices() {
     let failedCount = 0;
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
-        if (p && p.deviceId && !p.connected) {
-            console.log(`Tentando reconectar ${p.name} (ID salvo: ${p.deviceId})`);
-            try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate'] }],
-                    optionalServices: ['heart_rate']
-                });
-                if (device.id === p.deviceId) {
-                    p.device = device;
-                    await connectDevice(device, true);
-                    connectedCount++;
-                    console.log(`Reconectado manualmente: ${p.name}`);
-                } else {
-                    console.log(`Device errado selecionado para ${p.name}`);
-                    failedCount++;
-                    alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
-                }
-            } catch (e) {
-                console.error(`Falha ao reconectar ${p.name}:`, e);
+        if (!p || !p.deviceId || !p.connected) continue;
+        console.log(`Tentando reconectar ${p.name} (ID salvo: ${p.deviceId})`);
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['heart_rate'] }],
+                optionalServices: ['heart_rate']
+            });
+            if (device.id === p.deviceId) {
+                p.device = device;
+                await connectDevice(device, true);
+                connectedCount++;
+                console.log(`Reconectado manualmente: ${p.name}`);
+            } else {
+                console.log(`Device errado selecionado para ${p.name}`);
                 failedCount++;
+                alert(`Selecione a pulseira correta para ${p.name} (${p.deviceName || p.deviceId})`);
             }
+        } catch (e) {
+            console.error(`Falha ao reconectar ${p.name}:`, e);
+            failedCount++;
         }
     }
     alert(`Reconexão manual concluída!\nConectados: ${connectedCount}\nFalhas: ${failedCount}`);
