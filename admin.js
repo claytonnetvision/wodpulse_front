@@ -41,6 +41,7 @@ async function loadAulas() {
       const date = new Date(s.date_start).toLocaleString('pt-BR');
       const tr = document.createElement('tr');
       tr.innerHTML = `
+        <td><input type="checkbox" class="select-aula" data-id="${s.id}"></td>
         <td>${s.id}</td>
         <td>${s.class_name}</td>
         <td>${date}</td>
@@ -57,6 +58,45 @@ async function loadAulas() {
     console.error(err);
     alert('Erro ao carregar aulas: ' + err.message + '\nVerifique se o backend está rodando e a rota /api/sessions responde.');
   }
+}
+
+// NOVA FUNÇÃO: Excluir aulas selecionadas em massa
+async function deleteSelectedAulas() {
+  const checkboxes = document.querySelectorAll('.select-aula:checked');
+  if (checkboxes.length === 0) {
+    alert('Nenhuma aula selecionada para excluir.');
+    return;
+  }
+
+  if (!confirm(`Tem certeza que deseja excluir ${checkboxes.length} aula(s) selecionada(s)? Essa ação é irreversível!`)) {
+    return;
+  }
+
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (const cb of checkboxes) {
+    const id = cb.dataset.id;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sessions/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Falha na exclusão');
+      successCount++;
+    } catch (err) {
+      console.error(`Erro ao excluir aula ${id}:`, err);
+      errorCount++;
+    }
+  }
+
+  alert(`Exclusão concluída!\nSucesso: ${successCount}\nErros: ${errorCount}`);
+  loadAulas(); // recarrega a lista
+}
+
+// NOVA FUNÇÃO: Select All checkbox
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAll').checked;
+  document.querySelectorAll('.select-aula').forEach(cb => {
+    cb.checked = selectAll;
+  });
 }
 
 async function deleteAluno(id) {

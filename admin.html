@@ -19,6 +19,7 @@
     .btn-edit   { background: #4CAF50; color: white; }
     .btn-delete { background: #E63946; color: white; }
     .btn-details { background: #2196F3; color: white; }
+    .btn-mass-delete { background: #E63946; color: white; padding: 12px 20px; font-size: 1rem; margin-bottom: 15px; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; }
     .modal-content { background: #1c1c1c; padding: 30px; border-radius: 12px; max-width: 90%; max-height: 90vh; overflow-y: auto; width: 1000px; }
     .close-modal { float: right; font-size: 2.5rem; cursor: pointer; color: #aaa; }
@@ -54,9 +55,11 @@
     <!-- Seção Aulas -->
     <div class="section">
       <h2>Aulas Registradas</h2>
+      <button class="btn-mass-delete" onclick="deleteSelectedAulas()">Excluir Aulas Selecionadas</button>
       <table class="admin-table" id="aulasTable">
         <thead>
           <tr>
+            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th> <!-- Select All -->
             <th>ID</th>
             <th>Nome da Aula</th>
             <th>Data/Hora Início</th>
