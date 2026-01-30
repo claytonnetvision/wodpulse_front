@@ -863,6 +863,16 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
+    // LOGS PARA DEPURAÇÃO - MOSTRA O QUE ESTÁ SENDO ENVIADO AO BACKEND
+    console.log('=== INÍCIO DOS LOGS DE ENVIO FINAL (autoEndClass) ===');
+    activeParticipants.forEach(id => {
+        const p = participants.find(part => part.id === id);
+        if (p) {
+            console.log(`[ENVIO FINAL - ${p.name}] queimaPoints: ${p.queimaPoints} | avg_hr: ${p.avg_hr || 'não calculado'} | maxHRReached: ${p.maxHRReached || 'não definido'} | min_zone4: ${p.min_zone4 || 0} | min_zone5: ${p.min_zone5 || 0} | calories: ${Math.round(p.calories || 0)}`);
+        }
+    });
+    console.log('=== FIM DOS LOGS DE ENVIO FINAL ===');
+
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
         avg_hr: p.avg_hr,
