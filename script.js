@@ -390,11 +390,11 @@ async function editParticipant(id) {
     if (action === "1") {
         const newName = prompt("Novo nome:", p.name);
         if (newName === null) return;
-        const newAge = prompt.getElementById('ageInput')?.value || null;
-        const newWeight = prompt.getElementById('weightInput')?.value || null;
-        const newHeight = prompt.getElementById('heightInput')?.value || null;
-        const newGender = prompt.getElementById('genderInput')?.value || null;
-        const newEmail = prompt.getElementById('emailInput')?.value.trim() || null;
+        const newAge = prompt("Nova idade:", p.age) || null;
+        const newWeight = prompt("Novo peso (kg):", p.weight) || null;
+        const newHeight = prompt("Nova altura (cm):", p.heightCm || '') || null;
+        const newGender = prompt("Gênero (M/F/O):", p.gender || '') || null;
+        const newEmail = prompt("Email:", p.email || '') || null;
         const newUseTanaka = confirm("Usar fórmula Tanaka?", p.useTanaka);
         const data = {
             name: newName ? newName.trim() : p.name,
@@ -875,7 +875,7 @@ async function autoEndClass() {
         min_zone3: Math.round(p.min_zone3 || 0),
         min_zone4: Math.round(p.min_zone4 || 0),
         min_zone5: Math.round(p.min_zone5 || 0),
-        queima_points: p.queimaPoints || 0
+        queima_points: Number(p.queimaPoints.toFixed(2))  // FIX: arredonda para 2 casas decimais e converte para número limpo
     }));
 
     const sessionData = {
@@ -1116,6 +1116,67 @@ function updateQueimaCaloriesAndTimer() {
     updateDailyLeader();
     updateDailyCaloriesLeader();
     renderWeeklyRankings();
+}
+function renderTiles() {
+    const container = document.getElementById('participants');
+    if (!container) return;
+    const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
+    const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
+   
+    container.innerHTML = '';
+    const now = Date.now();
+    sorted.forEach((p, index) => {
+        let percent = 0;
+        if (p.maxHR && p.hr > 0) {
+            percent = Math.min(Math.max(Math.round((p.hr / p.maxHR) * 100), 0), 100);
+        }
+        const zoneClass = getZone(percent);
+        const isInactive = p.connected && p.lastUpdate && (now - p.lastUpdate > 15000);
+        const isRedAlert = p.redStartTime && (now - p.redStartTime > 30000);
+        const vo2ActiveAndCounting = p.vo2ZoneActive && p.vo2TimeSeconds > 0;
+        const tile = document.createElement('div');
+        tile.className = `tile ${zoneClass ? 'zone-' + zoneClass : 'zone-gray'} ${!p.connected ? 'disconnected' : ''} ${index === 0 ? 'leader' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
+        tile.innerHTML = `
+            <div class="name-and-device">
+                <div class="name">${p.name}</div>
+                ${p.deviceName ? `<div class="device-name">📱 ${p.deviceName}</div>` : ''}
+            </div>
+            <div class="bpm-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 180px;">
+                <div class="bpm">${p.connected && p.hr > 0 ? p.hr : '--'}<span class="bpm-label">BPM</span></div>
+               
+                ${vo2ActiveAndCounting ? `
+                    <div class="vo2-indicator" style="position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-size: 5.8rem; font-weight: 900; color: #FF1744; white-space: nowrap; letter-spacing: -2px;">
+                        VO2↑
+                    </div>
+                ` : ''}
+            </div>
+            <!-- FC Máxima e FC Média na mesma linha (compacto e bonito) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; margin: 10px 0; color: #2196F3;">
+                <div>
+                    Máx hoje: <strong>${p.todayMaxHR || '--'}</strong> | Hist: <strong>${p.historicalMaxHR || '--'}</strong>
+                </div>
+                <div style="color: #4CAF50;">
+                    Média: <strong>${p.avg_hr ? Math.round(p.avg_hr) + ' bpm' : '--'}</strong>
+                </div>
+            </div>
+            <div class="percent">${percent}%</div>
+            <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div>
+            <div class="calories">${Math.round(p.calories || 0)} kcal</div>
+            ${p.vo2TimeSeconds > 0 ? `
+                <div style="font-size:1.9rem; font-weight:bold; color:#FF1744; margin:10px 0; text-align:center;">
+                    VO2 Time: ${formatTime(Math.round(p.vo2TimeSeconds))}
+                </div>
+            ` : ''}
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percent}% !important;"></div>
+            </div>
+            ${isInactive ? '<div style="color:#ffeb3b; font-size:0.8rem; margin-top:5px;">⚠️ SEM SINAL</div>' : ''}
+            <div style="font-size:1.3rem; color:#FF9800; margin-top:12px;">
+                EPOC estimado: +${Math.round(p.epocEstimated || 0)} kcal pós-treino
+            </div>
+        `;
+        container.appendChild(tile);
+    });
 }
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
