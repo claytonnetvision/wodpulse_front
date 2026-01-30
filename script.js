@@ -875,6 +875,7 @@ async function autoEndClass() {
 
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
+        queima_points: p.queimaPoints || 0,   // ← ADICIONE ESSA LINHA AQUI
         avg_hr: p.avg_hr,
         min_gray: Math.round(p.minGray || 0),
         min_green: Math.round(p.minGreen || 0),
