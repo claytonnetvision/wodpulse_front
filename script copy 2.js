@@ -65,6 +65,8 @@ window.addEventListener('load', async () => {
     isManualClass = false;
     stopAllTimersAndLoops();
     autoClassMonitorActive = true;
+    // startAutoClassMonitor(); // COMENTADO: removido o monitoramento automático de horário
+    // A aula agora só inicia e encerra manualmente (botão ou ação do usuário)
     document.getElementById('startScanBtn')?.addEventListener('click', () => {
         autoClassMonitorActive = true;
         autoStartClass("Aula Manual");
@@ -191,9 +193,9 @@ async function loadParticipantsFromBackend() {
             lastHR: null,
             lastZone: null,
             _hrListener: null,
-            // NOVO: acumuladores para FC média real
-            sumHR: 0,
-            countHRMinutes: 0
+            // NOVO: acumuladores para FC média real (usando coletas a cada 60s)
+            sumHR: 0,        // soma dos HRs coletados
+            countHRMinutes: 0 // número de minutos válidos coletados
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
@@ -352,7 +354,9 @@ async function pairDeviceToParticipant(p) {
         if (!response.ok) {
             throw new Error('Falha ao salvar pulseira');
         }
+
         await connectDevice(device, false);
+
         // Força limpeza e reconexão fresca para garantir notificações
         try {
             if (device.gatt && device.gatt.connected) {
@@ -365,6 +369,7 @@ async function pairDeviceToParticipant(p) {
         } catch (cleanupErr) {
             console.warn(`[PAIR] Erro na limpeza/reconexão: ${cleanupErr.message}`);
         }
+
         alert(`Pulseira pareada com sucesso para ${p.name}! (${p.deviceName})`);
         renderParticipantList();
         if (currentActiveClassName) renderTiles();
@@ -564,7 +569,9 @@ window.addParticipantDuringClass = async function() {
                 device_name: p.deviceName
             })
         });
+
         await connectDevice(device, false);
+
         // Força limpeza e reconexão fresca
         try {
             if (device.gatt && device.gatt.connected) {
@@ -577,6 +584,7 @@ window.addParticipantDuringClass = async function() {
         } catch (cleanupErr) {
             console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
+
         renderTiles();
         alert(`Aluno ${p.name} adicionado e pulseira pareada!`);
     } catch (e) {
@@ -584,6 +592,32 @@ window.addParticipantDuringClass = async function() {
         alert("Erro ao adicionar aluno durante aula.");
     }
 };
+// ── MONITORAMENTO AUTOMÁTICO ────────────────────────────────────────────────────
+// COMENTADO: Removido o monitoramento automático de horário
+// A aula agora só inicia e encerra manualmente (botão ou ação do usuário)
+// function startAutoClassMonitor() {
+//     if (!autoClassMonitorActive) {
+//         console.log("Monitor automático pausado manualmente");
+//         return;
+//     }
+//     console.log("Monitor de aulas automático iniciado...");
+//     checkCurrentClassTime();
+//     autoClassInterval = setInterval(checkCurrentClassTime, 30000);
+// }
+// function checkCurrentClassTime() {
+//     const now = new Date();
+//     const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+//    
+//     const activeClass = classTimes.find(c => currentTimeStr >= c.start && currentTimeStr < c.end);
+//    
+//     if (activeClass && currentActiveClassName === "") {
+//         console.log(`Aula detectada: ${activeClass.name}. Iniciando...`);
+//         autoStartClass(activeClass.name);
+//     } else if (!activeClass && currentActiveClassName !== "" && !isManualClass) {
+//         console.log("Horário de aula encerrado. Finalizando automaticamente...");
+//         autoEndClass();
+//     }
+// }
 // ── INICIAR AULA MANUAL ─────────────────────────────────────────────────────────
 async function autoStartClass(className) {
     if (activeParticipants.length === 0) {
@@ -795,7 +829,7 @@ function countZones() {
 
         console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
     });
-    renderTiles(); // atualiza a interface
+    renderTiles(); // atualiza a interface (opcional, mas útil para debug)
 }
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
@@ -813,7 +847,7 @@ async function autoEndClass() {
                 p.avg_hr = Math.round(p.sumHR / p.countHRMinutes);
                 console.log(`[FC MÉDIA FINAL] ${p.name}: ${p.avg_hr} bpm (baseado em ${p.countHRMinutes} minutos coletados)`);
             } else {
-                p.avg_hr = null;
+                p.avg_hr = null; // ou 0 se preferir
                 console.log(`[FC MÉDIA FINAL] ${p.name}: sem coletas válidas`);
             }
         }
@@ -871,11 +905,12 @@ async function autoEndClass() {
         epoc_estimated: p.epocEstimated || 0,
         max_hr_reached: p.maxHRReached || null,
         real_resting_hr: p.realRestingHR || p.restingHR || null,
+        // ADIÇÃO PARA ENVIAR ZONAS 2-5 PARA O BACKEND (agora salvas no banco)
         min_zone2: Math.round(p.min_zone2 || 0),
         min_zone3: Math.round(p.min_zone3 || 0),
         min_zone4: Math.round(p.min_zone4 || 0),
         min_zone5: Math.round(p.min_zone5 || 0),
-        queima_points: p.queimaPoints || 0
+        queima_points: p.queimaPoints || 0   // já estava adicionado
     }));
 
     const sessionData = {
@@ -1150,18 +1185,14 @@ function renderTiles() {
                     </div>
                 ` : ''}
             </div>
-            <!-- FC Máxima e FC Média na mesma linha (compacto e bonito) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; margin: 10px 0; color: #2196F3;">
-                <div>
-                    Máx hoje: <strong>${p.todayMaxHR || '--'}</strong> | Hist: <strong>${p.historicalMaxHR || '--'}</strong>
-                </div>
-                <div style="color: #4CAF50;">
-                    Média: <strong>${p.avg_hr ? Math.round(p.avg_hr) + ' bpm' : '--'}</strong>
-                </div>
-            </div>
+            <div class="max-bpm">Máx hoje: ${p.todayMaxHR || '--'} | Hist: ${p.historicalMaxHR || '--'}</div>
             <div class="percent">${percent}%</div>
             <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div>
             <div class="calories">${Math.round(p.calories || 0)} kcal</div>
+            <!-- NOVO: mostra FC média real no tile (durante a aula) -->
+            <div style="font-size:1.3rem; color:#4CAF50; margin-top:8px;">
+                FC Média: ${p.avg_hr ? Math.round(p.avg_hr) + ' bpm' : '--'}
+            </div>
             ${p.vo2TimeSeconds > 0 ? `
                 <div style="font-size:1.9rem; font-weight:bold; color:#FF1744; margin:10px 0; text-align:center;">
                     VO2 Time: ${formatTime(Math.round(p.vo2TimeSeconds))}
