@@ -192,7 +192,10 @@ async function loadParticipantsFromBackend() {
             zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
             lastHR: null,
             lastZone: null,
-            _hrListener: null
+            _hrListener: null,
+            // NOVO: acumuladores para FC média real (usando coletas a cada 60s)
+            sumHR: 0,        // soma dos HRs coletados
+            countHRMinutes: 0 // número de minutos válidos coletados
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
@@ -281,7 +284,10 @@ window.addNewParticipantFromSetup = async function() {
             zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
             lastHR: null,
             lastZone: null,
-            _hrListener: null
+            _hrListener: null,
+            // NOVO: inicializa acumuladores para FC média
+            sumHR: 0,
+            countHRMinutes: 0
         });
         renderParticipantList();
         document.getElementById('nameInput').value = '';
@@ -545,7 +551,10 @@ window.addParticipantDuringClass = async function() {
                 vo2TimeSeconds: 0,
                 vo2LastUpdate: 0,
                 zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
-                _hrListener: null
+                _hrListener: null,
+                // NOVO: inicializa acumuladores para FC média
+                sumHR: 0,
+                countHRMinutes: 0
             };
             participants.push(p);
         }
@@ -654,6 +663,9 @@ async function autoStartClass(className) {
             p.min_zone3 = 0;
             p.min_zone4 = 0;
             p.min_zone5 = 0;
+            // NOVO: reset acumuladores para FC média real
+            p.sumHR = 0;
+            p.countHRMinutes = 0;
         }
     });
     wodStartTime = Date.now();
@@ -808,6 +820,13 @@ function countZones() {
             p.min_zone5 = (p.min_zone5 || 0) + 1;
         }
 
+        // NOVO: acumula HR atual para cálculo de média real (a cada 60s)
+        if (p.hr > 40) {
+            p.sumHR += p.hr;
+            p.countHRMinutes += 1;
+            console.log(`[ZONE COUNTER + FC MÉDIA] ${p.name} - HR: ${p.hr} bpm (acumulado: soma=${p.sumHR}, minutos=${p.countHRMinutes})`);
+        }
+
         console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
     });
     renderTiles(); // atualiza a interface (opcional, mas útil para debug)
@@ -820,10 +839,18 @@ async function autoEndClass() {
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
-    // Atualiza FC média apenas dos ativos
+    // NOVO: calcular FC média real usando as coletas a cada 60s
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
-        if (p) p.avg_hr = p.hr > 0 ? Math.round(p.hr) : null;
+        if (p) {
+            if (p.countHRMinutes > 0) {
+                p.avg_hr = Math.round(p.sumHR / p.countHRMinutes);
+                console.log(`[FC MÉDIA FINAL] ${p.name}: ${p.avg_hr} bpm (baseado em ${p.countHRMinutes} minutos coletados)`);
+            } else {
+                p.avg_hr = null; // ou 0 se preferir
+                console.log(`[FC MÉDIA FINAL] ${p.name}: sem coletas válidas`);
+            }
+        }
     });
 
     // Calcular FC de repouso dinâmica para cada aluno ativo
@@ -863,19 +890,8 @@ async function autoEndClass() {
         await limitManualSessionsToday();
     }
 
-    // LOGS PARA DEPURAÇÃO - MOSTRA O QUE ESTÁ SENDO ENVIADO AO BACKEND
-    console.log('=== INÍCIO DOS LOGS DE ENVIO FINAL (autoEndClass) ===');
-    activeParticipants.forEach(id => {
-        const p = participants.find(part => part.id === id);
-        if (p) {
-            console.log(`[ENVIO FINAL - ${p.name}] queimaPoints: ${p.queimaPoints} | avg_hr: ${p.avg_hr || 'não calculado'} | maxHRReached: ${p.maxHRReached || 'não definido'} | min_zone4: ${p.min_zone4 || 0} | min_zone5: ${p.min_zone5 || 0} | calories: ${Math.round(p.calories || 0)}`);
-        }
-    });
-    console.log('=== FIM DOS LOGS DE ENVIO FINAL ===');
-
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
-        queima_points: p.queimaPoints || 0,   // ← ADICIONE ESSA LINHA AQUI
         avg_hr: p.avg_hr,
         min_gray: Math.round(p.minGray || 0),
         min_green: Math.round(p.minGreen || 0),
@@ -893,7 +909,8 @@ async function autoEndClass() {
         min_zone2: Math.round(p.min_zone2 || 0),
         min_zone3: Math.round(p.min_zone3 || 0),
         min_zone4: Math.round(p.min_zone4 || 0),
-        min_zone5: Math.round(p.min_zone5 || 0)
+        min_zone5: Math.round(p.min_zone5 || 0),
+        queima_points: p.queimaPoints || 0   // já estava adicionado
     }));
 
     const sessionData = {
@@ -1172,6 +1189,10 @@ function renderTiles() {
             <div class="percent">${percent}%</div>
             <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div>
             <div class="calories">${Math.round(p.calories || 0)} kcal</div>
+            <!-- NOVO: mostra FC média real no tile (durante a aula) -->
+            <div style="font-size:1.3rem; color:#4CAF50; margin-top:8px;">
+                FC Média: ${p.avg_hr ? Math.round(p.avg_hr) + ' bpm' : '--'}
+            </div>
             ${p.vo2TimeSeconds > 0 ? `
                 <div style="font-size:1.9rem; font-weight:bold; color:#FF1744; margin:10px 0; text-align:center;">
                     VO2 Time: ${formatTime(Math.round(p.vo2TimeSeconds))}
@@ -1210,10 +1231,21 @@ function startReconnectLoop() {
                 p._hrListener = (e) => {
                     const val = e.target.value;
                     const flags = val.getUint8(0);
-                    let hr = (flags & 0x01) ? val.getUint16(1, true) : val.getUint8(1);
+                    let hr;
+                    if (flags & 0x01) {
+                        hr = val.getUint16(1, true);
+                    } else {
+                        hr = val.getUint8(1);
+                    }
                     p.hr = hr;
                     p.lastUpdate = Date.now();
                     p.connected = true;
+                    if (!p.lastSampleTime) {
+                        p.lastSampleTime = Date.now();
+                    }
+                    if (currentSessionId && (Date.now() - wodStartTime) <= 180000) {
+                        saveRestingHRSample(p.id, currentSessionId, hr);
+                    }
                     renderTiles();
                 };
                 char.addEventListener('characteristicvaluechanged', p._hrListener);
