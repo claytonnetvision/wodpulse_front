@@ -1081,6 +1081,7 @@ function renderParticipantList() {
         const photoSrc = p.photo
             ? `data:image/jpeg;base64,${p.photo}`
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+        console.log(`[RENDER LISTA] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
             <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
@@ -1245,6 +1246,7 @@ function renderTiles() {
         if (p.photo) {
             avatarUrl = `data:image/jpeg;base64,${p.photo}`;
         }
+        console.log(`[RENDER TILES] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
         const tile = document.createElement('div');
         tile.className = `tile ${index === 0 ? 'leader' : ''} ${!p.connected ? 'disconnected' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
         tile.innerHTML = `
