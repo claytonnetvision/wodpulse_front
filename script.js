@@ -1,4 +1,4 @@
-// script.js - Frontend WODPulse (modificado para Vercel + Render)
+// script.js - Frontend WODPulse (modificado para Vercel + Render + SUPORTE A FOTO DO ALUNO)
 // Use API_BASE_URL para o domínio do backend (Render)
 const API_BASE_URL = 'https://wodpulse-back.onrender.com'; // seu backend no Render
 let participants = [];
@@ -45,6 +45,17 @@ const classTimes = [
 ];
 // Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
+
+// ── FUNÇÃO AUXILIAR PARA CONVERTER FILE → BASE64 (sem o prefixo data:...) ─────
+async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]); // só a parte base64
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -88,9 +99,31 @@ window.addEventListener('load', async () => {
             autoEndClass();
         }
     });
+
+    // ── PREVIEW DA FOTO NO CADASTRO ───────────────────────────────────────
+    const photoInput = document.getElementById('photoInput');
+    const photoPreview = document.getElementById('photoPreview');
+    if (photoInput && photoPreview) {
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    photoPreview.src = ev.target.result;
+                    photoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                photoPreview.style.display = 'none';
+                photoPreview.src = '';
+            }
+        });
+    }
+
     renderParticipantList();
     renderLastSessionSummary();
 });
+
 function stopAllTimersAndLoops() {
     if (burnInterval) clearInterval(burnInterval);
     if (trimpInterval) clearInterval(trimpInterval);
@@ -193,7 +226,9 @@ async function loadParticipantsFromBackend() {
             _hrListener: null,
             // NOVO: acumuladores para FC média real
             sumHR: 0,
-            countHRMinutes: 0
+            countHRMinutes: 0,
+            // NOVO: foto (string base64 vinda do backend)
+            photo: p.photo || null
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
@@ -203,7 +238,7 @@ async function loadParticipantsFromBackend() {
         renderParticipantList();
     }
 }
-// ── CADASTRO MANUAL ─────────────────────────────────────────────────────────────
+// ── CADASTRO MANUAL (COM UPLOAD DE FOTO) ───────────────────────────────────────
 window.addNewParticipantFromSetup = async function() {
     const name = document.getElementById('nameInput')?.value.trim();
     const age = parseInt(document.getElementById('ageInput')?.value) || null;
@@ -212,6 +247,19 @@ window.addNewParticipantFromSetup = async function() {
     const gender = document.getElementById('genderInput')?.value || null;
     const email = document.getElementById('emailInput')?.value.trim() || null;
     const useTanaka = document.getElementById('useTanakaInput')?.checked || false;
+
+    // ── LEITURA DA FOTO ───────────────────────────────────────────────────────
+    const photoInput = document.getElementById('photoInput');
+    let photoBase64 = null;
+    if (photoInput && photoInput.files && photoInput.files[0]) {
+        try {
+            photoBase64 = await fileToBase64(photoInput.files[0]);
+        } catch (err) {
+            alert("Erro ao processar a foto. Tente novamente.");
+            return;
+        }
+    }
+
     if (!name) {
         return alert("Preencha pelo menos o nome do aluno!");
     }
@@ -227,7 +275,8 @@ window.addNewParticipantFromSetup = async function() {
         max_hr: estimatedMaxHR,
         historical_max_hr: 0,
         device_id: null,
-        device_name: null
+        device_name: null,
+        photo: photoBase64  // envia base64 (backend converte para BYTEA)
     };
     try {
         const response = await fetch(`${API_BASE_URL}/api/participants`, {
@@ -283,11 +332,12 @@ window.addNewParticipantFromSetup = async function() {
             lastHR: null,
             lastZone: null,
             _hrListener: null,
-            // NOVO: inicializa acumuladores para FC média
             sumHR: 0,
-            countHRMinutes: 0
+            countHRMinutes: 0,
+            photo: newP.photo || null  // recebe base64 do backend
         });
         renderParticipantList();
+        // Limpa o formulário
         document.getElementById('nameInput').value = '';
         document.getElementById('ageInput').value = '';
         document.getElementById('weightInput').value = '';
@@ -296,6 +346,11 @@ window.addNewParticipantFromSetup = async function() {
         document.getElementById('emailInput').value = '';
         if (document.getElementById('useTanakaInput')) {
             document.getElementById('useTanakaInput').checked = false;
+        }
+        if (photoInput) photoInput.value = '';
+        if (document.getElementById('photoPreview')) {
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('photoPreview').src = '';
         }
         alert(`Aluno ${name} cadastrado com sucesso!`);
         if (confirm(`Deseja parear uma pulseira agora para ${name}?`)) {
@@ -373,15 +428,16 @@ async function pairDeviceToParticipant(p) {
         alert("Pulseira não pareada.");
     }
 };
-// ── EDITAR ALUNO COM GERENCIAMENTO DE PULSEIRA ──────────────────────────────────
+// ── EDITAR ALUNO COM GERENCIAMENTO DE PULSEIRA E FOTO ───────────────────────────
 async function editParticipant(id) {
     const p = participants.find(part => part.id === id);
     if (!p) return alert('Aluno não encontrado');
     const action = prompt(
         "O que você quer editar?\n\n" +
         "1 - Nome, idade, peso, altura, email, etc.\n" +
-        "2 - Gerenciar pulseira (remover ou trocar)\n\n" +
-        "Digite 1 ou 2 (ou cancele):"
+        "2 - Gerenciar pulseira (remover ou trocar)\n" +
+        "3 - Alterar foto do aluno\n\n" +
+        "Digite 1, 2 ou 3 (ou cancele):"
     );
     if (action === null) {
         alert("Edição cancelada.");
@@ -447,6 +503,35 @@ async function editParticipant(id) {
                 await pairDeviceToParticipant(p);
             }
         }
+    } else if (action === "3") {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.click();
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const photoBase64 = await fileToBase64(file);
+                const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photoBase64 })
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Erro ao salvar foto');
+                }
+                const json = await res.json();
+                p.photo = json.participant.photo || photoBase64;
+                renderParticipantList();
+                if (currentActiveClassName) renderTiles();
+                alert('Foto do aluno atualizada com sucesso!');
+            } catch (err) {
+                console.error('Erro ao atualizar foto:', err);
+                alert('Erro ao atualizar foto: ' + err.message);
+            }
+        };
     } else {
         alert("Opção inválida. Edição cancelada.");
     }
@@ -547,9 +632,9 @@ window.addParticipantDuringClass = async function() {
                 vo2LastUpdate: 0,
                 zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
                 _hrListener: null,
-                // NOVO: inicializa acumuladores para FC média
                 sumHR: 0,
-                countHRMinutes: 0
+                countHRMinutes: 0,
+                photo: null
             };
             participants.push(p);
         }
@@ -565,7 +650,6 @@ window.addParticipantDuringClass = async function() {
             })
         });
         await connectDevice(device, false);
-        // Força limpeza e reconexão fresca
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
@@ -624,12 +708,10 @@ async function autoStartClass(className) {
             p.minYellow = 0;
             p.realRestingHR = null;
             p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
-            // ADIÇÃO PARA ZONAS 2-5: reset contadores ao iniciar aula
             p.min_zone2 = 0;
             p.min_zone3 = 0;
             p.min_zone4 = 0;
             p.min_zone5 = 0;
-            // NOVO: reset acumuladores para FC média real
             p.sumHR = 0;
             p.countHRMinutes = 0;
         }
@@ -638,7 +720,6 @@ async function autoStartClass(className) {
     currentSessionId = null;
     startRestingHRCapture();
     startWODTimer(classTimes.find(c => c.name === className)?.start || null);
-    // ADIÇÃO PARA ZONAS 2-5: Iniciar contador de zonas a cada 60 segundos
     if (zoneCounterInterval) clearInterval(zoneCounterInterval);
     zoneCounterInterval = setInterval(countZones, 60000);
     startReconnectLoop();
@@ -775,7 +856,6 @@ function countZones() {
 
         const percent = (p.hr / p.maxHR) * 100;
 
-        // ADIÇÃO PARA ZONAS 2-5: incrementa 1 minuto a cada 60s
         if (percent >= 60 && percent < 70) {
             p.min_zone2 = (p.min_zone2 || 0) + 1;
         } else if (percent >= 70 && percent < 80) {
@@ -786,7 +866,6 @@ function countZones() {
             p.min_zone5 = (p.min_zone5 || 0) + 1;
         }
 
-        // NOVO: acumula HR atual para cálculo de média real (a cada 60s)
         if (p.hr > 40) {
             p.sumHR += p.hr;
             p.countHRMinutes += 1;
@@ -805,7 +884,6 @@ async function autoEndClass() {
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
 
-    // NOVO: calcular FC média real usando as coletas a cada 60s
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) {
@@ -819,7 +897,6 @@ async function autoEndClass() {
         }
     });
 
-    // Calcular FC de repouso dinâmica para cada aluno ativo
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.id && currentSessionId) {
@@ -839,7 +916,6 @@ async function autoEndClass() {
         }
     }
 
-    // EPOC apenas para ativos
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) {
@@ -875,7 +951,7 @@ async function autoEndClass() {
         min_zone3: Math.round(p.min_zone3 || 0),
         min_zone4: Math.round(p.min_zone4 || 0),
         min_zone5: Math.round(p.min_zone5 || 0),
-        queima_points: Number(p.queimaPoints.toFixed(2))  // FIX: arredonda para 2 casas decimais e converte para número limpo
+        queima_points: Number(p.queimaPoints.toFixed(2))
     }));
 
     const sessionData = {
@@ -985,6 +1061,7 @@ function renderParticipantList() {
         <thead>
             <tr>
                 <th>Participar</th>
+                <th>Foto</th>
                 <th>Nome</th>
                 <th>Idade</th>
                 <th>Peso (kg)</th>
@@ -1000,8 +1077,12 @@ function renderParticipantList() {
     const tbody = table.querySelector('tbody');
     participants.forEach(p => {
         const tr = document.createElement('tr');
+        const photoSrc = p.photo 
+            ? `data:image/jpeg;base64,${p.photo}` 
+            : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
+            <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
             <td>${p.name}</td>
             <td>${p.age || '--'}</td>
             <td>${p.weight || '--'}</td>
@@ -1117,66 +1198,133 @@ function updateQueimaCaloriesAndTimer() {
     updateDailyCaloriesLeader();
     renderWeeklyRankings();
 }
+// ── RENDER TILES (VERSÃO FINAL COM FOTO E RESPONSIVIDADE) ───────────────────────
 function renderTiles() {
     const container = document.getElementById('participants');
     if (!container) return;
-    const activeOnScreen = participants.filter(p => activeParticipants.includes(p.id) && (p.connected || (p.hr > 0)));
-    const sorted = activeOnScreen.sort((a, b) => (b.queimaPoints || 0) - (a.queimaPoints || 0));
-   
+
+    const activeOnScreen = participants.filter(p => 
+        activeParticipants.includes(p.id) && (p.connected || (p.hr > 0))
+    );
+    
+    const sorted = activeOnScreen.sort((a, b) => 
+        (b.queimaPoints || 0) - (a.queimaPoints || 0)
+    );
+
     container.innerHTML = '';
     const now = Date.now();
+
     sorted.forEach((p, index) => {
         let percent = 0;
         if (p.maxHR && p.hr > 0) {
             percent = Math.min(Math.max(Math.round((p.hr / p.maxHR) * 100), 0), 100);
         }
-        const zoneClass = getZone(percent);
+
+        let zoneName = 'CINZA';
+        let zoneColor = '#aaaaaa';
+        if (percent >= 90) {
+            zoneName = 'VERMELHA';
+            zoneColor = '#FF1744';
+        } else if (percent >= 80) {
+            zoneName = 'LARANJA';
+            zoneColor = '#FF5722';
+        } else if (percent >= 70) {
+            zoneName = 'AMARELA';
+            zoneColor = '#FF9800';
+        } else if (percent >= 60) {
+            zoneName = 'VERDE';
+            zoneColor = '#4CAF50';
+        } else if (percent >= 50) {
+            zoneName = 'AZUL';
+            zoneColor = '#2196F3';
+        }
+
         const isInactive = p.connected && p.lastUpdate && (now - p.lastUpdate > 15000);
         const isRedAlert = p.redStartTime && (now - p.redStartTime > 30000);
-        const vo2ActiveAndCounting = p.vo2ZoneActive && p.vo2TimeSeconds > 0;
+
+        const hasSignal = p.connected && p.hr > 0;
+        const bpmDisplay = hasSignal ? p.hr : '--';
+        const zoneDisplay = hasSignal ? `ZONA ${zoneName} (${percent}%)` : 'SEM SINAL';
+        const zoneLabelColor = hasSignal ? zoneColor : '#ffeb3b';
+
+        let avatarUrl = `https://i.pravatar.cc/300?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+        if (p.photo) {
+            avatarUrl = `data:image/jpeg;base64,${p.photo}`;
+        }
+
         const tile = document.createElement('div');
-        tile.className = `tile ${zoneClass ? 'zone-' + zoneClass : 'zone-gray'} ${!p.connected ? 'disconnected' : ''} ${index === 0 ? 'leader' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
+        tile.className = `tile ${index === 0 ? 'leader' : ''} ${!p.connected ? 'disconnected' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
+
         tile.innerHTML = `
-            <div class="name-and-device">
-                <div class="name">${p.name}</div>
-                ${p.deviceName ? `<div class="device-name">📱 ${p.deviceName}</div>` : ''}
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <img src="${avatarUrl}" alt="${p.name}" class="avatar">
+                    <div class="rank-badge">#${index + 1}</div>
+                </div>
+                <div class="user-info">
+                    <div class="name">${p.name.toUpperCase()}</div>
+                    ${p.deviceName ? `<div class="device"><span style="color:#00BCD4; margin-right:8px;">📊</span>${p.deviceName}</div>` : ''}
+                </div>
             </div>
-            <div class="bpm-container" style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 180px;">
-                <div class="bpm">${p.connected && p.hr > 0 ? p.hr : '--'}<span class="bpm-label">BPM</span></div>
-               
-                ${vo2ActiveAndCounting ? `
-                    <div class="vo2-indicator" style="position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-size: 5.8rem; font-weight: 900; color: #FF1744; white-space: nowrap; letter-spacing: -2px;">
-                        VO2↑
+
+            <div class="main-stats">
+                <div class="bpm" style="color: ${hasSignal ? '#ffffff' : '#aaaaaa'};">
+                    ${bpmDisplay}<span>BPM</span>
+                </div>
+                <div class="zone-label" style="color: ${zoneLabelColor};">${zoneDisplay}</div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percent}%;"></div>
+            </div>
+
+            <div class="grid-stats">
+                <div class="stat-box">
+                    <div class="stat-label">PONTOS</div>
+                    <div class="stat-value" style="color: var(--orange);">
+                        ${p.queimaPoints ? p.queimaPoints.toFixed(2) : '0.00'}
                     </div>
-                ` : ''}
-            </div>
-            <!-- FC Máxima e FC Média na mesma linha (compacto e bonito) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; margin: 10px 0; color: #2196F3;">
-                <div>
-                    Máx hoje: <strong>${p.todayMaxHR || '--'}</strong> | Hist: <strong>${p.historicalMaxHR || '--'}</strong>
                 </div>
-                <div style="color: #4CAF50;">
-                    Média: <strong>${p.avg_hr ? Math.round(p.avg_hr) + ' bpm' : '--'}</strong>
+                <div class="stat-box">
+                    <div class="stat-label">CALORIAS</div>
+                    <div class="stat-value" style="color: var(--blue);">
+                        ${Math.round(p.calories || 0)}
+                    </div>
                 </div>
             </div>
-            <div class="percent">${percent}%</div>
-            <div class="queima-points">${p.queimaPoints.toFixed(2)} PTS</div>
-            <div class="calories">${Math.round(p.calories || 0)} kcal</div>
+
             ${p.vo2TimeSeconds > 0 ? `
-                <div style="font-size:1.9rem; font-weight:bold; color:#FF1744; margin:10px 0; text-align:center;">
-                    VO2 Time: ${formatTime(Math.round(p.vo2TimeSeconds))}
+                <div class="vo2-badge">
+                    VO2 TIME: ${formatTime(Math.round(p.vo2TimeSeconds))}
                 </div>
             ` : ''}
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${percent}% !important;"></div>
+
+            <div class="epoc">
+                EPOC: +<strong>${Math.round(p.epocEstimated || 0)}</strong> kcal
             </div>
-            ${isInactive ? '<div style="color:#ffeb3b; font-size:0.8rem; margin-top:5px;">⚠️ SEM SINAL</div>' : ''}
-            <div style="font-size:1.3rem; color:#FF9800; margin-top:12px;">
-                EPOC estimado: +${Math.round(p.epocEstimated || 0)} kcal pós-treino
-            </div>
+
+            ${isInactive ? `
+                <div style="text-align:center; color:#ffeb3b; margin-top:10px; font-size:0.9rem; font-weight:bold;">
+                    ⚠️ SEM SINAL
+                </div>
+            ` : ''}
         `;
+
         container.appendChild(tile);
     });
+
+    // RESPONSIVIDADE POR QUANTIDADE DE PESSOAS
+    const tileCount = sorted.length;
+    container.classList.remove(...Array.from(container.classList).filter(c => c.startsWith('count-')));
+    if (tileCount === 1) {
+        container.classList.add('count-1');
+    } else if (tileCount === 2) {
+        container.classList.add('count-2');
+    } else if (tileCount <= 4) {
+        container.classList.add('count-3-4');
+    } else {
+        container.classList.add('count-5plus');
+    }
 }
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);

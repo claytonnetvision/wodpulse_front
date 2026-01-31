@@ -42,6 +42,14 @@
                 <label>
                     <input type="checkbox" id="useTanakaInput"> Usar fórmula Tanaka (mais precisa)
                 </label>
+
+                <!-- NOVO: BLOCO DE UPLOAD DE FOTO COM PREVIEW -->
+                <div style="grid-column: 1 / -1; text-align: center; margin: 20px 0;">
+                    <label for="photoInput" style="display: block; margin-bottom: 10px; font-size: 1.1rem;">Foto do aluno (opcional)</label>
+                    <img id="photoPreview" src="" alt="Preview da foto" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #FF5722; margin-bottom: 10px; display: none;">
+                    <input type="file" id="photoInput" accept="image/*" style="font-size: 1rem;">
+                </div>
+
                 <button id="addBtn" onclick="addNewParticipantFromSetup()">Adicionar Aluno</button>
             </div>
 
