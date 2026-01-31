@@ -1,560 +1,200 @@
 /* ============================================================================
-   RESET & BASE
+   NOVO LAYOUT DOS TILES (exatamente como na imagem que você mandou)
 ============================================================================ */
-* {
-    box-sizing: border-box;
+
+:root {
+    --bg-dark: #0a0a0a;
+    --tile-bg: #1a1a1a;
+    --orange: #FF5722;
+    --green: #4CAF50;
+    --blue: #00BCD4;
+    --red: #FF1744;
+    --text-main: #ffffff;
+    --text-dim: #aaaaaa;
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Roboto', sans-serif;
-    background: #0d1117;
-    color: #e6edf3;
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-
-.hidden { display: none !important; }
-
-/* ============================================================================
-   TELA DE SETUP / CONFIGURAÇÃO (primeira tela)
-============================================================================ */
-#app-content {
-    padding: 16px;
-}
-
-#setup {
-    max-width: 1100px;
-    margin: 0 auto 60px;
-    padding: 0 16px;
-}
-
-#setup h1 {
-    font-size: 2.8rem;
-    font-weight: 900;
-    color: #FF5722;
-    text-align: center;
-    margin: 20px 0 30px;
-}
-
-#setup .btn-logout {
-    background: #E91E63;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-}
-
-#addParticipant {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin: 24px 0 32px;
-}
-
-#addParticipant input,
-#addParticipant select {
-    padding: 14px 16px;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background: #161b22;
-    color: #e6edf3;
-}
-
-#addParticipant label {
-    font-size: 1rem;
-    align-self: center;
-    white-space: nowrap;
-    color: #aaa;
-}
-
-#addBtn {
-    grid-column: 1 / -1;
-    padding: 16px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    background: #FF5722;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 8px;
-}
-
-#addBtn:hover { background: #E64A19; }
-
-#participantListContainer {
-    margin: 40px 0 60px;
-}
-
-#participantListContainer h2 {
-    font-size: 2.1rem;
-    color: #FF5722;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-#participantListContainer p {
-    text-align: center;
-    color: #888;
-    margin: 0 0 20px;
-    font-size: 1rem;
-}
-
-#participantList {
-    max-height: 60vh;
-    overflow-y: auto;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #30363d;
-    border-radius: 12px;
-    background: #161b22;
-}
-
-#participantList li {
-    padding: 16px 20px;
-    border-bottom: 1px solid #30363d;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.15rem;
-}
-
-#participantList li:last-child { border-bottom: none; }
-
-.participant-actions button {
-    background: none;
-    border: none;
-    font-size: 1.6rem;
-    cursor: pointer;
-    margin-left: 16px;
-}
-
-.participant-actions .edit-btn   { color: #4CAF50; }
-.participant-actions .delete-btn { color: #E63946; }
-
-#participantList::-webkit-scrollbar {
-    width: 10px;
-}
-
-#participantList::-webkit-scrollbar-track {
-    background: #0d1117;
-    border-radius: 0 12px 12px 0;
-}
-
-#participantList::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 5px;
-    border: 2px solid #0d1117;
-}
-
-#participantList::-webkit-scrollbar-thumb:hover {
-    background: #777;
-}
-
-#startScanBtn {
-    display: block;
-    width: 100%;
-    max-width: 600px;
-    margin: 40px auto;
-    padding: 20px 40px;
-    font-size: 1.9rem;
-    font-weight: bold;
-    background: #FF5722;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-#startScanBtn:hover { background: #E64A19; }
-
-/* ============================================================================
-   RESPONSIVIDADE – SETUP
-============================================================================ */
-@media (max-width: 768px) {
-    #addParticipant {
-        grid-template-columns: 1fr;
-    }
-    #setup h1 { font-size: 2.4rem; }
-    #startScanBtn { font-size: 1.7rem; padding: 18px 30px; }
-}
-
-/* ============================================================================
-   DASHBOARD (mantido do seu original, com pequenas correções de consistência)
-============================================================================ */
-#dashboard { 
-    height: 100vh; 
-    width: 100vw; 
-    display: flex; 
-    flex-direction: column; 
-    overflow-x: hidden;
-}
-
-#main-container {
-    display: flex;
-    flex: 1;
-    height: 100%;
-    width: 100vw;
-    overflow-x: hidden;
-}
-
-#monitor-panel {
-    width: 100%;
-    padding: 15px 25px;
-    overflow-y: auto;
-    background: #101010;
-}
-
-#header {
-    display: grid;
-    grid-template-columns: 140px 2fr 1fr 180px;
-    align-items: center;
-    padding: 12px 20px;
-    background: #181818;
-    border-radius: 14px;
-    margin-bottom: 16px;
-    gap: 16px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-}
-
-#logo { width: 120px; height: auto; }
-
-.header-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-#current-class-name { font-size: 1.9rem; font-weight: 900; color: #FF9800; }
-#daily-leader        { font-size: 1.7rem; color: #FF5722; }
-#daily-calories-leader { font-size: 1.6rem; color: #4CAF50; }
-#timer               { font-size: 5.2rem; font-weight: 900; color: #4CAF50; text-align: right; }
-#leaderboard-top     { font-size: 1.8rem; color: #FFC107; text-align: right; grid-column: 2 / 4; }
-
-/* Rankings */
-#weekly-rankings {
-    background: #1e1e1e;
-    border-radius: 14px;
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 280px;
-    gap: 20px;
-    align-items: start;
-    margin-top: 10px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.ranking-block {
-    background: #252525;
-    border-radius: 12px;
-    padding: 18px 22px;
-    border-left: 6px solid;
-}
-
-.ranking-block.pontos { border-left-color: #FF5722; }
-.ranking-block.calorias { border-left-color: #4CAF50; }
-.ranking-block.vo2ZoneActive { border-left-color: #FF1744; }
-
-.ranking-block h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.6rem;
-    color: #ddd;
-    text-transform: uppercase;
-}
-
-.ranking-list {
-    font-size: 1.45rem;
-    line-height: 1.6;
-    color: #eee;
-}
-
-.ranking-list .position-1 { color: #FFD700; font-weight: 900; font-size: 1.9rem; }
-.ranking-list .position-2 { color: #C0C0C0; font-weight: 800; font-size: 1.7rem; }
-.ranking-list .position-3 { color: #CD7F32; font-weight: 800; font-size: 1.6rem; }
-
-.ranking-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    justify-content: center;
-}
-
-#resetWeeklyBtn, #fullRankingBtn, #exportPdfBtn {
-    padding: 12px 20px;
-    font-size: 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-}
-
-#resetWeeklyBtn { background: #d32f2f; color: white; }
-#fullRankingBtn { background: #2196F3; color: white; }
-#exportPdfBtn { background: #FF9800; color: white; }
-
-#resetWeeklyBtn:hover { background: #b71c1c; }
-#fullRankingBtn:hover { background: #1976D2; }
-#exportPdfBtn:hover { background: #F57C00; }
-
-/* Tiles */
 #participants {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 30px;
     padding: 20px;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    max-width: 100%;
+    justify-content: center;
+    background: var(--bg-dark);
 }
 
-.tile {
-    background: linear-gradient(145deg, #2E2E2E, #1A1A1A);
-    border-radius: 20px;
-    padding: 18px;
-    min-height: 440px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border: 4px solid transparent;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-    transition: all 0.3s ease;
+.tile { 
+    background: var(--tile-bg); 
+    border-radius: 32px; 
+    padding: 25px; 
+    width: 380px; 
+    box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+    border: 4px solid var(--orange); /* borda laranja grossa como na imagem */
     position: relative;
-    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 .tile.leader {
-    transform: scale(1.06);
-    border-color: #FFC107;
+    transform: scale(1.05);
+    box-shadow: 0 30px 60px rgba(255, 87, 34, 0.4);
 }
 
-.name-and-device {
-    font-size: 2.1rem;
-    font-weight: 900;
-    margin-bottom: 12px;
+/* Cabeçalho com Foto */
+.profile-header {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 20px;
+    margin-bottom: 20px;
 }
+
+.avatar-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--orange);
+    background: #333;
+}
+
+.rank-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--orange);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 12px;
+    border: 3px solid var(--tile-bg);
+}
+
+.user-info { flex: 1; }
 
 .name { 
-    font-size: 5.2rem !important;
-    font-weight: 900;
-    line-height: 0.95;
-    text-transform: uppercase;
-    letter-spacing: -1px;
+    font-size: 2.2rem; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    line-height: 1; 
+    color: var(--text-main);
 }
 
-.device-name {
-    font-size: 1.5rem;
-    color: #81C784;
-    font-weight: 400;
+.device { 
+    font-size: 1rem; 
+    color: var(--blue); 
+    margin-top: 6px; 
+    font-weight: 500;
+}
+
+/* BPM Central */
+.main-stats { 
+    background: rgba(255,255,255,0.04);
+    border-radius: 24px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .bpm { 
-    font-size: 6.5rem; 
+    font-size: 7rem; 
     font-weight: 900; 
     line-height: 1; 
-    margin: 6px 0; 
+    letter-spacing: -3px; 
+    color: var(--text-main); /* sempre branco */
 }
 
-.bpm-label { 
-    font-size: 2rem; 
-    color: #aaa; 
+.bpm span { 
+    font-size: 1.5rem; 
+    color: var(--text-dim); 
     margin-left: 8px; 
+    letter-spacing: 0; 
+    font-weight: normal;
 }
 
-.max-bpm { 
-    font-size: 2rem; 
-    color: #E63946; 
-    font-weight: 800; 
-    margin-bottom: 8px; 
+.zone-label { 
+    font-size: 1.4rem; 
+    font-weight: bold; 
+    margin-top: 8px; 
+    text-transform: uppercase;
 }
 
-.percent { 
-    font-size: 2.8rem; 
-    font-weight: 900; 
-    margin: 8px 0; 
+/* Barra de Progresso */
+.progress-bar { 
+    height: 16px; 
+    background: #333; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    margin: 20px 0; 
 }
 
-.queima-points {
-    font-size: 3.4rem !important;
-    font-weight: 900;
-    color: #FF5722;
-    margin: 12px 0 8px;
-    background: rgba(255,87,34,0.18);
-    padding: 10px 28px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(255,87,34,0.25);
+.progress-fill { 
+    height: 100%; 
+    background: linear-gradient(90deg, var(--green), #FF9800, var(--red)); 
+    width: 0%; 
+    transition: width 0.4s ease;
 }
 
-.calories { 
-    font-size: 1.9rem; 
-    color: #4CAF50; 
-    margin-top: 6px; 
+/* Grid de Stats */
+.grid-stats { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+    margin-bottom: 20px; 
 }
 
-.progress-bar {
-    width: 94%;
-    height: 24px;
-    background: #0d0d0d;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: 16px;
-    border: 2px solid #333;
-    position: relative;
+.stat-box { 
+    background: rgba(255,255,255,0.06); 
+    padding: 14px; 
+    border-radius: 16px; 
+    text-align: center; 
 }
 
-.progress-fill {
-    height: 100%;
-    min-width: 2px !important;
-    transition: width 0.4s ease, background-color 0.6s ease;
+.stat-label { 
+    font-size: 0.9rem; 
+    color: var(--text-dim); 
+    text-transform: uppercase; 
+    margin-bottom: 4px; 
+    letter-spacing: 0.5px;
 }
 
-/* Cores da barra por zona */
-.zone-gray .progress-fill { background: #777777 !important; }
-.zone-green .progress-fill { background: #4CAF50 !important; }
-.zone-blue .progress-fill { background: #2196F3 !important; }
-.zone-yellow .progress-fill { background: #FFEB3B !important; }
-.zone-orange .progress-fill { background: #FF9800 !important; }
-.zone-red .progress-fill { background: #F44336 !important; }
-
-.disconnected .progress-fill,
-.tile:not([class*="zone-"]) .progress-fill {
-    background: #444 !important;
+.stat-value { 
+    font-size: 1.6rem; 
+    font-weight: bold; 
 }
 
-/* Piscar vermelho quando >30s em zona vermelha */
-@keyframes red-blink {
-    0%, 100% { border-color: #F44336; box-shadow: 0 0 20px rgba(244,67,54,0.7); }
-    50% { border-color: transparent; box-shadow: none; }
+/* VO2 Badge */
+.vo2-badge { 
+    background: rgba(255, 23, 68, 0.2); 
+    color: var(--red); 
+    padding: 14px; 
+    border-radius: 18px; 
+    text-align: center; 
+    font-weight: 800;
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    border: 2px solid rgba(255, 23, 68, 0.3);
 }
 
-.red-alert-blink {
-    border: 6px solid #F44336 !important;
-    animation: red-blink 1.2s infinite;
+/* EPOC */
+.epoc { 
+    text-align: center; 
+    color: var(--orange); 
+    font-size: 1.2rem; 
+    font-weight: 600;
 }
 
-/* INDICADOR VO2↑ FIXO NO CANTO SUPERIOR DIREITO DO TILE */
-.vo2-indicator {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 4.5rem;
-    font-weight: 900;
-    color: #FF1744;
-    letter-spacing: -2px;
-    text-shadow: 0 0 20px rgba(255,23,68,0.9), 0 0 40px rgba(244,67,54,0.6);
-    animation: vo2Pulse 1.2s infinite;
-    pointer-events: none;
-    z-index: 10;
-    white-space: nowrap;
+/* Sem sinal */
+.tile.disconnected,
+.tile.inactive-alert {
+    opacity: 0.7;
 }
 
-@keyframes vo2Pulse {
-    0%   { transform: scale(1);   opacity: 1;   text-shadow: 0 0 15px #FF1744, 0 0 30px #FF1744; }
-    50%  { transform: scale(1.12); opacity: 0.85; text-shadow: 0 0 35px #FF1744, 0 0 55px #F44336; }
-    100% { transform: scale(1);   opacity: 1;   text-shadow: 0 0 15px #FF1744, 0 0 30px #FF1744; }
-}
-
-/* MODO COMPACTO */
-.compact-mode #header,
-.compact-mode #weekly-rankings {
-    display: none !important;
-}
-
-.compact-mode #monitor-panel {
-    padding-top: 10px;
-}
-
-/* Botão flutuante compacto */
-#toggleCompactBtn {
-    position: fixed;
-    top: 20px;
-    right: 80px;
-    z-index: 999;
-    background: #673AB7;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    font-size: 1.8rem;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-#toggleCompactBtn:hover {
-    background: #512DA8;
-    transform: scale(1.1);
-}
-
-/* Botões flutuantes */
-#addNewParticipantBtn, #backBtn {
-    position: fixed;
-    bottom: 25px;
-    font-size: 1.2rem;
-    padding: 15px 30px;
-    border-radius: 40px;
-    z-index: 100;
-}
-
-#addNewParticipantBtn { left: 25px; background: #4CAF50; }
-#backBtn { right: 25px; background: #E63946; }
-
-/* Modal Ranking Completo */
-#full-ranking-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-#full-ranking-modal > div {
-    background: #222;
-    color: #eee;
-    padding: 30px;
-    border-radius: 16px;
-    max-width: 90%;
-    max-height: 85vh;
-    overflow-y: auto;
-    position: relative;
-    width: 1000px;
-}
-
-#full-ranking-modal span {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 40px;
-    cursor: pointer;
-    color: #aaa;
-}
-
-#full-ranking-modal span:hover {
-    color: white;
-}
-/* Admin extras */
-.admin-table th { background: #0d1117; color: #FF5722; }
-.admin-table tr:hover { background: #1e1e1e; }
-.modal-content h3 { color: #FF9800; margin: 20px 0 10px; }
-/* Evita scroll lateral */
-#monitor-panel, #participants, #weekly-rankings, #header {
-    max-width: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
+.tile.disconnected .bpm,
+.tile.inactive-alert .bpm {
+    color: var(--text-dim) !important;
 }
