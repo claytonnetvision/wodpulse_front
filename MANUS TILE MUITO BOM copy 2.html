@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Velocímetro - Treino</title>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --tile-bg: #111;
+            --orange: #FF5722;
+            --green: #00E676;
+            --yellow: #FFEA00;
+            --red: #FF1744;
+            --blue: #2979FF;
+        }
+
+        body { 
+            background: var(--bg-dark); 
+            font-family: 'Orbitron', sans-serif; /* Fonte estilo futurista/carro */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0;
+            color: white;
+        }
+
+        .tile-gauge {
+            background: var(--tile-bg);
+            width: 400px;
+            padding: 30px;
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.05), 0 30px 60px rgba(0,0,0,0.8);
+            border: 2px solid #222;
+            position: relative;
+        }
+
+        /* Nome no topo */
+        .name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* O Velocímetro (Gauge) */
+        .gauge-container {
+            position: relative;
+            width: 280px;
+            height: 160px;
+            margin: 0 auto;
+            overflow: hidden; /* Corta a parte de baixo do círculo */
+        }
+
+        .gauge-bg {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 15px solid #222;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+        }
+
+        .gauge-active {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 15px solid transparent;
+            border-top-color: var(--orange);
+            border-right-color: var(--orange);
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            transform: rotate(45deg); /* Ajustar via JS: -45deg (0%) a 135deg (100%) */
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 8px var(--orange));
+        }
+
+        .gauge-data {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .bpm-value {
+            font-size: 5.5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: -5px;
+        }
+
+        .bpm-unit {
+            font-size: 1.2rem;
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        /* Marcadores de Zona */
+        .zones-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .zone-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #333;
+        }
+        .zone-dot.active { box-shadow: 0 0 10px currentColor; background: currentColor; }
+
+        /* Stats inferiores estilo painel */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            background: #000;
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid #222;
+        }
+        .dash-item { text-align: center; }
+        .dash-label { font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+        .dash-value { font-size: 1.2rem; font-weight: bold; color: #eee; }
+
+        /* Alerta de "Redline" */
+        .redline-alert {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: var(--red);
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+    </style>
+    <!-- Importando fonte estilo digital/carro -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="tile-gauge">
+        <div class="redline-alert">MAX POWER</div>
+        
+        <div class="name">Robson</div>
+
+        <div class="gauge-container">
+            <div class="gauge-bg"></div>
+            <!-- O transform: rotate(90deg) aqui representa ~75% da barra -->
+            <div class="gauge-active" style="transform: rotate(90deg); border-top-color: var(--orange); border-right-color: var(--orange);"></div>
+            
+            <div class="gauge-data">
+                <div class="bpm-value">158</div>
+                <div class="bpm-unit">BPM / 85%</div>
+            </div>
+        </div>
+
+        <div class="zones-indicator">
+            <div class="zone-dot" style="color: var(--green);"></div>
+            <div class="zone-dot" style="color: var(--yellow);"></div>
+            <div class="zone-dot active" style="color: var(--orange);"></div>
+            <div class="zone-dot" style="color: var(--red);"></div>
+        </div>
+
+        <div class="dashboard-stats">
+            <div class="dash-item">
+                <div class="dash-label">Pontos</div>
+                <div class="dash-value">28.5</div>
+            </div>
+            <div class="dash-item">
+                <div class="dash-label">Kcal</div>
+                <div class="dash-value">920</div>
+            </div>
+            <div class="dash-item">
+                <div class="dash-label">VO2</div>
+                <div class="dash-value">04:32</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

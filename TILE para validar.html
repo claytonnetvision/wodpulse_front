@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Performance Pro</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --tile-bg: #1a1a1a;
+            --orange: #FF5722;
+            --green: #4CAF50;
+            --blue: #00BCD4;
+            --red: #FF1744;
+            --text-main: #ffffff;
+            --text-dim: #aaaaaa;
+        }
+        body { 
+            background: var(--bg-dark); 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .tile { 
+            background: var(--tile-bg); 
+            border-radius: 24px; 
+            padding: 25px; 
+            width: 350px; 
+            color: var(--text-main); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+            border: 2px solid transparent;
+            transition: transform 0.3s ease;
+        }
+        .zone-orange { border-color: var(--orange); box-shadow: 0 0 20px rgba(255, 87, 34, 0.3); }
+        
+        .header { text-align: center; margin-bottom: 15px; }
+        .name { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; }
+        .device { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+        .main-stats { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 10px 0;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            margin-bottom: 15px;
+        }
+        .bpm { font-size: 6.5rem; font-weight: 900; line-height: 1; display: flex; align-items: baseline; }
+        .bpm span { font-size: 1.5rem; color: var(--text-dim); margin-left: 5px; }
+        .percent { font-size: 1.4rem; color: var(--orange); font-weight: bold; margin-top: 5px; }
+
+        .progress-container { margin: 15px 0; }
+        .progress-bar { height: 14px; background: #333; border-radius: 7px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #FF9800, var(--red)); width: 85%; }
+
+        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .stat-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; }
+        .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+        .stat-value { font-size: 1.3rem; font-weight: bold; }
+
+        .footer-info { border-top: 1px solid rgba(255,255,255,0.1); pt: 15px; margin-top: 15px; }
+        .vo2-badge { 
+            background: rgba(255, 23, 68, 0.15); 
+            color: var(--red); 
+            padding: 8px; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .epoc { text-align: center; color: #FF9800; font-size: 1rem; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="tile zone-orange">
+        <div class="header">
+            <div class="name">ROBSON</div>
+            <div class="device">📱 Polar H10</div>
+        </div>
+
+        <div class="main-stats">
+            <div class="bpm">158<span>BPM</span></div>
+            <div class="percent">85% - ZONA LARANJA</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+
+        <div class="grid-stats">
+            <div class="stat-box">
+                <div class="stat-label">Pontos</div>
+                <div class="stat-value" style="color: var(--orange);">28.50</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Calorias</div>
+                <div class="stat-value" style="color: var(--blue);">920 kcal</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Média HR</div>
+                <div class="stat-value">152</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Máx Hoje</div>
+                <div class="stat-value">188</div>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            <div class="vo2-badge">VO2 TIME: 04:32</div>
+            <div class="epoc">EPOC: +185 kcal pós-treino</div>
+        </div>
+    </div>
+</body>
+</html>

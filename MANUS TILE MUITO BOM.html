@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Layout Performance Pro - TV</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --tile-bg: #1a1a1a;
+            --orange: #FF5722;
+            --green: #4CAF50;
+            --blue: #00BCD4;
+            --red: #FF1744;
+            --text-main: #ffffff;
+            --text-dim: #aaaaaa;
+            --accent-glow: rgba(255, 87, 34, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            background: var(--bg-dark); 
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            color: var(--text-main);
+        }
+
+        /* Container do Tile */
+        .tile { 
+            background: var(--tile-bg); 
+            border-radius: 28px; 
+            padding: 30px; 
+            width: 380px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Borda colorida baseada na zona */
+        .zone-orange { 
+            border-color: var(--orange); 
+            box-shadow: 0 0 30px var(--accent-glow); 
+        }
+
+        /* Cabeçalho: Nome e Dispositivo */
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        .name { 
+            font-size: 2.5rem; 
+            font-weight: 800; 
+            letter-spacing: -1px; 
+            text-transform: uppercase;
+        }
+        .device { 
+            font-size: 1rem; 
+            color: var(--text-dim); 
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Área Principal: BPM */
+        .main-stats { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px 0;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        .bpm { 
+            font-size: 7.5rem; 
+            font-weight: 900; 
+            line-height: 0.9; 
+            display: flex; 
+            align-items: baseline;
+            letter-spacing: -3px;
+        }
+        .bpm span { 
+            font-size: 1.8rem; 
+            color: var(--text-dim); 
+            margin-left: 8px;
+            letter-spacing: 0;
+        }
+        .zone-label { 
+            font-size: 1.4rem; 
+            color: var(--orange); 
+            font-weight: bold; 
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* Barra de Progresso */
+        .progress-container { 
+            margin: 20px 0; 
+            position: relative;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .progress-bar { 
+            height: 16px; 
+            background: #333; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        .progress-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--green), #FF9800, var(--red)); 
+            width: 85%; 
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        /* Grid de Estatísticas Secundárias */
+        .grid-stats { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            margin: 20px 0; 
+        }
+        .stat-box { 
+            background: rgba(255,255,255,0.05); 
+            padding: 12px; 
+            border-radius: 16px; 
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-label { 
+            font-size: 0.85rem; 
+            color: var(--text-dim); 
+            text-transform: uppercase; 
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+        .stat-value { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+        }
+
+        /* Rodapé: VO2 e EPOC */
+        .footer-info { 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            padding-top: 20px; 
+            margin-top: 10px; 
+        }
+        .vo2-badge { 
+            background: rgba(255, 23, 68, 0.15); 
+            color: var(--red); 
+            padding: 12px; 
+            border-radius: 14px; 
+            text-align: center; 
+            font-weight: 800;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 23, 68, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .epoc { 
+            text-align: center; 
+            color: #FF9800; 
+            font-size: 1.1rem; 
+            font-weight: 500;
+        }
+        .epoc strong {
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Exemplo do Tile -->
+    <div class="tile zone-orange">
+        <div class="header">
+            <div class="name">Robson</div>
+            <div class="device"><span>📱</span> Polar H10</div>
+        </div>
+
+        <div class="main-stats">
+            <div class="bpm">158<span>BPM</span></div>
+            <div class="zone-label">ZONA LARANJA</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-info">
+                <span>Intensidade</span>
+                <span>85%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="grid-stats">
+            <div class="stat-box">
+                <div class="stat-label">Pontos</div>
+                <div class="stat-value" style="color: var(--orange);">28.50</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Calorias</div>
+                <div class="stat-value" style="color: var(--blue);">920</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Média HR</div>
+                <div class="stat-value">152</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Máx Hoje</div>
+                <div class="stat-value">188</div>
+            </div>
+        </div>
+
+        <div class="footer-info">
+            <div class="vo2-badge">
+                <span>🔥</span> VO2 TIME: 04:32
+            </div>
+            <div class="epoc">
+                EPOC: +<strong>185</strong> kcal pós-treino
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
