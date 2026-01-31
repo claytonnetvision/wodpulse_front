@@ -45,7 +45,6 @@ const classTimes = [
 ];
 // Timer para captura de FC repouso após 60 segundos
 let restingHRCaptureTimer = null;
-
 // ── FUNÇÃO AUXILIAR PARA CONVERTER FILE → BASE64 (sem o prefixo data:...) ─────
 async function fileToBase64(file) {
     return new Promise((resolve, reject) => {
@@ -55,7 +54,6 @@ async function fileToBase64(file) {
         reader.readAsDataURL(file);
     });
 }
-
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -63,7 +61,7 @@ window.addEventListener('load', async () => {
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
     }
     participants = await loadParticipantsFromDB();
-   
+  
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
@@ -99,7 +97,6 @@ window.addEventListener('load', async () => {
             autoEndClass();
         }
     });
-
     // ── PREVIEW DA FOTO NO CADASTRO ───────────────────────────────────────
     const photoInput = document.getElementById('photoInput');
     const photoPreview = document.getElementById('photoPreview');
@@ -119,11 +116,12 @@ window.addEventListener('load', async () => {
             }
         });
     }
-
     renderParticipantList();
     renderLastSessionSummary();
-});
 
+    // ADICIONADO: força load do backend logo no início para garantir foto permanente
+    await loadParticipantsFromBackend();
+});
 function stopAllTimersAndLoops() {
     if (burnInterval) clearInterval(burnInterval);
     if (trimpInterval) clearInterval(trimpInterval);
@@ -232,6 +230,11 @@ async function loadParticipantsFromBackend() {
         }));
         console.log(`Carregados ${participants.length} alunos do backend`);
         renderParticipantList();
+
+        // ADICIONADO: re-renderiza tiles se a aula estiver aberta (garante foto nos tiles ao recarregar)
+        if (currentActiveClassName) {
+            renderTiles();
+        }
     } catch (err) {
         console.error('Falha ao carregar do backend:', err);
         participants = await loadParticipantsFromDB();
@@ -247,7 +250,6 @@ window.addNewParticipantFromSetup = async function() {
     const gender = document.getElementById('genderInput')?.value || null;
     const email = document.getElementById('emailInput')?.value.trim() || null;
     const useTanaka = document.getElementById('useTanakaInput')?.checked || false;
-
     // ── LEITURA DA FOTO ───────────────────────────────────────────────────────
     const photoInput = document.getElementById('photoInput');
     let photoBase64 = null;
@@ -259,7 +261,6 @@ window.addNewParticipantFromSetup = async function() {
             return;
         }
     }
-
     if (!name) {
         return alert("Preencha pelo menos o nome do aluno!");
     }
@@ -276,7 +277,7 @@ window.addNewParticipantFromSetup = async function() {
         historical_max_hr: 0,
         device_id: null,
         device_name: null,
-        photo: photoBase64  // envia base64 (backend converte para BYTEA)
+        photo: photoBase64 // envia base64 (backend converte para BYTEA)
     };
     try {
         const response = await fetch(`${API_BASE_URL}/api/participants`, {
@@ -334,7 +335,7 @@ window.addNewParticipantFromSetup = async function() {
             _hrListener: null,
             sumHR: 0,
             countHRMinutes: 0,
-            photo: newP.photo || null  // recebe base64 do backend
+            photo: newP.photo || null // recebe base64 do backend
         });
         renderParticipantList();
         // Limpa o formulário
@@ -569,7 +570,7 @@ window.addParticipantDuringClass = async function() {
         }
         const name = prompt("Nome do Aluno:");
         if (!name) return;
-       
+      
         let p = participants.find(x => x.name.toLowerCase() === name.toLowerCase().trim());
         if (!p) {
             const age = parseInt(prompt("Idade:", "30"));
@@ -853,9 +854,7 @@ function countZones() {
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
-
         const percent = (p.hr / p.maxHR) * 100;
-
         if (percent >= 60 && percent < 70) {
             p.min_zone2 = (p.min_zone2 || 0) + 1;
         } else if (percent >= 70 && percent < 80) {
@@ -865,13 +864,11 @@ function countZones() {
         } else if (percent >= 90) {
             p.min_zone5 = (p.min_zone5 || 0) + 1;
         }
-
         if (p.hr > 40) {
             p.sumHR += p.hr;
             p.countHRMinutes += 1;
             console.log(`[ZONE COUNTER + FC MÉDIA] ${p.name} - HR: ${p.hr} bpm (acumulado: soma=${p.sumHR}, minutos=${p.countHRMinutes})`);
         }
-
         console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
     });
     renderTiles(); // atualiza a interface
@@ -879,11 +876,10 @@ function countZones() {
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
-   
+  
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
-
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) {
@@ -896,7 +892,6 @@ async function autoEndClass() {
             }
         }
     });
-
     for (const id of activeParticipants) {
         const p = participants.find(p => p.id === id);
         if (p && p.id && currentSessionId) {
@@ -915,7 +910,6 @@ async function autoEndClass() {
             }
         }
     }
-
     activeParticipants.forEach(id => {
         const p = participants.find(p => p.id === id);
         if (p) {
@@ -927,11 +921,9 @@ async function autoEndClass() {
             p.epocEstimated = Math.round(baseEPOC + trimpBonus + vo2Bonus);
         }
     });
-
     if (currentActiveClassName === "Aula Manual") {
         await limitManualSessionsToday();
     }
-
     const participantsData = participants.filter(p => activeParticipants.includes(p.id)).map(p => ({
         participantId: p.id,
         avg_hr: p.avg_hr,
@@ -953,7 +945,6 @@ async function autoEndClass() {
         min_zone5: Math.round(p.min_zone5 || 0),
         queima_points: Number(p.queimaPoints.toFixed(2))
     }));
-
     const sessionData = {
         class_name: currentActiveClassName || 'Aula Manual (fallback)',
         date_start: sessionStart.toISOString(),
@@ -962,7 +953,6 @@ async function autoEndClass() {
         box_id: 1,
         participantsData
     };
-
     try {
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
@@ -1077,8 +1067,8 @@ function renderParticipantList() {
     const tbody = table.querySelector('tbody');
     participants.forEach(p => {
         const tr = document.createElement('tr');
-        const photoSrc = p.photo 
-            ? `data:image/jpeg;base64,${p.photo}` 
+        const photoSrc = p.photo
+            ? `data:image/jpeg;base64,${p.photo}`
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
@@ -1202,24 +1192,20 @@ function updateQueimaCaloriesAndTimer() {
 function renderTiles() {
     const container = document.getElementById('participants');
     if (!container) return;
-
-    const activeOnScreen = participants.filter(p => 
+    const activeOnScreen = participants.filter(p =>
         activeParticipants.includes(p.id) && (p.connected || (p.hr > 0))
     );
-    
-    const sorted = activeOnScreen.sort((a, b) => 
+   
+    const sorted = activeOnScreen.sort((a, b) =>
         (b.queimaPoints || 0) - (a.queimaPoints || 0)
     );
-
     container.innerHTML = '';
     const now = Date.now();
-
     sorted.forEach((p, index) => {
         let percent = 0;
         if (p.maxHR && p.hr > 0) {
             percent = Math.min(Math.max(Math.round((p.hr / p.maxHR) * 100), 0), 100);
         }
-
         let zoneName = 'CINZA';
         let zoneColor = '#aaaaaa';
         if (percent >= 90) {
@@ -1238,23 +1224,18 @@ function renderTiles() {
             zoneName = 'AZUL';
             zoneColor = '#2196F3';
         }
-
         const isInactive = p.connected && p.lastUpdate && (now - p.lastUpdate > 15000);
         const isRedAlert = p.redStartTime && (now - p.redStartTime > 30000);
-
         const hasSignal = p.connected && p.hr > 0;
         const bpmDisplay = hasSignal ? p.hr : '--';
         const zoneDisplay = hasSignal ? `ZONA ${zoneName} (${percent}%)` : 'SEM SINAL';
         const zoneLabelColor = hasSignal ? zoneColor : '#ffeb3b';
-
         let avatarUrl = `https://i.pravatar.cc/300?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         if (p.photo) {
             avatarUrl = `data:image/jpeg;base64,${p.photo}`;
         }
-
         const tile = document.createElement('div');
         tile.className = `tile ${index === 0 ? 'leader' : ''} ${!p.connected ? 'disconnected' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
-
         tile.innerHTML = `
             <div class="profile-header">
                 <div class="avatar-container">
@@ -1266,18 +1247,15 @@ function renderTiles() {
                     ${p.deviceName ? `<div class="device"><span style="color:#00BCD4; margin-right:8px;">📊</span>${p.deviceName}</div>` : ''}
                 </div>
             </div>
-
             <div class="main-stats">
                 <div class="bpm" style="color: ${hasSignal ? '#ffffff' : '#aaaaaa'};">
                     ${bpmDisplay}<span>BPM</span>
                 </div>
                 <div class="zone-label" style="color: ${zoneLabelColor};">${zoneDisplay}</div>
             </div>
-
             <div class="progress-bar">
                 <div class="progress-fill" style="width: ${percent}%;"></div>
             </div>
-
             <div class="grid-stats">
                 <div class="stat-box">
                     <div class="stat-label">PONTOS</div>
@@ -1292,27 +1270,22 @@ function renderTiles() {
                     </div>
                 </div>
             </div>
-
             ${p.vo2TimeSeconds > 0 ? `
                 <div class="vo2-badge">
                     VO2 TIME: ${formatTime(Math.round(p.vo2TimeSeconds))}
                 </div>
             ` : ''}
-
             <div class="epoc">
                 EPOC: +<strong>${Math.round(p.epocEstimated || 0)}</strong> kcal
             </div>
-
             ${isInactive ? `
                 <div style="text-align:center; color:#ffeb3b; margin-top:10px; font-size:0.9rem; font-weight:bold;">
                     ⚠️ SEM SINAL
                 </div>
             ` : ''}
         `;
-
         container.appendChild(tile);
     });
-
     // RESPONSIVIDADE POR QUANTIDADE DE PESSOAS
     const tileCount = sorted.length;
     container.classList.remove(...Array.from(container.classList).filter(c => c.startsWith('count-')));
@@ -1328,7 +1301,7 @@ function renderTiles() {
 }
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
-   
+  
     reconnectInterval = setInterval(async () => {
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
@@ -1383,7 +1356,7 @@ async function connectDevice(device, isReconnect = false) {
     if (!p) {
         return;
     }
-   
+  
     try {
         const server = await device.gatt.connect();
         device.addEventListener('gattserverdisconnected', () => {
@@ -1394,11 +1367,9 @@ async function connectDevice(device, isReconnect = false) {
         const service = await server.getPrimaryService('heart_rate');
         const char = await service.getCharacteristic('heart_rate_measurement');
         await char.startNotifications();
-
         if (p._hrListener) {
             char.removeEventListener('characteristicvaluechanged', p._hrListener);
         }
-
         p._hrListener = (e) => {
             const val = e.target.value;
             const flags = val.getUint8(0);
@@ -1420,7 +1391,6 @@ async function connectDevice(device, isReconnect = false) {
             renderTiles();
         };
         char.addEventListener('characteristicvaluechanged', p._hrListener);
-
         p.connected = true;
         p.lastUpdate = Date.now();
         p.lastSampleTime = p.lastSampleTime || Date.now();
