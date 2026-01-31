@@ -56,11 +56,13 @@ async function fileToBase64(file) {
 }
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
+    console.log('[INIT] Página carregada - iniciando load inicial');
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
         console.warn("A página não está em HTTPS. Web Bluetooth pode não funcionar.");
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
     }
     participants = await loadParticipantsFromDB();
+    console.log('[INIT] Load do IndexedDB/local concluído - ' + participants.length + ' alunos (sem foto ainda)');
   
     loadWeeklyHistory();
     loadDailyLeader();
@@ -119,7 +121,8 @@ window.addEventListener('load', async () => {
     renderParticipantList();
     renderLastSessionSummary();
 
-    // ADICIONADO: força load do backend logo no início para garantir foto permanente
+    // FORÇA LOAD DO BACKEND NO INÍCIO PARA GARANTIR FOTO PERMANENTE
+    console.log('[INIT] Forçando load do backend para carregar fotos permanentes...');
     await loadParticipantsFromBackend();
 });
 function stopAllTimersAndLoops() {
@@ -173,68 +176,70 @@ function startRestingHRCapture() {
 // ── CARREGAR PARTICIPANTS DO BACKEND ────────────────────────────────────────────
 async function loadParticipantsFromBackend() {
     try {
+        console.log('[LOAD BACKEND] Iniciando request para /api/participants');
         const response = await fetch(`${API_BASE_URL}/api/participants`);
         if (!response.ok) {
             throw new Error(`Erro HTTP ${response.status}`);
         }
         const data = await response.json();
-        participants = data.participants.map(p => ({
-            id: p.id,
-            name: p.name,
-            age: p.age,
-            weight: p.weight,
-            heightCm: p.height_cm,
-            gender: p.gender,
-            restingHR: p.resting_hr,
-            email: p.email,
-            useTanaka: p.use_tanaka,
-            maxHR: p.max_hr,
-            historicalMaxHR: p.historical_max_hr,
-            deviceId: p.device_id,
-            deviceName: p.device_name,
-            device: null,
-            hr: 0,
-            connected: false,
-            lastUpdate: 0,
-            lastZone: 'gray',
-            queimaPoints: 0,
-            trimpPoints: 0,
-            lastSampleTime: null,
-            calories: 0,
-            minOrange: 0,
-            minRed: 0,
-            epocEstimated: 0,
-            redStartTime: null,
-            vo2ZoneActive: false,
-            vo2GraceStart: null,
-            vo2StartTime: null,
-            vo2TimeSeconds: 0,
-            vo2LastUpdate: 0,
-            todayMaxHR: 0,
-            maxHRReached: 0,
-            externalId: null,
-            minGray: 0,
-            minGreen: 0,
-            minBlue: 0,
-            minYellow: 0,
-            realRestingHR: null,
-            zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
-            lastHR: null,
-            lastZone: null,
-            _hrListener: null,
-            // NOVO: acumuladores para FC média real
-            sumHR: 0,
-            countHRMinutes: 0,
-            // NOVO: foto (string base64 vinda do backend)
-            photo: p.photo || null
-        }));
-        console.log(`Carregados ${participants.length} alunos do backend`);
+        console.log('[LOAD BACKEND] Resposta recebida - ' + data.participants.length + ' alunos');
+        participants = data.participants.map(p => {
+            const hasPhoto = p.photo ? true : false;
+            const photoLength = p.photo ? p.photo.length : 0;
+            console.log(`[LOAD BACKEND] Aluno ${p.name} (ID ${p.id}): foto = ${hasPhoto ? 'sim (' + photoLength + ' chars)' : 'não'}`);
+            return {
+                id: p.id,
+                name: p.name,
+                age: p.age,
+                weight: p.weight,
+                heightCm: p.height_cm,
+                gender: p.gender,
+                restingHR: p.resting_hr,
+                email: p.email,
+                useTanaka: p.use_tanaka,
+                maxHR: p.max_hr,
+                historicalMaxHR: p.historical_max_hr,
+                deviceId: p.device_id,
+                deviceName: p.device_name,
+                device: null,
+                hr: 0,
+                connected: false,
+                lastUpdate: 0,
+                lastZone: 'gray',
+                queimaPoints: 0,
+                trimpPoints: 0,
+                lastSampleTime: null,
+                calories: 0,
+                minOrange: 0,
+                minRed: 0,
+                epocEstimated: 0,
+                redStartTime: null,
+                vo2ZoneActive: false,
+                vo2GraceStart: null,
+                vo2StartTime: null,
+                vo2TimeSeconds: 0,
+                vo2LastUpdate: 0,
+                todayMaxHR: 0,
+                maxHRReached: 0,
+                externalId: null,
+                minGray: 0,
+                minGreen: 0,
+                minBlue: 0,
+                minYellow: 0,
+                realRestingHR: null,
+                zoneSeconds: { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 },
+                lastHR: null,
+                lastZone: null,
+                _hrListener: null,
+                sumHR: 0,
+                countHRMinutes: 0,
+                photo: p.photo || null
+            };
+        });
+        console.log('[LOAD BACKEND] Mapeamento concluído - fotos carregadas');
         renderParticipantList();
-
-        // ADICIONADO: re-renderiza tiles se a aula estiver aberta (garante foto nos tiles ao recarregar)
-        if (currentActiveClassName) {
-            renderTiles();
-        }
+        renderTiles(); // sempre re-renderiza tiles (garante foto mesmo sem aula)
+        console.log('[LOAD BACKEND] Render da lista e tiles concluído');
     } catch (err) {
         console.error('Falha ao carregar do backend:', err);
         participants = await loadParticipantsFromDB();
@@ -256,6 +261,7 @@ window.addNewParticipantFromSetup = async function() {
     if (photoInput && photoInput.files && photoInput.files[0]) {
         try {
             photoBase64 = await fileToBase64(photoInput.files[0]);
+            console.log('[CADASTRO] Foto convertida para base64 - tamanho: ' + photoBase64.length + ' chars');
         } catch (err) {
             alert("Erro ao processar a foto. Tente novamente.");
             return;
@@ -280,6 +286,7 @@ window.addNewParticipantFromSetup = async function() {
         photo: photoBase64 // envia base64 (backend converte para BYTEA)
     };
     try {
+        console.log('[CADASTRO] Enviando POST para /api/participants');
         const response = await fetch(`${API_BASE_URL}/api/participants`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -290,6 +297,7 @@ window.addNewParticipantFromSetup = async function() {
             throw new Error(json.error || 'Erro ao cadastrar aluno');
         }
         const newP = json.participant;
+        console.log('[CADASTRO] Resposta do backend - foto retornada: ' + (newP.photo ? 'sim (' + newP.photo.length + ' chars)' : 'não'));
         participants.push({
             id: newP.id,
             name: newP.name,
@@ -465,6 +473,7 @@ async function editParticipant(id) {
             historical_max_hr: p.historicalMaxHR
         };
         try {
+            console.log('[EDIT] Enviando PUT para dados gerais do aluno ID ' + id);
             const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -514,6 +523,7 @@ async function editParticipant(id) {
             if (!file) return;
             try {
                 const photoBase64 = await fileToBase64(file);
+                console.log('[EDIT FOTO] Enviando PUT apenas com foto para aluno ID ' + id + ' (tamanho base64: ' + photoBase64.length + ' chars)');
                 const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -524,6 +534,7 @@ async function editParticipant(id) {
                     throw new Error(err.error || 'Erro ao salvar foto');
                 }
                 const json = await res.json();
+                console.log('[EDIT FOTO] Resposta do backend - foto retornada: ' + (json.participant.photo ? 'sim (' + json.participant.photo.length + ' chars)' : 'não'));
                 p.photo = json.participant.photo || photoBase64;
                 renderParticipantList();
                 if (currentActiveClassName) renderTiles();
