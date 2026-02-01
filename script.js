@@ -63,7 +63,7 @@ window.addEventListener('load', async () => {
     }
     participants = await loadParticipantsFromDB();
     console.log('[INIT] Load do IndexedDB/local concluído - ' + participants.length + ' alunos (sem foto ainda)');
-  
+ 
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
@@ -118,12 +118,15 @@ window.addEventListener('load', async () => {
             }
         });
     }
-    renderParticipantList();
     renderLastSessionSummary();
 
     // FORÇA LOAD DO BACKEND NO INÍCIO PARA GARANTIR FOTO PERMANENTE
     console.log('[INIT] Forçando load do backend para carregar fotos permanentes...');
     await loadParticipantsFromBackend();
+
+    // RENDER DA LISTA E TILES SÓ AQUI (após backend – garante foto)
+    renderParticipantList();
+    renderTiles();
 });
 function stopAllTimersAndLoops() {
     if (burnInterval) clearInterval(burnInterval);
@@ -237,13 +240,15 @@ async function loadParticipantsFromBackend() {
             };
         });
         console.log('[LOAD BACKEND] Mapeamento concluído - fotos carregadas');
+        // Renderiza lista e tiles aqui (garante foto ao recarregar)
         renderParticipantList();
-        renderTiles(); // sempre re-renderiza tiles (garante foto mesmo sem aula)
+        renderTiles();
         console.log('[LOAD BACKEND] Render da lista e tiles concluído');
     } catch (err) {
         console.error('Falha ao carregar do backend:', err);
         participants = await loadParticipantsFromDB();
         renderParticipantList();
+        renderTiles();
     }
 }
 // ── CADASTRO MANUAL (COM UPLOAD DE FOTO) ───────────────────────────────────────
@@ -283,7 +288,7 @@ window.addNewParticipantFromSetup = async function() {
         historical_max_hr: 0,
         device_id: null,
         device_name: null,
-        photo: photoBase64 // envia base64 (backend converte para BYTEA)
+        photo: photoBase64 // envia base64 (backend salva como TEXT)
     };
     try {
         console.log('[CADASTRO] Enviando POST para /api/participants');
@@ -343,7 +348,7 @@ window.addNewParticipantFromSetup = async function() {
             _hrListener: null,
             sumHR: 0,
             countHRMinutes: 0,
-            photo: newP.photo || null // recebe base64 do backend
+            photo: newP.photo || null // recebe string base64 do backend
         });
         renderParticipantList();
         // Limpa o formulário
@@ -581,7 +586,7 @@ window.addParticipantDuringClass = async function() {
         }
         const name = prompt("Nome do Aluno:");
         if (!name) return;
-      
+     
         let p = participants.find(x => x.name.toLowerCase() === name.toLowerCase().trim());
         if (!p) {
             const age = parseInt(prompt("Idade:", "30"));
@@ -887,7 +892,7 @@ function countZones() {
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
     console.log(`Finalizando aula: ${currentActiveClassName || '(sem nome)'}`);
-  
+ 
     const sessionStart = new Date(wodStartTime || Date.now());
     const sessionEnd = new Date();
     const durationMinutes = Math.round((sessionEnd - sessionStart) / 60000);
@@ -1207,7 +1212,7 @@ function renderTiles() {
     const activeOnScreen = participants.filter(p =>
         activeParticipants.includes(p.id) && (p.connected || (p.hr > 0))
     );
-   
+  
     const sorted = activeOnScreen.sort((a, b) =>
         (b.queimaPoints || 0) - (a.queimaPoints || 0)
     );
@@ -1314,7 +1319,7 @@ function renderTiles() {
 }
 function startReconnectLoop() {
     if (reconnectInterval) clearInterval(reconnectInterval);
-  
+ 
     reconnectInterval = setInterval(async () => {
         for (const id of activeParticipants) {
             const p = participants.find(p => p.id === id);
@@ -1369,7 +1374,7 @@ async function connectDevice(device, isReconnect = false) {
     if (!p) {
         return;
     }
-  
+ 
     try {
         const server = await device.gatt.connect();
         device.addEventListener('gattserverdisconnected', () => {
