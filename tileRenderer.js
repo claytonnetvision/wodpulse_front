@@ -53,7 +53,7 @@ function renderTiles() {
         // Se não tiver, usa Pravatar como placeholder
         let avatarUrl = `https://i.pravatar.cc/300?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         if (p.photo) {
-            avatarUrl = `data:image/jpeg;base64,${p.photo}`;
+            avatarUrl = `data:image;base64,${p.photo}`; // genérico – suporta png e jpeg sem quebrar
         }
 
         const tile = document.createElement('div');
