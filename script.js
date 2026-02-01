@@ -119,11 +119,9 @@ window.addEventListener('load', async () => {
         });
     }
     renderLastSessionSummary();
-
     // FORÇA LOAD DO BACKEND NO INÍCIO PARA GARANTIR FOTO PERMANENTE
     console.log('[INIT] Forçando load do backend para carregar fotos permanentes...');
     await loadParticipantsFromBackend();
-
     // RENDER DA LISTA E TILES SÓ AQUI (após backend – garante foto)
     renderParticipantList();
     renderTiles();
@@ -1084,7 +1082,7 @@ function renderParticipantList() {
     participants.forEach(p => {
         const tr = document.createElement('tr');
         const photoSrc = p.photo
-            ? `data:image/jpeg;base64,${p.photo}`
+            ? `data:image;base64,${p.photo}` // genérico – detecta png/jpeg automático
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         console.log(`[RENDER LISTA] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
         tr.innerHTML = `
@@ -1212,7 +1210,7 @@ function renderTiles() {
     const activeOnScreen = participants.filter(p =>
         activeParticipants.includes(p.id) && (p.connected || (p.hr > 0))
     );
-  
+ 
     const sorted = activeOnScreen.sort((a, b) =>
         (b.queimaPoints || 0) - (a.queimaPoints || 0)
     );
@@ -1249,7 +1247,7 @@ function renderTiles() {
         const zoneLabelColor = hasSignal ? zoneColor : '#ffeb3b';
         let avatarUrl = `https://i.pravatar.cc/300?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         if (p.photo) {
-            avatarUrl = `data:image/jpeg;base64,${p.photo}`;
+            avatarUrl = `data:image;base64,${p.photo}`; // genérico – detecta png/jpeg automático
         }
         console.log(`[RENDER TILES] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
         const tile = document.createElement('div');
