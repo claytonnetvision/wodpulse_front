@@ -598,11 +598,11 @@ window.addParticipantDuringClass = async function() {
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
-                console.log(`[ADD] Desconectado forçadamente ${p.name} para reset`);
+                // REMOVIDO LOG: console.log(`[ADD] Desconectado forçadamente ${p.name} para reset`);
             }
             p._hrListener = null;
             await connectDevice(device, false);
-            console.log(`[ADD] Reconexão forçada concluída para ${p.name}`);
+            // REMOVIDO LOG: console.log(`[ADD] Reconexão forçada concluída para ${p.name}`);
         } catch (cleanupErr) {
             console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
@@ -772,9 +772,9 @@ function countZones() {
         if (p.hr > 40) {
             p.sumHR += p.hr;
             p.countHRMinutes += 1;
-            console.log(`[ZONE COUNTER + FC MÉDIA] ${p.name} - HR: ${p.hr} bpm (acumulado: soma=${p.sumHR}, minutos=${p.countHRMinutes})`);
+            // REMOVIDO LOG REPETITIVO
         }
-        console.log(`[ZONE COUNTER] ${p.name} - FC: ${p.hr} (${percent.toFixed(1)}%) → zona atual incrementada`);
+        // REMOVIDO LOG REPETITIVO
     });
     renderTiles(); // atualiza a interface
 }
@@ -974,7 +974,7 @@ function renderParticipantList() {
         const photoSrc = p.photo
             ? `data:image;base64,${p.photo}` // genérico – detecta png/jpeg automático
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
-        console.log(`[RENDER LISTA] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
+        // REMOVIDO LOG REPETITIVO DE RENDER LISTA
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
             <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
@@ -1138,7 +1138,7 @@ function renderTiles() {
         if (p.photo) {
             avatarUrl = `data:image;base64,${p.photo}`; // genérico – detecta png/jpeg automático
         }
-        console.log(`[RENDER TILES] Aluno ${p.name} - foto presente: ${p.photo ? 'sim (' + p.photo.length + ' chars)' : 'não'}`);
+        // REMOVIDO LOG REPETITIVO DE RENDER TILES
         const tile = document.createElement('div');
         tile.className = `tile ${index === 0 ? 'leader' : ''} ${!p.connected ? 'disconnected' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
         tile.innerHTML = `
