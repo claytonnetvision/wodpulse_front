@@ -139,8 +139,10 @@
 
         function renderizarTudo() {
             // Cabeçalho
-            document.getElementById('foto-aluno').src = alunoData.photo ? alunoData.photo : 'https://via.placeholder.com/180?text=Sem+Foto';
-            document.getElementById('nome-aluno').textContent = alunoData.name || 'Aluno';
+        document.getElementById('foto-aluno').src = alunoData.photo 
+    ? `data:image/jpeg;base64,${alunoData.photo}` 
+    : 'https://via.placeholder.com/180?text=Sem+Foto';
+               document.getElementById('nome-aluno').textContent = alunoData.name || 'Aluno';
             document.getElementById('stats-gerais').textContent = 
                 `Idade: ${alunoData.age || 'N/D'} anos | Peso: ${alunoData.weight || 'N/D'} kg | FC Repouso: ${alunoData.resting_hr || 'N/D'} bpm`;
 
