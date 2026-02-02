@@ -65,9 +65,6 @@ window.addEventListener('load', async () => {
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
-    renderWeeklyRankings();
-    renderDailyLeader();
-    renderDailyCaloriesLeader();
     document.getElementById('dashboard').classList.add('hidden');
     document.getElementById('setup').classList.remove('hidden');
     currentActiveClassName = "";
@@ -116,7 +113,6 @@ window.addEventListener('load', async () => {
             }
         });
     }
-    renderLastSessionSummary();
     // FORÇA LOAD DO BACKEND NO INÍCIO PARA GARANTIR FOTO PERMANENTE
     console.log('[INIT] Forçando load do backend para carregar fotos permanentes...');
     await loadParticipantsFromBackend();
@@ -235,7 +231,6 @@ async function loadParticipantsFromBackend() {
             };
         });
         console.log('[LOAD BACKEND] Mapeamento concluído - fotos carregadas');
-        // Renderiza lista e tiles aqui (garante foto ao recarregar)
         renderParticipantList();
         renderTiles();
         console.log('[LOAD BACKEND] Render da lista e tiles concluído');
@@ -598,11 +593,9 @@ window.addParticipantDuringClass = async function() {
         try {
             if (device.gatt && device.gatt.connected) {
                 device.gatt.disconnect();
-                // REMOVIDO LOG: console.log(`[ADD] Desconectado forçadamente ${p.name} para reset`);
             }
             p._hrListener = null;
             await connectDevice(device, false);
-            // REMOVIDO LOG: console.log(`[ADD] Reconexão forçada concluída para ${p.name}`);
         } catch (cleanupErr) {
             console.warn(`[ADD] Erro na limpeza: ${cleanupErr.message}`);
         }
@@ -682,61 +675,10 @@ async function autoStartClass(className) {
     }, 120000);
     if (trimpInterval) clearInterval(trimpInterval);
     trimpInterval = setInterval(calculateTRIMPIncrement, 15000);
+    if (burnInterval) clearInterval(burnInterval);
+    burnInterval = setInterval(updateQueimaCaloriesAndTimer, 1000);
     renderTiles();
     updateReconnectButtonVisibility();
-}
-// ── CÁLCULO TRIMP COM BANISTER ──────────────────────────────────────────────────
-function calculateTRIMPIncrement() {
-    const now = Date.now();
-    activeParticipants.forEach(id => {
-        const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR || !p.lastSampleTime) return;
-        const deltaMs = now - p.lastSampleTime;
-        if (deltaMs < 5000) return;
-        const deltaMin = deltaMs / 60000;
-        const resting = Number(p.realRestingHR || p.restingHR) || 60;
-        const hrr = p.maxHR - resting;
-        if (hrr <= 0) return;
-        let ratio = (p.hr - resting) / hrr;
-        ratio = Math.max(0, Math.min(1, ratio));
-        const y = p.gender === 'F' ? 1.67 : 1.92;
-        const factor = 0.64 * Math.exp(y * ratio);
-        const weight = Number(p.weight) || 70;
-        const increment = deltaMin * ratio * factor * weight * 0.00008;
-        p.trimpPoints += increment;
-        p.trimpPoints = Number(p.trimpPoints.toFixed(2));
-        p.lastSampleTime = now;
-    });
-    renderTiles();
-    updateLeaderboard();
-    updateVO2Leaderboard();
-}
-// ── CÁLCULO DO VO2 TIME ─────────────────────────────────────────────────────────
-function updateVO2Time() {
-    const now = Date.now();
-    activeParticipants.forEach(id => {
-        const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
-        const percentMax = (p.hr / p.maxHR) * 100;
-        const isInVO2Zone = percentMax >= 92;
-        if (isInVO2Zone) {
-            if (!p.vo2ZoneActive) {
-                p.vo2ZoneActive = true;
-                p.vo2GraceStart = now;
-                p.vo2StartTime = null;
-            }
-            if (p.vo2GraceStart && (now - p.vo2GraceStart >= 60000)) {
-                if (!p.vo2StartTime) p.vo2StartTime = now;
-                const deltaSec = (now - (p.vo2LastUpdate || p.vo2StartTime)) / 1000;
-                p.vo2TimeSeconds += deltaSec;
-            }
-        } else {
-            p.vo2ZoneActive = false;
-            p.vo2GraceStart = null;
-            p.vo2StartTime = null;
-        }
-        p.vo2LastUpdate = now;
-    });
 }
 // ── SALVAR MEDIÇÃO DE FC REPOUSO ───────────────────────────────────────────────
 async function saveRestingHRSample(participantId, sessionId, hrValue) {
@@ -752,31 +694,6 @@ async function saveRestingHRSample(participantId, sessionId, hrValue) {
     } catch (err) {
         console.error('[RESTING HR] Erro ao salvar medição de repouso:', err);
     }
-}
-// ── CONTADOR DE ZONAS 2 A 5 (a cada 60 segundos) ────────────────────────────────
-function countZones() {
-    const now = Date.now();
-    activeParticipants.forEach(id => {
-        const p = participants.find(p => p.id === id);
-        if (!p || !p.connected || p.hr <= 40 || !p.maxHR) return;
-        const percent = (p.hr / p.maxHR) * 100;
-        if (percent >= 60 && percent < 70) {
-            p.min_zone2 = (p.min_zone2 || 0) + 1;
-        } else if (percent >= 70 && percent < 80) {
-            p.min_zone3 = (p.min_zone3 || 0) + 1;
-        } else if (percent >= 80 && percent < 90) {
-            p.min_zone4 = (p.min_zone4 || 0) + 1;
-        } else if (percent >= 90) {
-            p.min_zone5 = (p.min_zone5 || 0) + 1;
-        }
-        if (p.hr > 40) {
-            p.sumHR += p.hr;
-            p.countHRMinutes += 1;
-            // REMOVIDO LOG REPETITIVO
-        }
-        // REMOVIDO LOG REPETITIVO
-    });
-    renderTiles(); // atualiza a interface
 }
 // ── FINALIZAR AULA (SALVA SEM PERGUNTAR AGORA) ────────────────────────────────
 async function autoEndClass() {
@@ -915,36 +832,6 @@ async function limitManualSessionsToday() {
         await db.sessions.delete(oldest.id);
     }
 }
-function renderLastSessionSummary() {
-    const container = document.getElementById('last-class-summary');
-    if (!container) return;
-    if (!lastSessionSummary) {
-        container.classList.add('hidden');
-        return;
-    }
-    container.classList.remove('hidden');
-    let html = `
-        <p><strong>${lastSessionSummary.className}</strong> – ${lastSessionSummary.dateTime}</p>
-        <p><strong>Campeão em Pontos:</strong> ${lastSessionSummary.leaderPoints.name} (${lastSessionSummary.leaderPoints.points} pts)</p>
-        <p><strong>Mais Calorias:</strong> ${lastSessionSummary.leaderCalories.name} (${lastSessionSummary.leaderCalories.calories} kcal)</p>
-        <h3>Top 3 Pontos:</h3>
-        <ul style="margin:5px 0 15px 20px; color:#ccc;">
-    `;
-    lastSessionSummary.topPoints.forEach((p, i) => {
-        html += `<li>${i+1}º ${p.name} - ${p.queimaPoints} pts</li>`;
-    });
-    html += `</ul>
-        <h3 style="margin-top:30px;">Top 3 Calorias:</h3>
-        <ul style="margin:5px 0 15px 20px; color:#ccc;">
-    `;
-    lastSessionSummary.topCalories.forEach((p, i) => {
-        html += `<li>${i+1}º ${p.name} - ${p.calories} kcal</li>`;
-    });
-    html += `</ul>
-        <button onclick="window.open('relatorios-avancado.html', '_blank')" style="padding:10px 20px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem;">Ver Relatório Avançado</button>
-    `;
-    document.getElementById('summary-content').innerHTML = html;
-}
 function renderParticipantList() {
     const container = document.getElementById('participantListContainer');
     if (!container) return;
@@ -972,9 +859,8 @@ function renderParticipantList() {
     participants.forEach(p => {
         const tr = document.createElement('tr');
         const photoSrc = p.photo
-            ? `data:image;base64,${p.photo}` // genérico – detecta png/jpeg automático
+            ? `data:image;base64,${p.photo}`
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
-        // REMOVIDO LOG REPETITIVO DE RENDER LISTA
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
             <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
@@ -1029,262 +915,11 @@ function startWODTimer(officialStartTimeStr) {
     } else {
         wodStartTime = Date.now();
     }
-    if (burnInterval) clearInterval(burnInterval);
-    burnInterval = setInterval(updateQueimaCaloriesAndTimer, 1000);
 }
 function stopWODTimer() {
-    if (burnInterval) clearInterval(burnInterval);
-}
-function updateQueimaCaloriesAndTimer() {
-    const elapsedSeconds = Math.floor((Date.now() - wodStartTime) / 1000);
-    document.getElementById('timer').textContent = formatTime(Math.max(0, elapsedSeconds));
-    if (currentActiveClassName) {
-        localStorage.setItem(`v6Session_${currentActiveClassName}_${getTodayDate()}`, JSON.stringify(participants));
-    }
-    const now = Date.now();
-    activeParticipants.forEach(id => {
-        const p = participants.find(p => p.id === id);
-        if (p && p.connected && p.hr > 0) {
-            if (p.hr > (p.maxHRReached || 0)) p.maxHRReached = p.hr;
-            if (p.hr > (p.todayMaxHR || 0)) p.todayMaxHR = p.hr;
-            if (p.todayMaxHR > (p.historicalMaxHR || 0)) {
-                p.historicalMaxHR = p.todayMaxHR;
-            }
-            const percent = Math.round((p.hr / p.maxHR) * 100);
-            const zone = getZone(percent);
-            if (!p.zoneSeconds) p.zoneSeconds = { gray: 0, green: 0, blue: 0, yellow: 0, orange: 0, red: 0 };
-            p.zoneSeconds[zone] += 1;
-            if (p.zoneSeconds[zone] >= 60) {
-                let pontosThisMinute = pontosPorMinuto[zone] || 0;
-                if (zone === 'red' && (p.minRed || 0) > 3) {
-                    pontosThisMinute *= 0.5;
-                }
-                const trimpBonus = p.trimpPoints > 0 ? p.trimpPoints * 10 : 0;
-                p.queimaPoints += pontosThisMinute + trimpBonus;
-                p.zoneSeconds[zone] = 0;
-            }
-            if (zone === 'gray') p.minGray = (p.minGray || 0) + 1/60;
-            if (zone === 'green') p.minGreen = (p.minGreen || 0) + 1/60;
-            if (zone === 'blue') p.minBlue = (p.minBlue || 0) + 1/60;
-            if (zone === 'yellow') p.minYellow = (p.minYellow || 0) + 1/60;
-            if (zone === 'orange') p.minOrange = (p.minOrange || 0) + 1/60;
-            if (zone === 'red') p.minRed = (p.minRed || 0) + 1/60;
-            const age = p.age || 30;
-            let calMin = (-55.0969 + (0.6309 * p.hr) + (0.1988 * p.weight) + (0.2017 * age)) / 4.184;
-            p.calories = (p.calories || 0) + (Math.max(0, calMin) / 60);
-            if (zone === 'red') {
-                if (!p.redStartTime) p.redStartTime = now;
-            } else {
-                p.redStartTime = null;
-            }
-            if (p.lastHR && p.lastZone === 'red' && zone !== 'red' && (p.lastHR - p.hr > 25)) {
-                p.queimaPoints += 5;
-            }
-            p.lastHR = p.hr;
-            p.lastZone = zone;
-            p.lastUpdate = now;
-        }
-    });
-    updateVO2Time();
-    renderTiles();
-    updateLeaderboard();
-    updateVO2Leaderboard();
-    updateDailyLeader();
-    updateDailyCaloriesLeader();
-    renderWeeklyRankings();
-}
-// ── RENDER TILES (VERSÃO FINAL COM FOTO E RESPONSIVIDADE) ───────────────────────
-function renderTiles() {
-    const container = document.getElementById('participants');
-    if (!container) return;
-    const activeOnScreen = participants.filter(p =>
-        activeParticipants.includes(p.id) && (p.connected || (p.hr > 0))
-    );
-    const sorted = activeOnScreen.sort((a, b) =>
-        (b.queimaPoints || 0) - (a.queimaPoints || 0)
-    );
-    container.innerHTML = '';
-    const now = Date.now();
-    sorted.forEach((p, index) => {
-        let percent = 0;
-        if (p.maxHR && p.hr > 0) {
-            percent = Math.min(Math.max(Math.round((p.hr / p.maxHR) * 100), 0), 100);
-        }
-        let zoneName = 'CINZA';
-        let zoneColor = '#aaaaaa';
-        if (percent >= 90) {
-            zoneName = 'VERMELHA';
-            zoneColor = '#FF1744';
-        } else if (percent >= 80) {
-            zoneName = 'LARANJA';
-            zoneColor = '#FF5722';
-        } else if (percent >= 70) {
-            zoneName = 'AMARELA';
-            zoneColor = '#FF9800';
-        } else if (percent >= 60) {
-            zoneName = 'VERDE';
-            zoneColor = '#4CAF50';
-        } else if (percent >= 50) {
-            zoneName = 'AZUL';
-            zoneColor = '#2196F3';
-        }
-        const isInactive = p.connected && p.lastUpdate && (now - p.lastUpdate > 15000);
-        const isRedAlert = p.redStartTime && (now - p.redStartTime > 30000);
-        const hasSignal = p.connected && p.hr > 0;
-        const bpmDisplay = hasSignal ? p.hr : '--';
-        const zoneDisplay = hasSignal ? `ZONA ${zoneName} (${percent}%)` : 'SEM SINAL';
-        const zoneLabelColor = hasSignal ? zoneColor : '#ffeb3b';
-        let avatarUrl = `https://i.pravatar.cc/300?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
-        if (p.photo) {
-            avatarUrl = `data:image;base64,${p.photo}`; // genérico – detecta png/jpeg automático
-        }
-        // REMOVIDO LOG REPETITIVO DE RENDER TILES
-        const tile = document.createElement('div');
-        tile.className = `tile ${index === 0 ? 'leader' : ''} ${!p.connected ? 'disconnected' : ''} ${isInactive ? 'inactive-alert' : ''} ${isRedAlert ? 'red-alert-blink' : ''}`;
-        tile.innerHTML = `
-            <div class="profile-header">
-                <div class="avatar-container">
-                    <img src="${avatarUrl}" alt="${p.name}" class="avatar">
-                    <div class="rank-badge">#${index + 1}</div>
-                </div>
-                <div class="user-info">
-                    <div class="name">${p.name.toUpperCase()}</div>
-                    ${p.deviceName ? `<div class="device"><span style="color:#00BCD4; margin-right:8px;">📊</span>${p.deviceName}</div>` : ''}
-                </div>
-            </div>
-            <div class="main-stats">
-                <div class="bpm" style="color: ${hasSignal ? '#ffffff' : '#aaaaaa'};">
-                    ${bpmDisplay}<span>BPM</span>
-                </div>
-                <div class="zone-label" style="color: ${zoneLabelColor};">${zoneDisplay}</div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${percent}%;"></div>
-            </div>
-            <div class="grid-stats">
-                <div class="stat-box">
-                    <div class="stat-label">PONTOS</div>
-                    <div class="stat-value" style="color: var(--orange);">
-                        ${p.queimaPoints ? p.queimaPoints.toFixed(2) : '0.00'}
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">CALORIAS</div>
-                    <div class="stat-value" style="color: var(--blue);">
-                        ${Math.round(p.calories || 0)}
-                    </div>
-                </div>
-            </div>
-            ${p.vo2TimeSeconds > 0 ? `
-                <div class="vo2-badge">
-                    VO2 TIME: ${formatTime(Math.round(p.vo2TimeSeconds))}
-                </div>
-            ` : ''}
-            <div class="epoc">
-                EPOC: +<strong>${Math.round(p.epocEstimated || 0)}</strong> kcal
-            </div>
-            ${isInactive ? `
-                <div style="text-align:center; color:#ffeb3b; margin-top:10px; font-size:0.9rem; font-weight:bold;">
-                    ⚠️ SEM SINAL
-                </div>
-            ` : ''}
-        `;
-        container.appendChild(tile);
-    });
-    // RESPONSIVIDADE POR QUANTIDADE DE PESSOAS
-    const tileCount = sorted.length;
-    container.classList.remove(...Array.from(container.classList).filter(c => c.startsWith('count-')));
-    if (tileCount === 1) {
-        container.classList.add('count-1');
-    } else if (tileCount === 2) {
-        container.classList.add('count-2');
-    } else if (tileCount <= 4) {
-        container.classList.add('count-3-4');
-    } else {
-        container.classList.add('count-5plus');
-    }
-}
-// ── RANKINGS ────────────────────────────────────────────────────────────────────
-function updateLeaderboard() {
-    if (!participants.length) return;
-    const active = participants.filter(p => activeParticipants.includes(p.id));
-    if (!active.length) return;
-    const l = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
-    const el = document.getElementById('leaderboard-top');
-    if (el) el.textContent = `Líder Aula: ${l.name || '--'} (${l.queimaPoints.toFixed(2)} PTS)`;
-}
-function updateVO2Leaderboard() {
-    const active = participants.filter(p => activeParticipants.includes(p.id));
-    const topVO2 = active
-        .filter(p => p.vo2TimeSeconds >= 60)
-        .sort((a, b) => b.vo2TimeSeconds - a.vo2TimeSeconds)
-        .slice(0, 5);
-    let html = '<div id="vo2-ranking-block" class="ranking-block" style="background:#1e1e1e; border-radius:14px; padding:16px; margin-top:12px; border-left:6px solid #FF1744;">';
-    html += '<h3 style="margin:0 0 10px 0; color:#FF1744;">🔥 TOP 5 VO2 TIME (Aula)</h3>';
-    if (topVO2.length === 0) {
-        html += '<div style="color:#aaa; font-size:1.3rem;">Nenhum aluno com tempo VO2 ainda</div>';
-    } else {
-        topVO2.forEach((p, i) => {
-            html += `<div class="position-${i+1}" style="font-size:1.45rem; margin:6px 0;">
-                ${i+1}º ${p.name}: <strong>${formatTime(Math.round(p.vo2TimeSeconds))}</strong>
-            </div>`;
-        });
-    }
-    html += '</div>';
-    const existing = document.getElementById('vo2-ranking-block');
-    if (existing) {
-        existing.outerHTML = html;
-    } else {
-        document.getElementById('weekly-rankings')?.insertAdjacentHTML('beforeend', html);
-    }
-}
-function showFullRanking() {
-    const modal = document.getElementById('full-ranking-modal');
-    const content = document.getElementById('full-ranking-content');
-    let html = '<h3>Ranking Semanal Completo - Pontos TRIMP</h3>';
-    html += '<table><tr><th>Posição</th><th>Aluno</th><th>Pontos</th></tr>';
-    const queimaFull = Object.entries(weeklyHistory.participants)
-        .map(([n, d]) => ({n, p: d.totalQueimaPontos || 0}))
-        .sort((a,b)=>b.p-a.p);
-    queimaFull.forEach((item, i) => {
-        html += `<tr><td>${i+1}º</td><td>${item.n}</td><td>${item.p.toFixed(2)}</td></tr>`;
-    });
-    html += '</table>';
-    html += '<h3 style="margin-top:30px;">Ranking Semanal Completo - Calorias</h3>';
-    html += '<table><tr><th>Posição</th><th>Aluno</th><th>Calorias</th></tr>';
-    const caloriasFull = Object.entries(weeklyHistory.participants)
-        .map(([n, d]) => ({n, c: d.totalCalorias || 0}))
-        .sort((a,b)=>b.c-a.c);
-    caloriasFull.forEach((item, i) => {
-        html += `<tr><td>${i+1}º</td><td>${item.n}</td><td>${Math.round(item.c)} kcal</td></tr>`;
-    });
-    html += '</table>';
-    content.innerHTML = html;
-    modal.style.display = 'flex';
-}
-function exportRankingToPDF() {
-    const element = document.getElementById('weekly-rankings');
-    const opt = {
-        margin: 1,
-        filename: `Ranking_Semanal_${getTodayDate()}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+    // Não precisa mais, pois o interval é limpo em stopAllTimersAndLoops
 }
 // ── UTILITÁRIOS ─────────────────────────────────────────────────────────────────
-function getZone(p) {
-    if (p < 50) return 'gray';
-    if (p < 60) return 'green';
-    if (p < 70) return 'blue';
-    if (p < 80) return 'yellow';
-    if (p < 90) return 'orange';
-    return 'red';
-}
-function formatTime(s) {
-    return Math.floor(s/60).toString().padStart(2,'0') + ":" + (s%60).toString().padStart(2,'0');
-}
 function loadWeeklyHistory() {
     const saved = localStorage.getItem('v6WeeklyHistory');
     if (saved) weeklyHistory = JSON.parse(saved);
@@ -1329,20 +964,6 @@ function loadDailyLeader() {
 function saveDailyLeader() {
     localStorage.setItem('v6DailyLeader', JSON.stringify(dailyLeader));
 }
-function updateDailyLeader() {
-    const active = participants.filter(p => activeParticipants.includes(p.id));
-    const best = active.reduce((a, b) => (b.queimaPoints || 0) > (a.queimaPoints || 0) ? b : a, {queimaPoints:0});
-    if (best.queimaPoints > dailyLeader.queimaPoints) {
-        dailyLeader.name = best.name;
-        dailyLeader.queimaPoints = best.queimaPoints;
-        saveDailyLeader();
-    }
-    renderDailyLeader();
-}
-function renderDailyLeader() {
-    const el = document.getElementById('daily-leader');
-    if (el) el.textContent = dailyLeader.name ? `Campeão do Dia: ${dailyLeader.name} - ${dailyLeader.queimaPoints.toFixed(2)} PTS` : "Campeão do Dia: --";
-}
 function loadDailyCaloriesLeader() {
     const saved = localStorage.getItem('v6DailyCaloriesLeader');
     if (saved) dailyCaloriesLeader = JSON.parse(saved);
@@ -1355,49 +976,16 @@ function loadDailyCaloriesLeader() {
 function saveDailyCaloriesLeader() {
     localStorage.setItem('v6DailyCaloriesLeader', JSON.stringify(dailyCaloriesLeader));
 }
-function updateDailyCaloriesLeader() {
-    const active = participants.filter(p => activeParticipants.includes(p.id));
-    const best = active.reduce((a, b) => (b.calories || 0) > (a.calories || 0) ? b : a, {calories:0});
-    if (best.calories > (dailyCaloriesLeader.calories || 0)) {
-        dailyCaloriesLeader.name = best.name;
-        dailyCaloriesLeader.calories = Math.round(best.calories);
-        saveDailyCaloriesLeader();
-    }
-    renderDailyCaloriesLeader();
-}
-function renderDailyCaloriesLeader() {
-    const el = document.getElementById('daily-calories-leader');
-    if (el) el.textContent = dailyCaloriesLeader.name ? `Mais calorias hoje: ${dailyCaloriesLeader.name} (${dailyCaloriesLeader.calories} kcal)` : "Mais calorias hoje: --";
-}
-function renderWeeklyRankings() {
-    const queimaEl = document.getElementById('queima-ranking-top5');
-    const caloriasEl = document.getElementById('calorias-ranking-top5');
-    const vo2El = document.getElementById('vo2-ranking-top5');
-    if (!queimaEl || !caloriasEl) return;
-    const queima = Object.entries(weeklyHistory.participants)
-        .map(([n, d]) => ({n, p: d.totalQueimaPontos || 0}))
-        .sort((a,b)=>b.p-a.p)
-        .slice(0,5);
-    queimaEl.innerHTML = queima.length ? queima.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${x.p.toFixed(2)}</strong></div>`).join('') : 'Nenhum dado ainda';
-    const calorias = Object.entries(weeklyHistory.participants)
-        .map(([n, d]) => ({n, c: d.totalCalorias || 0}))
-        .sort((a,b)=>b.c-a.c)
-        .slice(0,5);
-    caloriasEl.innerHTML = calorias.length ? calorias.map((x,i)=>`<div class="position-${i+1}">${i+1}º ${x.n}: <strong>${Math.round(x.c)} kcal</strong></div>`).join('') : 'Nenhum dado ainda';
-    const active = participants.filter(p => activeParticipants.includes(p.id));
-    const topVO2 = active
-        .filter(p => p.vo2TimeSeconds >= 60)
-        .sort((a, b) => b.vo2TimeSeconds - a.vo2TimeSeconds)
-        .slice(0,5);
-    let vo2Html = '';
-    if (topVO2.length > 0) {
-        vo2Html = topVO2.map((p, i) => `<div class="position-${i+1}">${i+1}º ${p.name}: <strong>${formatTime(Math.round(p.vo2TimeSeconds))}</strong></div>`).join('');
-    } else {
-        vo2Html = 'Nenhum dado ainda';
-    }
-    if (vo2El) {
-        vo2El.innerHTML = vo2Html;
-    }
+function exportRankingToPDF() {
+    const element = document.getElementById('weekly-rankings');
+    const opt = {
+        margin: 1,
+        filename: `Ranking_Semanal_${getTodayDate()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
 }
 function getCurrentWeekStart() {
     const d = new Date();
