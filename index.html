@@ -140,6 +140,13 @@
             location.reload();
         }
 
+        /* 
+         * COMENTADO: Esse loadParticipantsFromBackend duplicado estava causando o problema da foto sumir no F5.
+         * Ele carregava os alunos SEM o campo 'photo' (note que o map abaixo não inclui photo).
+         * Depois o load do script.js carregava com photo, mas o render já tinha acontecido com fake.
+         * Agora só o load completo do script.js faz o trabalho (inclui photo corretamente).
+         */
+        /*
         async function loadParticipantsFromBackend() {
             if (!authToken) {
                 console.warn('[LOAD] Sem token – tentando carregar mesmo assim (modo dev)');
@@ -207,6 +214,7 @@
                 console.error('[LOAD] Erro:', err.message);
             }
         }
+        */
 
         document.addEventListener('DOMContentLoaded', () => {
             console.log('[INIT] DOM carregado – pulando login (modo dev)');
@@ -218,7 +226,8 @@
             }
 
             showAppContent();
-            loadParticipantsFromBackend();
+            // COMENTADO: Chamada removida porque o load completo (com photo) acontece no script.js
+            // loadParticipantsFromBackend();
         });
     </script>
 </body>
