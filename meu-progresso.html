@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V6 WODPulse - Meu Progresso</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; background: #0f0f0f; color: #e0e0e0; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .cabecalho-pessoal { text-align: center; margin-bottom: 40px; padding: 30px; background: #1e1e1e; border-radius: 16px; }
+        .foto-grande { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 5px solid #FF9800; margin-bottom: 20px; }
+        .cabecalho-pessoal h1 { color: #FF9800; margin: 10px 0; font-size: 2.5rem; }
+        .stats-gerais { font-size: 1.2rem; margin: 15px 0; }
+        .motivacional { font-size: 1.5rem; font-weight: bold; color: #FF9800; margin: 20px 0; }
+        .section { margin: 40px 0; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        h2 { color: #FF9800; margin-top: 0; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #444; }
+        th { background: #252525; color: #FF9800; font-weight: bold; }
+        tr:nth-child(even) { background: #222; }
+        tr:hover { background: #333; }
+        .comentario-row { background: #fff8e1 !important; color: #333; cursor: default; }
+        .comentario-row td { text-align: left; padding: 20px; font-size: 1.1rem; line-height: 1.6; }
+        .chart-container { margin: 30px 0; height: 400px; background: #1e1e1e; padding: 15px; border-radius: 8px; }
+        .comentarios-ia .comentario { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #FF9800; }
+        .resumo-acumulado { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+        .card { background: #252525; padding: 20px; border-radius: 12px; text-align: center; }
+        .card h3 { margin: 0 0 10px; color: #FF9800; }
+        .badges { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 30px 0; }
+        .badge { background: #FF9800; color: white; padding: 12px 20px; border-radius: 50px; font-size: 1.2rem; font-weight: bold; }
+        #loading { text-align: center; padding: 60px 0; font-size: 1.6rem; color: #FF9800; }
+        .no-data { text-align: center; color: #888; padding: 40px; font-size: 1.4rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading">Carregando seu progresso...</div>
+
+        <div id="conteudo" style="display:none;">
+            <!-- Cabeçalho pessoal -->
+            <div class="cabecalho-pessoal">
+                <img id="foto-aluno" class="foto-grande" src="" alt="Foto do aluno">
+                <h1 id="nome-aluno"></h1>
+                <div class="stats-gerais" id="stats-gerais"></div>
+                <div class="motivacional" id="frase-motivacional"></div>
+            </div>
+
+            <!-- Últimos treinos com comentários expansíveis -->
+            <div class="section">
+                <h2>Últimos Treinos</h2>
+                <table id="tabela-treinos">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Aula</th>
+                            <th>Duração</th>
+                            <th>Calorias</th>
+                            <th>FC Méd/Máx</th>
+                            <th>Zona Vermelha</th>
+                            <th>Queima Points</th>
+                            <th>TRIMP</th>
+                            <th>EPOC</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Gráficos evolutivos -->
+            <div class="section">
+                <h2>Evolução das Calorias</h2>
+                <div class="chart-container"><canvas id="chartCalorias"></canvas></div>
+
+                <h2>Evolução da Frequência Cardíaca</h2>
+                <div class="chart-container"><canvas id="chartFC"></canvas></div>
+
+                <h2>Tempo por Zona em Cada Aula</h2>
+                <div class="chart-container"><canvas id="chartZonas"></canvas></div>
+
+                <h2>Calorias vs FC Máxima</h2>
+                <div class="chart-container"><canvas id="chartDispersao"></canvas></div>
+
+                <h2>Distribuição Média de Zonas (Último Mês)</h2>
+                <div class="chart-container"><canvas id="chartPizzaZonas"></canvas></div>
+            </div>
+
+            <!-- Comentários IA históricos -->
+            <div class="section comentarios-ia">
+                <h2>O que o treinador disse</h2>
+                <div id="lista-comentarios"></div>
+            </div>
+
+            <!-- Resumo acumulado + badges -->
+            <div class="section">
+                <h2>Seu Resumo Acumulado</h2>
+                <div class="resumo-acumulado" id="resumo-cards"></div>
+                <div class="badges" id="badges"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com'; // ajuste se necessário
+        const urlParams = new URLSearchParams(window.location.search);
+        const alunoId = urlParams.get('id');
+
+        if (!alunoId) {
+            document.body.innerHTML = '<h1 style="text-align:center; color:#FF9800; margin-top:100px;">Acesso inválido.<br>Use o link enviado por e-mail.</h1>';
+        }
+
+        let alunoData = {};
+        let historicoData = [];
+
+        async function carregarPagina() {
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                // Dados do aluno
+                const alunoRes = await fetch(`${API_BASE_URL}/api/participants/${alunoId}`);
+                if (!alunoRes.ok) throw new Error('Aluno não encontrado');
+                alunoData = (await alunoRes.json()).participant;
+
+                // Histórico completo (últimos 50 para gráficos)
+                const historicoRes = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${alunoId}`);
+                if (!historicoRes.ok) throw new Error('Erro no histórico');
+                historicoData = await historicoRes.json();
+                historicoData.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)); // mais recente primeiro
+
+                renderizarTudo();
+            } catch (err) {
+                document.getElementById('loading').textContent = 'Erro ao carregar dados: ' + err.message;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderizarTudo() {
+            // Cabeçalho
+            document.getElementById('foto-aluno').src = alunoData.photo ? alunoData.photo : 'https://via.placeholder.com/180?text=Sem+Foto';
+            document.getElementById('nome-aluno').textContent = alunoData.name || 'Aluno';
+            document.getElementById('stats-gerais').textContent = 
+                `Idade: ${alunoData.age || 'N/D'} anos | Peso: ${alunoData.weight || 'N/D'} kg | FC Repouso: ${alunoData.resting_hr || 'N/D'} bpm`;
+
+            const totalAulas = historicoData.length;
+            const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+            document.getElementById('frase-motivacional').textContent = 
+                `Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total! 🔥`;
+
+            // Tabela últimos 20
+            const tbody = document.querySelector('#tabela-treinos tbody');
+            tbody.innerHTML = '';
+            historicoData.slice(0, 20).forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(item.date_start).toLocaleDateString('pt-BR')}</td>
+                    <td>${item.class_name || 'Aula'}</td>
+                    <td>${item.duration_minutes || 0} min</td>
+                    <td>${Math.round(item.calories_total || 0)}</td>
+                    <td>${Math.round(item.avg_hr || 0)}/${Math.round(item.max_hr_reached || 0)}</td>
+                    <td>${Math.round(item.min_red || 0)}</td>
+                    <td>${Math.round(item.queima_points || 0)}</td>
+                    <td>${Number(item.trimp_total || 0).toFixed(2)}</td>
+                    <td>${Math.round(item.epoc_estimated || 0)}</td>
+                `;
+
+                if (item.ia_comment) {
+                    const detalhes = document.createElement('tr');
+                    detalhes.classList.add('comentario-row');
+                    detalhes.innerHTML = `<td colspan="9"><strong>${new Date(item.date_start).toLocaleDateString('pt-BR')} – O que o treinador disse:</strong><br>${item.ia_comment}</td>`;
+                    detalhes.style.display = 'none';
+                    row.onclick = () => detalhes.style.display = detalhes.style.display === 'none' ? 'table-row' : 'none';
+                    tbody.appendChild(row);
+                    tbody.appendChild(detalhes);
+                } else {
+                    tbody.appendChild(row);
+                }
+            });
+
+            // Gráficos (reaproveitando lógica do relatório)
+            renderChartCalorias();
+            renderChartFC();
+            renderChartZonas();
+            renderChartDispersao();
+            renderChartPizzaZonas();
+
+            // Comentários históricos
+            const comentariosDiv = document.getElementById('lista-comentarios');
+            comentariosDiv.innerHTML = '';
+            historicoData.filter(h => h.ia_comment).slice(0, 10).forEach(item => {
+                const div = document.createElement('div');
+                div.classList.add('comentario');
+                div.innerHTML = `<strong>${new Date(item.date_start).toLocaleDateString('pt-BR')}:</strong><p>${item.ia_comment}</p>`;
+                comentariosDiv.appendChild(div);
+            });
+
+            // Resumo + badges
+            renderResumoEBadges();
+
+            document.getElementById('conteudo').style.display = 'block';
+        }
+
+        // Funções de gráficos (adaptadas do seu relatório)
+        function renderChartCalorias() {
+            const ctx = document.getElementById('chartCalorias').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicoData.map(h => new Date(h.date_start).toLocaleDateString('pt-BR')),
+                    datasets: [{ label: 'Calorias por Aula', data: historicoData.map(h => Math.round(h.calories_total || 0)), borderColor: '#FF9800', tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartFC() {
+            const ctx = document.getElementById('chartFC').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historicoData.map(h => new Date(h.date_start).toLocaleDateString('pt-BR')),
+                    datasets: [
+                        { label: 'FC Média', data: historicoData.map(h => Math.round(h.avg_hr || 0)), borderColor: '#FF9800' },
+                        { label: 'FC Máxima', data: historicoData.map(h => Math.round(h.max_hr_reached || 0)), borderColor: '#FF1744', borderDash: [5,5] },
+                        { label: 'FC Repouso', data: historicoData.map(h => h.real_resting_hr || 0), borderColor: '#9E9E9E' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartZonas() {
+            const ctx = document.getElementById('chartZonas').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: historicoData.map(h => new Date(h.date_start).toLocaleDateString('pt-BR')),
+                    datasets: [
+                        { label: 'Zona 2', data: historicoData.map(h => h.min_zone2 || 0), backgroundColor: '#4CAF50' },
+                        { label: 'Zona 3', data: historicoData.map(h => h.min_zone3 || 0), backgroundColor: '#8BC34A' },
+                        { label: 'Zona 4', data: historicoData.map(h => h.min_zone4 || 0), backgroundColor: '#FFC107' },
+                        { label: 'Zona 5', data: historicoData.map(h => h.min_zone5 || 0), backgroundColor: '#FF5722' },
+                        { label: 'Vermelha', data: historicoData.map(h => h.min_red || 0), backgroundColor: '#F44336' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { x: { stacked: true }, y: { stacked: true } } }
+            });
+        }
+
+        function renderChartDispersao() {
+            const ctx = document.getElementById('chartDispersao').getContext('2d');
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Calorias vs FC Máx',
+                        data: historicoData.map(h => ({ x: Math.round(h.max_hr_reached || 0), y: Math.round(h.calories_total || 0) })),
+                        backgroundColor: '#FF9800'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderChartPizzaZonas() {
+            const ultimoMes = historicoData.filter(h => new Date(h.date_start) > new Date(Date.now() - 30*24*60*60*1000));
+            const totalZ2 = ultimoMes.reduce((s, h) => s + (h.min_zone2 || 0), 0);
+            const totalZ3 = ultimoMes.reduce((s, h) => s + (h.min_zone3 || 0), 0);
+            const totalZ4 = ultimoMes.reduce((s, h) => s + (h.min_zone4 || 0), 0);
+            const totalZ5 = ultimoMes.reduce((s, h) => s + (h.min_zone5 || 0), 0);
+            const totalRed = ultimoMes.reduce((s, h) => s + (h.min_red || 0), 0);
+
+            const ctx = document.getElementById('chartPizzaZonas').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Zona 2', 'Zona 3', 'Zona 4', 'Zona 5', 'Vermelha'],
+                    datasets: [{ data: [totalZ2, totalZ3, totalZ4, totalZ5, totalRed], backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF5722', '#F44336'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderResumoEBadges() {
+            const totalCalorias = historicoData.reduce((s, h) => s + (h.calories_total || 0), 0);
+            const totalVO2 = historicoData.reduce((s, h) => s + (h.vo2_time_seconds || 0), 0) / 60;
+            const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), alunoData.historical_max_hr || 0);
+
+            const cards = document.getElementById('resumo-cards');
+            cards.innerHTML = `
+                <div class="card"><h3>Total Calorias</h3><strong>${Math.round(totalCalorias)} kcal</strong></div>
+                <div class="card"><h3>Total VO2</h3><strong>${Math.round(totalVO2)} min</strong></div>
+                <div class="card"><h3>Aulas Feitas</h3><strong>${historicoData.length}</strong></div>
+                <div class="card"><h3>FC Máx Histórica</h3><strong>${Math.round(maxHrHistorica)} bpm</strong></div>
+            `;
+
+            const badgesDiv = document.getElementById('badges');
+            const badges = [];
+            if (totalCalorias >= 10000) badges.push('🔥 Queimou 10 mil kcal!');
+            if (historicoData.some(h => (h.min_red || 0) >= 10)) badges.push('💀 Campeão de Zona Vermelha');
+            if (historicoData.length >= 50) badges.push('🏆 Veterano das Aulas');
+            badges.forEach(b => {
+                const span = document.createElement('span');
+                span.classList.add('badge');
+                span.textContent = b;
+                badgesDiv.appendChild(span);
+            });
+        }
+
+        carregarPagina();
+    </script>
+</body>
+</html>
