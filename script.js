@@ -62,6 +62,10 @@ window.addEventListener('load', async () => {
     }
     participants = await loadParticipantsFromDB();
     console.log('[INIT] Load do IndexedDB/local concluído - ' + participants.length + ' alunos (sem foto ainda)');
+    // LOG DEBUG FOTO: após load do IndexedDB
+    console.log('[DEBUG FOTO] Após load IndexedDB: alunos totais = ' + participants.length + 
+                ', com foto real = ' + participants.filter(p => p.photo && p.photo.length > 100).length);
+
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
@@ -231,12 +235,18 @@ async function loadParticipantsFromBackend() {
             };
         });
         console.log('[LOAD BACKEND] Mapeamento concluído - fotos carregadas');
+        // LOG DEBUG FOTO: após load do backend
+        console.log('[DEBUG FOTO] Após load backend: alunos totais = ' + participants.length + 
+                    ', com foto real = ' + participants.filter(p => p.photo && p.photo.length > 100).length);
+
         renderParticipantList();
         renderTiles();
         console.log('[LOAD BACKEND] Render da lista e tiles concluído');
     } catch (err) {
         console.error('Falha ao carregar do backend:', err);
         participants = await loadParticipantsFromDB();
+        // LOG DEBUG FOTO: fallback IndexedDB
+        console.log('[DEBUG FOTO] Fallback IndexedDB: alunos com foto real = ' + participants.filter(p => p.photo && p.photo.length > 100).length);
         renderParticipantList();
         renderTiles();
     }
@@ -464,6 +474,8 @@ async function editParticipant(id) {
                 const json = await res.json();
                 console.log('[EDIT FOTO] Resposta do backend - foto retornada: ' + (json.participant.photo ? 'sim (' + json.participant.photo.length + ' chars)' : 'não'));
                 p.photo = json.participant.photo || photoBase64;
+                // LOG DEBUG FOTO: após edição
+                console.log(`[DEBUG FOTO] Foto atualizada para aluno ${p.name} (ID ${id}) - tamanho: ${p.photo ? p.photo.length : 0} chars`);
                 renderParticipantList();
                 if (currentActiveClassName) renderTiles();
                 alert('Foto do aluno atualizada com sucesso!');
@@ -861,6 +873,8 @@ function renderParticipantList() {
         const photoSrc = p.photo
             ? `data:image;base64,${p.photo}`
             : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+        // LOG DEBUG FOTO: por aluno na lista
+        console.log(`[DEBUG FOTO] Render lista - ${p.name} (ID ${p.id}): usando foto ${p.photo && p.photo.length > 100 ? 'real (' + p.photo.length + ' chars)' : 'fake'}`);
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
             <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
