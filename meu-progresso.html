@@ -1183,44 +1183,73 @@
         }
 
         async function analisarComIA() {
-            const box = document.getElementById('analise-ia-box');
-            const content = document.getElementById('analise-ia-content');
-            box.style.display = 'block';
-            content.innerHTML = '⏳ <span style="color:#FF9800">A IA está analisando as fotos e as medidas para gerar o relatório...</span>';
+    const box = document.getElementById('analise-ia-box');
+    const content = document.getElementById('analise-ia-content');
+    
+    box.style.display = 'block';
+    content.innerHTML = '⏳ <span style="color:#FF9800">A IA está analisando medidas + fotos antes/depois...</span>';
 
-            const entries = comparacaoSelecionada.map(id => progressoData.find(e => e.id === id))
-                            .sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            const antes = entries[0];
-            const depois = entries[1];
+    const entries = comparacaoSelecionada
+        .map(id => progressoData.find(e => e.id === id))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    if (entries.length !== 2) {
+        content.innerHTML = '⚠️ Selecione exatamente duas datas para comparar.';
+        return;
+    }
 
-            // Simulação de análise técnica baseada nos dados reais
-            setTimeout(() => {
-                const pesoDiff = (depois.measures.peso || 0) - (antes.measures.peso || 0);
-                const abdDiff = (depois.measures['circ-abdomen'] || 0) - (antes.measures['circ-abdomen'] || 0);
-                
-                let feedback = `**Análise de Evolução Corporal - WODPulse AI**\n\n`;
-                feedback += `Com base nos registros de ${new Date(antes.date).toLocaleDateString()} e ${new Date(depois.date).toLocaleDateString()}:\n\n`;
-                
-                if (pesoDiff < 0) {
-                    feedback += `✅ **Redução de Peso:** Houve uma perda de ${Math.abs(pesoDiff).toFixed(1)}kg. `;
-                } else if (pesoDiff > 0) {
-                    feedback += `📈 **Ganho de Massa:** Houve um aumento de ${pesoDiff.toFixed(1)}kg. `;
-                }
+    const antes = entries[0];
+    const depois = entries[1];
 
-                if (abdDiff < 0) {
-                    feedback += `A redução de ${Math.abs(abdDiff).toFixed(1)}cm na linha de cintura indica uma queima eficiente de gordura visceral.\n\n`;
-                }
-
-                feedback += `**Observações Técnicas:**\n`;
-                feedback += `• A análise visual das fotos mostra uma melhora na densidade muscular.\n`;
-                feedback += `• As dobras cutâneas indicam uma tendência de recomposição corporal positiva.\n`;
-                feedback += `• Recomendação: Manter a intensidade nos treinos de Zona 4/5 para maximizar o EPOC.\n\n`;
-                feedback += `*Nota: Esta é uma análise preliminar baseada nos dados inseridos.*`;
-
-                content.innerHTML = feedback;
-            }, 2000);
+    const payload = {
+        aluno: {
+            name: alunoData.name,
+            age: alunoData.age,
+            gender: alunoData.gender
+        },
+        antes: {
+            date: antes.date,
+            measures: antes.measures,
+            photos: antes.photos  // array de base64
+        },
+        depois: {
+            date: depois.date,
+            measures: depois.measures,
+            photos: depois.photos  // array de base64
         }
+    };
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/ai-analyze-body-progress`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            throw new Error(`Erro HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        let texto = data.analysis || 'Análise não disponível no momento.';
+
+        // Formata Markdown simples (negrito e quebras de linha)
+        texto = texto
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+
+        content.innerHTML = texto;
+        
+        // Opcional: mostra qual modelo foi usado
+        if (data.model) {
+            content.innerHTML += `<br><br><small><em>Gerado com ${data.model}</em></small>`;
+        }
+    } catch (err) {
+        console.error('Erro na análise IA:', err);
+        content.innerHTML = '❌ Erro ao gerar análise com IA. Tente novamente mais tarde.';
+    }
+}
 
         function editarEntrada(id) {
             const entry = progressoData.find(e => e.id === id);
