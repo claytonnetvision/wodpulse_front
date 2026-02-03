@@ -883,8 +883,10 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/api/body-progress/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    alert('Registro apagado!');
-                    location.reload();
+                    alert('Registro apagado com sucesso!');
+                    await carregarProgresso();
+                } else {
+                    throw new Error('Erro ao apagar');
                 }
             } catch (err) {
                 alert('Erro ao apagar: ' + err.message);
@@ -893,96 +895,95 @@
 
         async function salvarProgresso() {
             const btn = document.getElementById('btn-salvar');
+            const dataInput = document.getElementById('progresso-data').value;
+            const data = dataInput || new Date().toISOString().split('T')[0];
+
+            const measures = {
+                peso: parseFloat(document.getElementById('medida-peso').value) || null,
+                fc_repouso: parseFloat(document.getElementById('medida-fc-repouso').value) || null,
+                pressao: document.getElementById('medida-pressao').value || null,
+                'circ-pescoco': parseFloat(document.getElementById('circ-pescoco').value) || null,
+                'circ-ombros': parseFloat(document.getElementById('circ-ombros').value) || null,
+                'circ-torax': parseFloat(document.getElementById('circ-torax').value) || null,
+                'circ-braco-esq': parseFloat(document.getElementById('circ-braco-esq').value) || null,
+                'circ-braco-dir': parseFloat(document.getElementById('circ-braco-dir').value) || null,
+                'circ-antebraco-esq': parseFloat(document.getElementById('circ-antebraco-esq').value) || null,
+                'circ-antebraco-dir': parseFloat(document.getElementById('circ-antebraco-dir').value) || null,
+                'circ-punho-dir': parseFloat(document.getElementById('circ-punho-dir').value) || null,
+                'circ-abdomen': parseFloat(document.getElementById('circ-abdomen').value) || null,
+                'circ-cintura': parseFloat(document.getElementById('circ-cintura').value) || null,
+                'circ-quadril': parseFloat(document.getElementById('circ-quadril').value) || null,
+                'circ-coxa-esq': parseFloat(document.getElementById('circ-coxa-esq').value) || null,
+                'circ-coxa-dir': parseFloat(document.getElementById('circ-coxa-dir').value) || null,
+                'circ-perna-esq': parseFloat(document.getElementById('circ-perna-esq').value) || null,
+                'circ-perna-dir': parseFloat(document.getElementById('circ-perna-dir').value) || null,
+                'dobra-peitoral': parseFloat(document.getElementById('dobra-peitoral').value) || null,
+                'dobra-triceps': parseFloat(document.getElementById('dobra-triceps').value) || null,
+                'dobra-subescapular': parseFloat(document.getElementById('dobra-subescapular').value) || null,
+                'dobra-abdominal': parseFloat(document.getElementById('dobra-abdominal').value) || null,
+                'dobra-suprailiaca': parseFloat(document.getElementById('dobra-suprailiaca').value) || null,
+                'dobra-axilar': parseFloat(document.getElementById('dobra-axilar').value) || null,
+                'dobra-coxa': parseFloat(document.getElementById('dobra-coxa').value) || null,
+                'dobra-biceps': parseFloat(document.getElementById('dobra-biceps').value) || null,
+                'dobra-perna': parseFloat(document.getElementById('dobra-perna').value) || null
+            };
+
+            const files = document.getElementById('fotos-progresso').files;
+            const hasMedidas = Object.values(measures).some(v => v !== null);
+            if (files.length === 0 && !hasMedidas) {
+                return alert('Adicione pelo menos uma foto ou uma medida!');
+            }
+
             btn.disabled = true;
             btn.textContent = 'Salvando...';
 
+            const photos = entryEditando ? entryEditando.photos : [];
+            for (let file of files) {
+                photos.push(await fileToBase64(file));
+            }
+
             try {
-                const date = document.getElementById('progresso-data').value;
-                if (!date) return alert('Selecione a data!');
-
-                const rawMeasures = {
-                    peso: document.getElementById('medida-peso').value,
-                    fc_repouso: document.getElementById('medida-fc-repouso').value,
-                    pressao: document.getElementById('medida-pressao').value,
-                    'circ-pescoco': document.getElementById('circ-pescoco').value,
-                    'circ-ombros': document.getElementById('circ-ombros').value,
-                    'circ-torax': document.getElementById('circ-torax').value,
-                    'circ-braco-esq': document.getElementById('circ-braco-esq').value,
-                    'circ-braco-dir': document.getElementById('circ-braco-dir').value,
-                    'circ-antebraco-esq': document.getElementById('circ-antebraco-esq').value,
-                    'circ-antebraco-dir': document.getElementById('circ-antebraco-dir').value,
-                    'circ-punho-dir': document.getElementById('circ-punho-dir').value,
-                    'circ-abdomen': document.getElementById('circ-abdomen').value,
-                    'circ-cintura': document.getElementById('circ-cintura').value,
-                    'circ-quadril': document.getElementById('circ-quadril').value,
-                    'circ-coxa-esq': document.getElementById('circ-coxa-esq').value,
-                    'circ-coxa-dir': document.getElementById('circ-coxa-dir').value,
-                    'circ-perna-esq': document.getElementById('circ-perna-esq').value,
-                    'circ-perna-dir': document.getElementById('circ-perna-dir').value,
-                    'dobra-peitoral': document.getElementById('dobra-peitoral').value,
-                    'dobra-triceps': document.getElementById('dobra-triceps').value,
-                    'dobra-subescapular': document.getElementById('dobra-subescapular').value,
-                    'dobra-abdominal': document.getElementById('dobra-abdominal').value,
-                    'dobra-suprailiaca': document.getElementById('dobra-suprailiaca').value,
-                    'dobra-axilar': document.getElementById('dobra-axilar').value,
-                    'dobra-coxa': document.getElementById('dobra-coxa').value,
-                    'dobra-biceps': document.getElementById('dobra-biceps').value,
-                    'dobra-perna': document.getElementById('dobra-perna').value
-                };
-
-                // Limpa campos vazios para evitar erro 400 no servidor
-                const measures = {};
-                for (const key in rawMeasures) {
-                    if (rawMeasures[key] !== "" && rawMeasures[key] !== null) {
-                        // Converte para número se possível, exceto pressão que é texto
-                        if (key !== 'pressao' && !isNaN(rawMeasures[key])) {
-                            measures[key] = Number(rawMeasures[key]);
-                        } else {
-                            measures[key] = rawMeasures[key];
-                        }
-                    }
-                }
-
-                const files = document.getElementById('fotos-progresso').files;
-                const photos = entryEditando ? entryEditando.photos : [];
-                
-                for (let f of files) {
-                    const b64 = await fileToBase64(f);
-                    photos.push(b64);
-                }
-
-                if (photos.length === 0 && Object.values(measures).every(v => !v)) {
-                    return alert('Adicione pelo menos uma foto ou uma medida!');
-                }
-
-                const payload = { alunoId, date, measures, photos };
                 let res;
                 if (entryEditando) {
                     res = await fetch(`${API_BASE_URL}/api/body-progress/${entryEditando.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({ date: data, measures, photos })
                     });
                 } else {
                     res = await fetch(`${API_BASE_URL}/api/body-progress`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({ alunoId, date: data, measures, photos })
                     });
                 }
 
-                if (res.ok) {
-                    alert('Progresso salvo!');
-                    location.reload();
-                } else {
-                    throw new Error('Erro ao salvar no servidor');
+                if (!res.ok) {
+                    const erro = await res.json();
+                    throw new Error(erro.error || 'Erro ao salvar');
                 }
+
+                alert(entryEditando ? 'Progresso atualizado com sucesso!' : 'Progresso salvo com sucesso! 🔥');
+
+                limparFormulario();
+                entryEditando = null;
+                document.getElementById('form-title').textContent = 'Registrar Novo Progresso';
+                document.getElementById('btn-salvar').textContent = 'Salvar Progresso';
+
+                await carregarProgresso();
             } catch (err) {
-                alert('Erro: ' + err.message);
+                alert('Erro ao salvar: ' + err.message);
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Salvar Progresso';
+                btn.textContent = 'Salvar Registro';
             }
+        }
+
+        function limparFormulario() {
+            document.getElementById('progresso-data').value = '';
+            document.getElementById('fotos-progresso').value = '';
+            document.getElementById('preview-fotos').innerHTML = '';
+            document.querySelectorAll('.form-group input').forEach(i => i.value = '');
         }
 
         document.getElementById('fotos-progresso').addEventListener('change', (e) => {
