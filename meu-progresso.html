@@ -745,6 +745,8 @@
             event.currentTarget.classList.add('active');
         }
 
+        // --- LÓGICA ORIGINAL RESTAURADA ---
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         let alunoData = {};
         let historicoData = [];
         let progressoCorporal = [];
@@ -759,17 +761,16 @@
             }
 
             try {
-                const response = await fetch(`https://v6-wodpulse-api.vercel.app/api/aluno-progresso?id=${alunoId}`);
-                const data = await response.json();
+                // Chamadas originais para o Render
+                const [alunoRes, historicoRes, progressoRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/participants/${alunoId}`),
+                    fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${alunoId}`),
+                    fetch(`${API_BASE_URL}/api/body-progress?alunoId=${alunoId}`)
+                ]);
 
-                if (data.error) {
-                    document.getElementById('loading').innerHTML = `❌ Erro: ${data.error}`;
-                    return;
-                }
-
-                alunoData = data.aluno;
-                historicoData = data.historico;
-                progressoCorporal = data.progressoCorporal || [];
+                alunoData = await alunoRes.json();
+                historicoData = await historicoRes.json();
+                progressoCorporal = await progressoRes.json();
 
                 renderHeader();
                 renderDashboardCards();
@@ -783,7 +784,7 @@
                 document.getElementById('conteudo').style.display = 'block';
             } catch (error) {
                 console.error(error);
-                document.getElementById('loading').innerHTML = '❌ Erro ao carregar dados.';
+                document.getElementById('loading').innerHTML = '❌ Erro ao carregar dados da API.';
             }
         }
 
@@ -1108,7 +1109,6 @@
             });
         }
 
-        // Funções de Progresso Corporal
         function renderGaleriaProgresso() {
             const galeria = document.getElementById('galeria-progresso');
             if (progressoCorporal.length === 0) {
@@ -1173,12 +1173,8 @@
                 fold_calf: document.getElementById('dobra-perna').value
             };
 
-            // Simulação de upload de fotos (no seu código real você enviaria para o S3/Cloudinary)
-            const fotosInput = document.getElementById('fotos-progresso');
-            // ... lógica de upload ...
-
             try {
-                const response = await fetch('https://v6-wodpulse-api.vercel.app/api/salvar-progresso', {
+                const response = await fetch(`${API_BASE_URL}/api/body-progress`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
