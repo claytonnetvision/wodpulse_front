@@ -747,59 +747,278 @@
 
         // --- LÓGICA ORIGINAL RESTAURADA ---
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const urlParams = new URLSearchParams(window.location.search);
+        const alunoId = urlParams.get('id');
+
+        if (!alunoId) {
+            document.body.innerHTML = '<h1 style="text-align:center; color:#FF9800; margin-top:100px;">Acesso inválido.<br>Use o link enviado por e-mail.</h1>';
+        }
+
         let alunoData = {};
         let historicoData = [];
-        let progressoCorporal = [];
+        let progressoData = [];
+        let entryEditando = null;
+
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
         async function carregarPagina() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const alunoId = urlParams.get('id');
-
-            if (!alunoId) {
-                document.getElementById('loading').innerHTML = '❌ ID do aluno não fornecido.';
-                return;
-            }
+            document.getElementById('loading').style.display = 'block';
 
             try {
-                // Chamadas originais para o Render
-                const [alunoRes, historicoRes, progressoRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/participants/${alunoId}`),
-                    fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${alunoId}`),
-                    fetch(`${API_BASE_URL}/api/body-progress?alunoId=${alunoId}`)
-                ]);
+                const alunoRes = await fetch(`${API_BASE_URL}/api/participants/${alunoId}`);
+                if (!alunoRes.ok) throw new Error('Aluno não encontrado');
+                alunoData = (await alunoRes.json()).participant;
 
-                alunoData = await alunoRes.json();
+                const historicoRes = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${alunoId}`);
+                if (!historicoRes.ok) throw new Error('Erro no histórico');
                 historicoData = await historicoRes.json();
-                progressoCorporal = await progressoRes.json();
+                historicoData.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
 
-                renderHeader();
-                renderDashboardCards();
-                renderTabelaTreinos();
-                renderCharts();
-                renderComentarios();
-                renderResumoEBadges();
-                renderGaleriaProgresso();
-
+                renderizarTudo();
+                await carregarProgresso();
+            } catch (err) {
+                document.getElementById('loading').textContent = '❌ Erro ao carregar dados: ' + err.message;
+            } finally {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('conteudo').style.display = 'block';
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerHTML = '❌ Erro ao carregar dados da API.';
             }
         }
 
-        function renderHeader() {
-            document.getElementById('nome-aluno').textContent = alunoData.name;
-            document.getElementById('foto-aluno').src = alunoData.photo_url || 'https://via.placeholder.com/200';
-            document.getElementById('frase-motivacional').textContent = alunoData.motivational_quote || "Foco no processo, o resultado é consequência!";
+        async function carregarProgresso() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/body-progress?alunoId=${alunoId}`);
+                if (res.ok) {
+                    progressoData = await res.json();
+                    renderizarGaleria();
+                }
+            } catch (err) {
+                console.error('Erro ao carregar progresso corporal:', err);
+            }
+        }
 
+        function renderizarGaleria() {
+            const container = document.getElementById('galeria-progresso');
+            container.innerHTML = '<h3 style="color: #FF9800; margin-bottom: 15px;">Histórico de Progresso</h3>';
+            if (progressoData.length === 0) {
+                container.innerHTML += '<p style="color: #888;">Nenhum registro ainda. Comece registrando acima!</p>';
+                return;
+            }
+
+            progressoData.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(entry => {
+                const div = document.createElement('div');
+                div.style = 'display: inline-block; margin: 15px; text-align: center; border: 2px solid transparent; padding: 10px; border-radius: 8px; background: rgba(255,152,0,0.05);';
+                div.innerHTML = `
+                    <p style="color: #FF9800; font-weight: bold;">${new Date(entry.date).toLocaleDateString('pt-BR')}</p>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
+                        ${entry.photos.map(p => `<img src="data:image/jpeg;base64,${p}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #444;">`).join('')}
+                    </div>
+                    <div class="entry-actions">
+                        <button class="btn-action btn-edit" onclick="editarEntrada(${entry.id})">Editar</button>
+                        <button class="btn-action btn-delete" onclick="apagarEntrada(${entry.id})">Apagar</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function editarEntrada(id) {
+            const entry = progressoData.find(e => e.id === id);
+            if (!entry) return alert('Entrada não encontrada');
+
+            entryEditando = entry;
+
+            // Preenche o formulário
+            document.getElementById('progresso-data').value = entry.date;
+            document.getElementById('medida-peso').value = entry.measures.peso || '';
+            document.getElementById('medida-fc-repouso').value = entry.measures.fc_repouso || '';
+            document.getElementById('medida-pressao').value = entry.measures.pressao || '';
+            document.getElementById('circ-pescoco').value = entry.measures['circ-pescoco'] || '';
+            document.getElementById('circ-ombros').value = entry.measures['circ-ombros'] || '';
+            document.getElementById('circ-torax').value = entry.measures['circ-torax'] || '';
+            document.getElementById('circ-braco-esq').value = entry.measures['circ-braco-esq'] || '';
+            document.getElementById('circ-braco-dir').value = entry.measures['circ-braco-dir'] || '';
+            document.getElementById('circ-antebraco-esq').value = entry.measures['circ-antebraco-esq'] || '';
+            document.getElementById('circ-antebraco-dir').value = entry.measures['circ-antebraco-dir'] || '';
+            document.getElementById('circ-punho-dir').value = entry.measures['circ-punho-dir'] || '';
+            document.getElementById('circ-abdomen').value = entry.measures['circ-abdomen'] || '';
+            document.getElementById('circ-cintura').value = entry.measures['circ-cintura'] || '';
+            document.getElementById('circ-quadril').value = entry.measures['circ-quadril'] || '';
+            document.getElementById('circ-coxa-esq').value = entry.measures['circ-coxa-esq'] || '';
+            document.getElementById('circ-coxa-dir').value = entry.measures['circ-coxa-dir'] || '';
+            document.getElementById('circ-perna-esq').value = entry.measures['circ-perna-esq'] || '';
+            document.getElementById('circ-perna-dir').value = entry.measures['circ-perna-dir'] || '';
+            document.getElementById('dobra-peitoral').value = entry.measures['dobra-peitoral'] || '';
+            document.getElementById('dobra-triceps').value = entry.measures['dobra-triceps'] || '';
+            document.getElementById('dobra-subescapular').value = entry.measures['dobra-subescapular'] || '';
+            document.getElementById('dobra-abdominal').value = entry.measures['dobra-abdominal'] || '';
+            document.getElementById('dobra-suprailiaca').value = entry.measures['dobra-suprailiaca'] || '';
+            document.getElementById('dobra-axilar').value = entry.measures['dobra-axilar'] || '';
+            document.getElementById('dobra-coxa').value = entry.measures['dobra-coxa'] || '';
+            document.getElementById('dobra-biceps').value = entry.measures['dobra-biceps'] || '';
+            document.getElementById('dobra-perna').value = entry.measures['dobra-perna'] || '';
+
+            // Preview fotos existentes
+            const preview = document.getElementById('preview-fotos');
+            preview.innerHTML = '';
+            entry.photos.forEach(p => {
+                const img = document.createElement('img');
+                img.src = `data:image/jpeg;base64,${p}`;
+                img.style = 'width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid #FF9800;';
+                preview.appendChild(img);
+            });
+
+            document.getElementById('form-title').textContent = 'Editar Progresso';
+            document.getElementById('btn-salvar').textContent = 'Atualizar Progresso';
+            window.scrollTo(0, document.querySelector('.progress-form').offsetTop);
+        }
+
+        async function apagarEntrada(id) {
+            if (!confirm('Tem certeza que deseja apagar este registro de progresso? Essa ação não pode ser desfeita.')) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/body-progress/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Registro apagado!');
+                    location.reload();
+                }
+            } catch (err) {
+                alert('Erro ao apagar: ' + err.message);
+            }
+        }
+
+        async function salvarProgresso() {
+            const btn = document.getElementById('btn-salvar');
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+
+            try {
+                const date = document.getElementById('progresso-data').value;
+                if (!date) return alert('Selecione a data!');
+
+                const measures = {
+                    peso: document.getElementById('medida-peso').value,
+                    fc_repouso: document.getElementById('medida-fc-repouso').value,
+                    pressao: document.getElementById('medida-pressao').value,
+                    'circ-pescoco': document.getElementById('circ-pescoco').value,
+                    'circ-ombros': document.getElementById('circ-ombros').value,
+                    'circ-torax': document.getElementById('circ-torax').value,
+                    'circ-braco-esq': document.getElementById('circ-braco-esq').value,
+                    'circ-braco-dir': document.getElementById('circ-braco-dir').value,
+                    'circ-antebraco-esq': document.getElementById('circ-antebraco-esq').value,
+                    'circ-antebraco-dir': document.getElementById('circ-antebraco-dir').value,
+                    'circ-punho-dir': document.getElementById('circ-punho-dir').value,
+                    'circ-abdomen': document.getElementById('circ-abdomen').value,
+                    'circ-cintura': document.getElementById('circ-cintura').value,
+                    'circ-quadril': document.getElementById('circ-quadril').value,
+                    'circ-coxa-esq': document.getElementById('circ-coxa-esq').value,
+                    'circ-coxa-dir': document.getElementById('circ-coxa-dir').value,
+                    'circ-perna-esq': document.getElementById('circ-perna-esq').value,
+                    'circ-perna-dir': document.getElementById('circ-perna-dir').value,
+                    'dobra-peitoral': document.getElementById('dobra-peitoral').value,
+                    'dobra-triceps': document.getElementById('dobra-triceps').value,
+                    'dobra-subescapular': document.getElementById('dobra-subescapular').value,
+                    'dobra-abdominal': document.getElementById('dobra-abdominal').value,
+                    'dobra-suprailiaca': document.getElementById('dobra-suprailiaca').value,
+                    'dobra-axilar': document.getElementById('dobra-axilar').value,
+                    'dobra-coxa': document.getElementById('dobra-coxa').value,
+                    'dobra-biceps': document.getElementById('dobra-biceps').value,
+                    'dobra-perna': document.getElementById('dobra-perna').value
+                };
+
+                const files = document.getElementById('fotos-progresso').files;
+                const photos = entryEditando ? entryEditando.photos : [];
+                
+                for (let f of files) {
+                    const b64 = await fileToBase64(f);
+                    photos.push(b64);
+                }
+
+                if (photos.length === 0 && Object.values(measures).every(v => !v)) {
+                    return alert('Adicione pelo menos uma foto ou uma medida!');
+                }
+
+                const payload = { alunoId, date, measures, photos };
+                let res;
+                if (entryEditando) {
+                    res = await fetch(`${API_BASE_URL}/api/body-progress/${entryEditando.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await fetch(`${API_BASE_URL}/api/body-progress`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (res.ok) {
+                    alert('Progresso salvo!');
+                    location.reload();
+                } else {
+                    throw new Error('Erro ao salvar no servidor');
+                }
+            } catch (err) {
+                alert('Erro: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Salvar Progresso';
+            }
+        }
+
+        document.getElementById('fotos-progresso').addEventListener('change', (e) => {
+            const preview = document.getElementById('preview-fotos');
+            if (!entryEditando) preview.innerHTML = '';
+            for (let file of e.target.files) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.style = 'width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 2px solid #FF9800;';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function analisarComIA() {
+            const el = document.getElementById('analise-ia');
+            el.style.display = 'block';
+            el.innerHTML = '⏳ Enviando fotos para análise de IA...<br><br>(Esta funcionalidade será ativada no backend em breve.)';
+        }
+
+        function renderizarTudo() {
+            document.getElementById('foto-aluno').src = alunoData.photo 
+                ? `data:image/jpeg;base64,${alunoData.photo}` 
+                : 'https://via.placeholder.com/200?text=Sem+Foto';
+            
+            document.getElementById('nome-aluno').textContent = alunoData.name || 'Aluno';
+            
             const statsDiv = document.getElementById('stats-gerais');
             statsDiv.innerHTML = `
-                <div class="stat-item"><label>Idade</label><strong>${alunoData.age || '--'} anos</strong></div>
-                <div class="stat-item"><label>Peso Inicial</label><strong>${alunoData.initial_weight || '--'} kg</strong></div>
-                <div class="stat-item"><label>Altura</label><strong>${alunoData.height || '--'} cm</strong></div>
-                <div class="stat-item"><label>Nível</label><strong>${alunoData.fitness_level || 'Atleta'}</strong></div>
+                <div class="stat-item"><label>Idade</label><strong>${alunoData.age || 'N/D'} anos</strong></div>
+                <div class="stat-item"><label>Peso</label><strong>${alunoData.weight || 'N/D'} kg</strong></div>
+                <div class="stat-item"><label>FC Repouso</label><strong>${alunoData.resting_hr || 'N/D'} bpm</strong></div>
             `;
+
+            const totalAulas = historicoData.length;
+            const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+            document.getElementById('frase-motivacional').textContent = 
+                `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
+
+            renderDashboardCards();
+            renderTabelaTreinos();
+            renderCharts();
+            renderComentarios();
+            renderResumoEBadges();
+
+            document.getElementById('conteudo').style.display = 'block';
         }
 
         function renderDashboardCards() {
@@ -1108,108 +1327,6 @@
                 badgesDiv.appendChild(span);
             });
         }
-
-        function renderGaleriaProgresso() {
-            const galeria = document.getElementById('galeria-progresso');
-            if (progressoCorporal.length === 0) {
-                galeria.innerHTML = '<div class="no-data">Nenhum registro de progresso corporal ainda.</div>';
-                return;
-            }
-
-            galeria.innerHTML = `
-                <h3 style="color: #FF9800; margin: 30px 0 20px 0;">Histórico de Evolução</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
-                    ${progressoCorporal.map(p => `
-                        <div class="dashboard-card" style="cursor: pointer;" onclick="verDetalhesProgresso('${p.id}')">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <span style="color: #FF9800; font-weight: bold;">${new Date(p.date_record).toLocaleDateString('pt-BR')}</span>
-                                <span style="background: rgba(255,152,0,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">${p.weight} kg</span>
-                            </div>
-                            ${p.photos && p.photos.length > 0 ? `<img src="${p.photos[0]}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''}
-                            <div class="entry-actions">
-                                <button class="btn-action btn-edit" onclick="event.stopPropagation(); editarProgresso('${p.id}')">Editar</button>
-                                <button class="btn-action btn-delete" onclick="event.stopPropagation(); excluirProgresso('${p.id}')">Excluir</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        async function salvarProgresso() {
-            const btn = document.getElementById('btn-salvar');
-            btn.disabled = true;
-            btn.textContent = 'Salvando...';
-
-            const data = {
-                aluno_id: alunoData.id,
-                date_record: document.getElementById('progresso-data').value,
-                weight: document.getElementById('medida-peso').value,
-                resting_hr: document.getElementById('medida-fc-repouso').value,
-                blood_pressure: document.getElementById('medida-pressao').value,
-                circ_neck: document.getElementById('circ-pescoco').value,
-                circ_shoulders: document.getElementById('circ-ombros').value,
-                circ_chest: document.getElementById('circ-torax').value,
-                circ_arm_l: document.getElementById('circ-braco-esq').value,
-                circ_arm_r: document.getElementById('circ-braco-dir').value,
-                circ_forearm_l: document.getElementById('circ-antebraco-esq').value,
-                circ_forearm_r: document.getElementById('circ-antebraco-dir').value,
-                circ_wrist_r: document.getElementById('circ-punho-dir').value,
-                circ_abdomen: document.getElementById('circ-abdomen').value,
-                circ_waist: document.getElementById('circ-cintura').value,
-                circ_hip: document.getElementById('circ-quadril').value,
-                circ_thigh_l: document.getElementById('circ-coxa-esq').value,
-                circ_thigh_r: document.getElementById('circ-coxa-dir').value,
-                circ_calf_l: document.getElementById('circ-perna-esq').value,
-                circ_calf_r: document.getElementById('circ-perna-dir').value,
-                fold_chest: document.getElementById('dobra-peitoral').value,
-                fold_triceps: document.getElementById('dobra-triceps').value,
-                fold_subscapular: document.getElementById('dobra-subescapular').value,
-                fold_abdominal: document.getElementById('dobra-abdominal').value,
-                fold_suprailiac: document.getElementById('dobra-suprailiaca').value,
-                fold_axillary: document.getElementById('dobra-axilar').value,
-                fold_thigh: document.getElementById('dobra-coxa').value,
-                fold_biceps: document.getElementById('dobra-biceps').value,
-                fold_calf: document.getElementById('dobra-perna').value
-            };
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/body-progress`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    alert('Progresso salvo com sucesso!');
-                    location.reload();
-                } else {
-                    alert('Erro ao salvar progresso.');
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Erro na conexão.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Salvar Progresso';
-            }
-        }
-
-        // Preview de fotos
-        document.getElementById('fotos-progresso').addEventListener('change', function(e) {
-            const preview = document.getElementById('preview-fotos');
-            preview.innerHTML = '';
-            Array.from(e.target.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const div = document.createElement('div');
-                    div.classList.add('photo-preview-item');
-                    div.innerHTML = `<img src="${event.target.result}">`;
-                    preview.appendChild(div);
-                }
-                reader.readAsDataURL(file);
-            });
-        });
 
         carregarPagina();
     </script>
