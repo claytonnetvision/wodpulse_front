@@ -195,7 +195,7 @@
             display: inline-block;
         }
 
-        /* PROGRESSO CORPORAL COM ABAS */
+        /* NOVOS ESTILOS PARA O FORMULÁRIO DE PROGRESSO CORPORAL COM ABAS */
         .progress-form {
             background: rgba(255,152,0,0.02);
             padding: 30px;
@@ -310,7 +310,7 @@
             box-shadow: 0 5px 15px rgba(255,152,0,0.3);
         }
 
-        /* HISTÓRICO E COMPARAÇÃO */
+        /* ESTILOS DO HISTÓRICO E COMPARAÇÃO */
         .history-card {
             background: #252525;
             border-radius: 12px;
@@ -362,6 +362,13 @@
             border: 1px solid #444;
         }
 
+        .compare-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #FF9800;
+        }
+
         #comparacao-container {
             background: rgba(255,152,0,0.05);
             border-radius: 16px;
@@ -398,17 +405,13 @@
             border: 2px solid #333;
         }
         
-        .diff-table-container {
-            margin-top: 25px;
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid #333;
-        }
-
         .diff-table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
             background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
         .diff-table th, .diff-table td {
@@ -420,40 +423,12 @@
         .diff-table th {
             background: #252525;
             color: #FF9800;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .diff-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .diff-value.positive { color: #F44336; font-weight: bold; }
-        .diff-value.negative { color: #4CAF50; font-weight: bold; }
-        .diff-value.neutral { color: #888; }
-
-        .fat-percentage-box {
-            background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
-        }
-
-        .fat-percentage-box h4 {
-            font-size: 1rem;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            opacity: 0.9;
-        }
-
-        .fat-percentage-box .value {
-            font-size: 2.5rem;
-            font-weight: 800;
-        }
+        .diff-value.positive { color: #4CAF50; }
+        .diff-value.negative { color: #F44336; }
 
         .ai-analysis-box {
             background: #1a1a1a;
@@ -462,7 +437,6 @@
             margin-top: 30px;
             border-left: 5px solid #FF5722;
             display: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
         .ai-analysis-box h3 {
@@ -471,14 +445,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.4rem;
         }
 
         .ai-content {
-            line-height: 1.8;
+            line-height: 1.6;
             color: #ddd;
-            font-size: 1.1rem;
-            white-space: pre-line;
+            font-size: 1.05rem;
         }
 
         /* Table Styling */
@@ -697,10 +669,6 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .compare-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 480px) {
@@ -844,54 +812,12 @@
                 <!-- Histórico e Comparação -->
                 <div id="galeria-progresso"></div>
 
-                <div id="comparacao-container">
-                    <h3 style="color: #FF9800; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-balance-scale"></i> Comparativo de Evolução
-                    </h3>
-                    
-                    <div class="compare-grid">
-                        <div class="compare-side">
-                            <h4 id="label-antes">Anterior</h4>
-                            <div id="fotos-antes" class="compare-photos"></div>
-                            <div id="fat-antes" class="fat-percentage-box" style="display:none;">
-                                <h4>% Gordura (Est.)</h4>
-                                <div class="value">--%</div>
-                            </div>
-                        </div>
-                        <div class="compare-side">
-                            <h4 id="label-depois">Atual</h4>
-                            <div id="fotos-depois" class="compare-photos"></div>
-                            <div id="fat-depois" class="fat-percentage-box" style="display:none;">
-                                <h4>% Gordura (Est.)</h4>
-                                <div class="value">--%</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="diff-table-container">
-                        <table class="diff-table" id="tabela-comparativa">
-                            <thead>
-                                <tr>
-                                    <th>Medida / Dobra</th>
-                                    <th>Anterior</th>
-                                    <th>Atual</th>
-                                    <th>Diferença</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Preenchido via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <button onclick="analisarComIA()" class="btn-primary" style="background: #FF5722; margin-top: 30px;">
-                        <i class="fas fa-robot"></i> Gerar Análise Técnica com IA
-                    </button>
-
-                    <div id="analise-ia-box" class="ai-analysis-box">
-                        <h3><i class="fas fa-brain"></i> Relatório de Evolução IA</h3>
-                        <div id="analise-ia-content" class="ai-content"></div>
-                    </div>
+                <div id="comparacao-container" style="display: none; margin-top: 30px; padding: 20px; background: rgba(255,152,0,0.08); border-radius: 12px;">
+                    <h3 style="color: #FF9800;">Comparação Antes/Depois</h3>
+                    <div id="comparacao-fotos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;"></div>
+                    <div id="comparacao-medidas" style="background: #252525; padding: 15px; border-radius: 8px;"></div>
+                    <button onclick="analisarComIA()" style="margin-top: 20px; background: #FF5722; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Analisar Transformação com IA</button>
+                    <div id="analise-ia" style="margin-top: 20px; padding: 15px; background: #252525; border-radius: 8px; display: none; font-size: 1.1rem; line-height: 1.6;"></div>
                 </div>
             </div>
 
@@ -945,7 +871,7 @@
                 </div>
             </div>
 
-            <!-- Feedback do Treinador -->
+            <!-- Comentários IA -->
             <div class="section">
                 <h2>Feedback do Treinador</h2>
                 <div class="comments-feed" id="lista-comentarios"></div>
@@ -993,29 +919,6 @@
             });
         }
 
-        // CÁLCULO DE % DE GORDURA (POLLOCK 7 DOBRAS)
-        function calcularPercentualGordura(measures, age, gender) {
-            const dobras = [
-                measures['dobra-peitoral'], measures['dobra-triceps'], measures['dobra-subescapular'],
-                measures['dobra-abdominal'], measures['dobra-suprailiaca'], measures['dobra-axilar'],
-                measures['dobra-coxa']
-            ];
-            
-            if (dobras.some(d => !d)) return null;
-            
-            const soma = dobras.reduce((a, b) => a + b, 0);
-            let densidade;
-            
-            if (gender === 'F') {
-                densidade = 1.097 - (0.00046971 * soma) + (0.00000056 * soma * soma) - (0.00012828 * age);
-            } else {
-                densidade = 1.112 - (0.00043499 * soma) + (0.00000055 * soma * soma) - (0.00028826 * age);
-            }
-            
-            const gordura = ((4.95 / densidade) - 4.50) * 100;
-            return gordura.toFixed(1);
-        }
-
         async function carregarPagina() {
             document.getElementById('loading').style.display = 'block';
             try {
@@ -1052,7 +955,7 @@
         function renderizarGaleria() {
             const container = document.getElementById('galeria-progresso');
             container.innerHTML = '<h3 style="color: #FF9800; margin-bottom: 15px;">Histórico de Progresso</h3>';
-            container.innerHTML += '<p style="color: #888; margin-bottom: 15px;">Selecione 2 registros para comparar a evolução completa.</p>';
+            container.innerHTML += '<p style="color: #888; margin-bottom: 15px;">Selecione 2 registros para comparar.</p>';
             
             if (progressoData.length === 0) {
                 container.innerHTML += '<p style="color: #888;">Nenhum registro ainda. Comece registrando acima!</p>';
@@ -1061,31 +964,19 @@
 
             progressoData.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(entry => {
                 const div = document.createElement('div');
-                div.className = 'history-card';
-                if (comparacaoSelecionada.includes(entry.id)) div.classList.add('selected');
-                
+                div.style = 'display: inline-block; margin: 15px; text-align: center; border: 2px solid transparent; padding: 10px; border-radius: 8px; background: rgba(255,152,0,0.05); cursor: pointer;';
                 div.onclick = (e) => {
                     if (e.target.tagName === 'BUTTON') return;
                     selecionarParaComparar(entry.id, div);
                 };
-
-                const fat = calcularPercentualGordura(entry.measures, alunoData.age, alunoData.gender);
-
                 div.innerHTML = `
-                    <input type="checkbox" class="compare-checkbox" ${comparacaoSelecionada.includes(entry.id) ? 'checked' : ''}>
-                    <div class="history-info">
-                        <div class="history-date">${new Date(entry.date).toLocaleDateString('pt-BR')}</div>
-                        <div class="history-summary">
-                            Peso: ${entry.measures.peso || '--'}kg | 
-                            ${fat ? `% Gordura: ${fat}%` : 'Medidas parciais'}
-                        </div>
-                    </div>
-                    <div class="history-photos">
-                        ${entry.photos.slice(0, 3).map(p => `<img src="data:image/jpeg;base64,${p}">`).join('')}
+                    <p style="color: #FF9800; font-weight: bold;">${new Date(entry.date).toLocaleDateString('pt-BR')}</p>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
+                        ${entry.photos.map(p => `<img src="data:image/jpeg;base64,${p}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #444;">`).join('')}
                     </div>
                     <div class="entry-actions">
-                        <button class="btn-action btn-edit" onclick="editarEntrada(${entry.id})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-action btn-delete" onclick="apagarEntrada(${entry.id})"><i class="fas fa-trash"></i></button>
+                        <button class="btn-action btn-edit" onclick="editarEntrada(${entry.id})">Editar</button>
+                        <button class="btn-action btn-delete" onclick="apagarEntrada(${entry.id})">Apagar</button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -1096,14 +987,15 @@
             const idx = comparacaoSelecionada.indexOf(id);
             if (idx > -1) {
                 comparacaoSelecionada.splice(idx, 1);
+                element.style.borderColor = 'transparent';
             } else {
                 if (comparacaoSelecionada.length >= 2) {
                     alert('Selecione apenas 2 datas para comparar.');
                     return;
                 }
                 comparacaoSelecionada.push(id);
+                element.style.borderColor = '#FF9800';
             }
-            renderizarGaleria(); // Atualiza visual dos cards
 
             if (comparacaoSelecionada.length === 2) {
                 exibirComparativo();
@@ -1119,107 +1011,50 @@
             const antes = entries[0];
             const depois = entries[1];
 
-            document.getElementById('label-antes').textContent = `Anterior (${new Date(antes.date).toLocaleDateString('pt-BR')})`;
-            document.getElementById('label-depois').textContent = `Atual (${new Date(depois.date).toLocaleDateString('pt-BR')})`;
+            const fotosDiv = document.getElementById('comparacao-fotos');
+            fotosDiv.innerHTML = `
+                <div style="text-align:center;">
+                    <h4 style="color:#FF9800; margin-bottom:10px;">Anterior (${new Date(antes.date).toLocaleDateString('pt-BR')})</h4>
+                    <div style="display:flex; gap:5px; justify-content:center;">
+                        ${antes.photos.map(p => `<img src="data:image/jpeg;base64,${p}" style="width:100%; max-width:150px; border-radius:8px;">`).join('')}
+                    </div>
+                </div>
+                <div style="text-align:center;">
+                    <h4 style="color:#FF9800; margin-bottom:10px;">Atual (${new Date(depois.date).toLocaleDateString('pt-BR')})</h4>
+                    <div style="display:flex; gap:5px; justify-content:center;">
+                        ${depois.photos.map(p => `<img src="data:image/jpeg;base64,${p}" style="width:100%; max-width:150px; border-radius:8px;">`).join('')}
+                    </div>
+                </div>
+            `;
 
-            document.getElementById('fotos-antes').innerHTML = antes.photos.map(p => `<img src="data:image/jpeg;base64,${p}">`).join('');
-            document.getElementById('fotos-depois').innerHTML = depois.photos.map(p => `<img src="data:image/jpeg;base64,${p}">`).join('');
-
-            const fatAntes = calcularPercentualGordura(antes.measures, alunoData.age, alunoData.gender);
-            const fatDepois = calcularPercentualGordura(depois.measures, alunoData.age, alunoData.gender);
-
-            if (fatAntes) {
-                document.getElementById('fat-antes').style.display = 'block';
-                document.getElementById('fat-antes').querySelector('.value').textContent = fatAntes + '%';
-            } else { document.getElementById('fat-antes').style.display = 'none'; }
-
-            if (fatDepois) {
-                document.getElementById('fat-depois').style.display = 'block';
-                document.getElementById('fat-depois').querySelector('.value').textContent = fatDepois + '%';
-            } else { document.getElementById('fat-depois').style.display = 'none'; }
-
-            const tbody = document.getElementById('tabela-comparativa').querySelector('tbody');
-            tbody.innerHTML = '';
-
-            const allFields = [
+            const medidasDiv = document.getElementById('comparacao-medidas');
+            const fields = [
                 { label: 'Peso (kg)', key: 'peso' },
-                { label: 'Pescoço (cm)', key: 'circ-pescoco' },
-                { label: 'Ombros (cm)', key: 'circ-ombros' },
                 { label: 'Tórax (cm)', key: 'circ-torax' },
-                { label: 'Braço Esq (cm)', key: 'circ-braco-esq' },
-                { label: 'Braço Dir (cm)', key: 'circ-braco-dir' },
-                { label: 'Abdomen (cm)', key: 'circ-abdomen' },
                 { label: 'Cintura (cm)', key: 'circ-cintura' },
-                { label: 'Quadril (cm)', key: 'circ-quadril' },
-                { label: 'Dobra Peitoral (mm)', key: 'dobra-peitoral' },
-                { label: 'Dobra Tríceps (mm)', key: 'dobra-triceps' },
-                { label: 'Dobra Abdominal (mm)', key: 'dobra-abdominal' },
-                { label: 'Dobra Suprailíaca (mm)', key: 'dobra-suprailiaca' },
-                { label: 'Dobra Coxa (mm)', key: 'dobra-coxa' }
+                { label: 'Abdomen (cm)', key: 'circ-abdomen' },
+                { label: 'Quadril (cm)', key: 'circ-quadril' }
             ];
 
-            allFields.forEach(f => {
-                const v1 = antes.measures[f.key];
-                const v2 = depois.measures[f.key];
-                if (v1 || v2) {
-                    const diff = (v2 || 0) - (v1 || 0);
-                    let diffClass = 'neutral';
-                    if (diff > 0) diffClass = 'positive';
-                    if (diff < 0) diffClass = 'negative';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${f.label}</td>
-                        <td>${v1 || '--'}</td>
-                        <td>${v2 || '--'}</td>
-                        <td class="diff-value ${diffClass}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
+            let html = '<table style="width:100%; color:white; border-collapse:collapse;">';
+            html += '<tr><th style="text-align:left;">Medida</th><th>Anterior</th><th>Atual</th><th>Dif.</th></tr>';
+            fields.forEach(f => {
+                const v1 = antes.measures[f.key] || 0;
+                const v2 = depois.measures[f.key] || 0;
+                const diff = v2 - v1;
+                const color = diff < 0 ? '#4CAF50' : (diff > 0 ? '#F44336' : '#888');
+                html += `<tr style="border-top:1px solid #444;">
+                    <td style="padding:10px 0;">${f.label}</td>
+                    <td style="text-align:center;">${v1 || '--'}</td>
+                    <td style="text-align:center;">${v2 || '--'}</td>
+                    <td style="text-align:center; color:${color}; font-weight:bold;">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</td>
+                </tr>`;
             });
+            html += '</table>';
+            medidasDiv.innerHTML = html;
 
             document.getElementById('comparacao-container').style.display = 'block';
             window.scrollTo(0, document.getElementById('comparacao-container').offsetTop - 50);
-        }
-
-        async function analisarComIA() {
-            const box = document.getElementById('analise-ia-box');
-            const content = document.getElementById('analise-ia-content');
-            box.style.display = 'block';
-            content.innerHTML = '⏳ <span style="color:#FF9800">A IA está analisando as fotos e as medidas para gerar o relatório...</span>';
-
-            const entries = comparacaoSelecionada.map(id => progressoData.find(e => e.id === id))
-                            .sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            const antes = entries[0];
-            const depois = entries[1];
-
-            // Simulação de análise técnica baseada nos dados reais
-            setTimeout(() => {
-                const pesoDiff = (depois.measures.peso || 0) - (antes.measures.peso || 0);
-                const abdDiff = (depois.measures['circ-abdomen'] || 0) - (antes.measures['circ-abdomen'] || 0);
-                
-                let feedback = `**Análise de Evolução Corporal - WODPulse AI**\n\n`;
-                feedback += `Com base nos registros de ${new Date(antes.date).toLocaleDateString()} e ${new Date(depois.date).toLocaleDateString()}:\n\n`;
-                
-                if (pesoDiff < 0) {
-                    feedback += `✅ **Redução de Peso:** Houve uma perda de ${Math.abs(pesoDiff).toFixed(1)}kg. `;
-                } else if (pesoDiff > 0) {
-                    feedback += `📈 **Ganho de Massa:** Houve um aumento de ${pesoDiff.toFixed(1)}kg. `;
-                }
-
-                if (abdDiff < 0) {
-                    feedback += `A redução de ${Math.abs(abdDiff).toFixed(1)}cm na linha de cintura indica uma queima eficiente de gordura visceral.\n\n`;
-                }
-
-                feedback += `**Observações Técnicas:**\n`;
-                feedback += `• A análise visual das fotos mostra uma melhora na densidade muscular.\n`;
-                feedback += `• As dobras cutâneas indicam uma tendência de recomposição corporal positiva.\n`;
-                feedback += `• Recomendação: Manter a intensidade nos treinos de Zona 4/5 para maximizar o EPOC.\n\n`;
-                feedback += `*Nota: Esta é uma análise preliminar baseada nos dados inseridos.*`;
-
-                content.innerHTML = feedback;
-            }, 2000);
         }
 
         function editarEntrada(id) {
@@ -1276,7 +1111,7 @@
                 const res = await fetch(`${API_BASE_URL}/api/body-progress/${id}`, { method: 'DELETE' });
                 if (res.ok) {
                     alert('Registro apagado!');
-                    location.reload();
+                    await carregarProgresso();
                 }
             } catch (err) { alert('Erro ao apagar.'); }
         }
@@ -1342,6 +1177,13 @@
             } catch (err) { alert('Erro ao salvar.'); }
         }
 
+        function limparFormulario() {
+            document.getElementById('progresso-data').value = '';
+            document.getElementById('fotos-progresso').value = '';
+            document.getElementById('preview-fotos').innerHTML = '';
+            document.querySelectorAll('.form-group input').forEach(i => i.value = '');
+        }
+
         document.getElementById('fotos-progresso').addEventListener('change', (e) => {
             const preview = document.getElementById('preview-fotos');
             if (!entryEditando) preview.innerHTML = '';
@@ -1356,6 +1198,13 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        function analisarComIA() {
+            if (comparacaoSelecionada.length !== 2) return alert('Selecione duas datas para analisar.');
+            const el = document.getElementById('analise-ia');
+            el.style.display = 'block';
+            el.innerHTML = '⏳ Enviando fotos para análise de IA...<br><br>(Esta funcionalidade será ativada no backend em breve. A IA vai descrever mudanças na composição corporal, definição muscular, perda de gordura, etc.)';
+        }
 
         // ==== FUNÇÕES ORIGINAIS DE RENDERIZAÇÃO (100% PRESERVADAS) ====
         function renderizarTudo() {
