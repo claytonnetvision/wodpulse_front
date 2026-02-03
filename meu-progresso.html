@@ -900,7 +900,7 @@
                 const date = document.getElementById('progresso-data').value;
                 if (!date) return alert('Selecione a data!');
 
-                const measures = {
+                const rawMeasures = {
                     peso: document.getElementById('medida-peso').value,
                     fc_repouso: document.getElementById('medida-fc-repouso').value,
                     pressao: document.getElementById('medida-pressao').value,
@@ -929,6 +929,19 @@
                     'dobra-biceps': document.getElementById('dobra-biceps').value,
                     'dobra-perna': document.getElementById('dobra-perna').value
                 };
+
+                // Limpa campos vazios para evitar erro 400 no servidor
+                const measures = {};
+                for (const key in rawMeasures) {
+                    if (rawMeasures[key] !== "" && rawMeasures[key] !== null) {
+                        // Converte para número se possível, exceto pressão que é texto
+                        if (key !== 'pressao' && !isNaN(rawMeasures[key])) {
+                            measures[key] = Number(rawMeasures[key]);
+                        } else {
+                            measures[key] = rawMeasures[key];
+                        }
+                    }
+                }
 
                 const files = document.getElementById('fotos-progresso').files;
                 const photos = entryEditando ? entryEditando.photos : [];
