@@ -5,54 +5,476 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WODPulse Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
-    <link rel="stylesheet" href="social-style.css">
     <style>
-        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: white; padding-bottom: 100px; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%); border-radius: 0 0 40px 40px; }
-        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; background: #333; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 15px; text-align: center; }
-        .stat-value { display: block; font-size: 1.4rem; font-weight: bold; color: var(--primary); }
-        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .action-btn { background: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 20px; text-align: center; text-decoration: none; color: white; transition: 0.3s; }
-        .action-btn:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .action-btn i { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; display: block; }
-        .full-width-btn { background: #252525; padding: 18px; border-radius: 15px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; margin-top: 15px; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; }
-        .nav-item { color: #666; font-size: 1.5rem; text-decoration: none; }
-        .nav-item.active { color: var(--primary); }
+        :root {
+            --primary: #FF9800;
+            --dark-bg: #0f0f0f;
+            --card-bg: #1e1e1e;
+            --card-hover: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-color: #333333;
+            --success: #4CAF50;
+            --error: #ff4d4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            padding-bottom: 100px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== HEADER DO PERFIL ===== */
+        .profile-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(255, 152, 0, 0.1) 0%, transparent 100%);
+            border-radius: 0 0 40px 40px;
+            margin-bottom: 30px;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--primary);
+            object-fit: cover;
+            margin-bottom: 15px;
+            background: #333;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .profile-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* ===== GRID DE ESTATÍSTICAS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: var(--card-hover);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== GRID DE AÇÕES ===== */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 25px 15px;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            background: var(--card-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.1);
+        }
+
+        .action-btn i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .action-btn span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* ===== BOTÕES DE AÇÃO COMPLETA ===== */
+        .full-width-btn {
+            background: var(--card-bg);
+            padding: 18px 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .full-width-btn:hover {
+            background: var(--card-hover);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .full-width-btn i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            min-width: 30px;
+        }
+
+        .full-width-btn div {
+            flex: 1;
+        }
+
+        .full-width-btn strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .full-width-btn p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== SEÇÃO DE MATCHES MÚTUOS ===== */
+        .mutual-matches-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .matches-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .mutual-match-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .mutual-match-card:hover {
+            background: var(--card-hover);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .match-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            flex-shrink: 0;
+        }
+
+        .match-info {
+            flex: 1;
+        }
+
+        .match-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .match-indicator {
+            color: var(--primary);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .view-profile-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .view-profile-btn:hover {
+            background: #e68a00;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* ===== BOTÃO DE LOGOUT ===== */
+        .logout-btn {
+            width: 100%;
+            margin-top: 30px;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+            background: rgba(255, 77, 77, 0.05);
+        }
+
+        /* ===== NAVEGAÇÃO INFERIOR ===== */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+
+        .nav-item:hover {
+            background: var(--card-hover);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .profile-header {
+                padding: 30px 15px;
+            }
+
+            .action-grid {
+                gap: 10px;
+            }
+
+            .stats-grid {
+                gap: 10px;
+            }
+        }
+
+        /* ===== ANIMAÇÕES ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mutual-match-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- HEADER DO PERFIL -->
         <div class="profile-header">
-            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic">
+            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic" alt="Foto de Perfil">
             <h1 id="userName">Carregando...</h1>
-            <p id="userBox" style="color: #888; font-size: 0.9rem;">Box: --</p>
+            <p id="userBox">Box: --</p>
         </div>
 
+        <!-- ESTATÍSTICAS -->
         <div class="stats-grid">
-            <div class="stat-card"><span class="stat-value" id="stat-challenges">0</span><span class="stat-label">Desafios</span></div>
-            <div class="stat-card"><span class="stat-value" id="stat-likes">0</span><span class="stat-label">Curtidas</span></div>
-            <div class="stat-card"><span class="stat-value" id="stat-matches">0</span><span class="stat-label">Matches</span></div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-challenges">0</span>
+                <span class="stat-label">Desafios</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-likes">0</span>
+                <span class="stat-label">Curtidas</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-matches">0</span>
+                <span class="stat-label">Matches</span>
+            </div>
         </div>
 
+        <!-- AÇÕES PRINCIPAIS -->
         <div class="action-grid">
-            <a href="matches.html" class="action-btn"><i class="fas fa-fire"></i><span>WOD Match</span></a>
-            <a href="desafios.html" class="action-btn"><i class="fas fa-trophy"></i><span>Novo Desafio</span></a>
+            <a href="matches.html" class="action-btn">
+                <i class="fas fa-fire"></i>
+                <span>WOD Match</span>
+            </a>
+            <a href="desafios.html" class="action-btn">
+                <i class="fas fa-trophy"></i>
+                <span>Novo Desafio</span>
+            </a>
         </div>
 
+        <!-- PROGRESSO TÉCNICO -->
         <a href="#" id="linkProgresso" class="full-width-btn">
-            <i class="fas fa-chart-line" style="color: var(--primary);"></i>
-            <div><strong>Meu Progresso Técnico</strong><p style="font-size: 0.8rem; color: #888;">Ver gráficos e histórico</p></div>
+            <i class="fas fa-chart-line"></i>
+            <div>
+                <strong>Meu Progresso Técnico</strong>
+                <p>Ver gráficos e histórico</p>
+            </div>
         </a>
 
-        <button onclick="logout()" style="width: 100%; margin-top: 30px; padding: 12px; background: transparent; border: 1px solid #444; color: #888; border-radius: 10px; cursor: pointer;">Sair da Conta</button>
+        <!-- SEÇÃO DE MATCHES MÚTUOS -->
+        <div class="mutual-matches-section">
+            <div class="section-title">
+                <i class="fas fa-heart"></i>
+                <span>Seus Matches</span>
+            </div>
+            <div class="matches-container" id="matchesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÃO DE LOGOUT -->
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Sair da Conta
+        </button>
     </div>
 
+    <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="nav-bar">
         <a href="perfil-social.html" class="nav-item active"><i class="fas fa-home"></i></a>
         <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
@@ -63,12 +485,15 @@
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-        if (!token) window.location.href = 'login.html';
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
-            // Se for Base64 puro sem o prefixo, nós adicionamos
+            // Se for Base64 puro sem o prefixo, adiciona o prefixo
             return `data:image/jpeg;base64,${photo}`;
         }
 
@@ -81,8 +506,6 @@
                 
                 document.getElementById('userName').textContent = data.name;
                 document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
-                
-                // Trata a foto com a nova função
                 document.getElementById('userPhoto').src = formatPhoto(data.photo);
 
                 // Preenche estatísticas
@@ -93,10 +516,68 @@
                 const progUrl = `meu-progresso.html?id=${data.id}`;
                 document.getElementById('linkProgresso').href = progUrl;
                 document.getElementById('navProgresso').href = progUrl;
-            } catch (err) { console.error(err); }
+
+                // Carrega matches mútuos
+                loadMutualMatches();
+            } catch (err) {
+                console.error('Erro ao carregar perfil:', err);
+            }
         }
-        function logout() { localStorage.removeItem('wodpulse_social_token'); window.location.href = 'login.html'; }
+
+        async function loadMutualMatches() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                const container = document.getElementById('matchesContainer');
+                
+                if (data.success && data.matches && data.matches.length > 0) {
+                    container.innerHTML = data.matches.map(match => `
+                        <div class="mutual-match-card">
+                            <img src="${formatPhoto(match.photo)}" alt="${match.name}" class="match-photo">
+                            <div class="match-info">
+                                <h3>${match.name}</h3>
+                                <span class="match-indicator">
+                                    <i class="fas fa-heart"></i> Match!
+                                </span>
+                            </div>
+                            <button class="view-profile-btn" onclick="viewProfile(${match.id})">
+                                Ver Perfil
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-heart-broken"></i>
+                            <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar matches:', err);
+            }
+        }
+
+        function viewProfile(matchId) {
+            // Redireciona para o perfil do match ou abre um modal
+            window.location.href = `perfil-participante.html?id=${matchId}`;
+        }
+
+        function logout() {
+            if (confirm('Tem certeza que deseja sair da conta?')) {
+                localStorage.removeItem('wodpulse_social_token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Carrega o perfil ao abrir a página
         loadProfile();
+
+        // Recarrega matches a cada 30 segundos (opcional)
+        setInterval(loadMutualMatches, 30000);
     </script>
 </body>
 </html>
