@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desafios - WODPulse Social</title>
+    <title>WODPulse - Desafios</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
         :root {
@@ -12,372 +12,301 @@
             --card-bg: #1e1e1e;
             --text-primary: #ffffff;
             --text-secondary: #888888;
-            --border-color: #333333;
-            --error: #ff4d4d;
+            --success: #4CAF50;
+            --error: #f44336;
+            --pending: #FFC107;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--dark-bg); color: white; font-family: 'Inter', sans-serif; padding-bottom: 80px; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark-bg);
-            color: var(--text-primary);
-            padding-bottom: 100px;
-        }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 1.8rem; color: var(--primary); }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .section-title { font-size: 1.2rem; margin: 20px 0 15px; display: flex; align-items: center; gap: 10px; }
 
-        .header {
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(180deg, rgba(255, 152, 0, 0.1) 0%, transparent 100%);
-            border-radius: 0 0 30px 30px;
-            margin-bottom: 30px;
-        }
-
-        .header h1 { font-size: 2rem; color: var(--primary); }
-
-        /* Form de Criação */
+        /* Novo Card de Criação de Desafio */
         .create-challenge-card {
             background: var(--card-bg);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 30px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #333;
         }
 
-        .create-challenge-card h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--primary); }
-
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-secondary); }
-        .form-group select, .form-group input {
-            width: 100%;
-            padding: 12px;
-            background: #252525;
-            border: 1px solid #444;
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem; }
+        
+        .athlete-selector {
+            background: #2a2a2a;
             border-radius: 10px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #444;
+        }
+
+        .athlete-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            transition: background 0.2s;
+        }
+        .athlete-option:hover { background: #333; }
+        .athlete-option input { width: 18px; height: 18px; accent-color: var(--primary); }
+        .athlete-option img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+
+        .search-input {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
             color: white;
-            font-size: 1rem;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
 
         .btn-submit {
             width: 100%;
-            padding: 15px;
             background: var(--primary);
             color: white;
             border: none;
+            padding: 12px;
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
             margin-top: 10px;
         }
 
-        .btn-submit:hover { background: #e68a00; transform: translateY(-2px); }
-
-        /* Lista de Desafios */
-        .section-title { font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .section-title i { color: var(--primary); }
-
+        /* Cards de Desafio */
         .challenge-card {
             background: var(--card-bg);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            border: 1px solid #333;
+            position: relative;
         }
 
         .challenge-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas pequenas */
-            gap: 10px; /* Espaçamento entre os itens do header */
-        }
-
-        .challenge-type { 
-            background: rgba(255, 152, 0, 0.2); 
-            color: var(--primary); 
-            padding: 5px 12px; 
-            border-radius: 20px; 
-            font-size: 0.8rem; 
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .challenge-date { font-size: 0.8rem; color: var(--text-secondary); }
-
-        .challenge-participants { display: flex; align-items: center; gap: 15px; }
-        .participant { text-align: center; flex: 1; }
-        .participant img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #444; margin-bottom: 5px; }
-        .participant p { font-size: 0.85rem; font-weight: 500; }
-        .vs { font-weight: bold; color: var(--primary); font-style: italic; }
-
-        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
-
-        /* Nav Bar */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid var(--border-color); }
-        .nav-item { color: var(--text-secondary); font-size: 1.5rem; text-decoration: none; }
-        .nav-item.active { color: var(--primary); }
-
-        .delete-challenge-btn, .view-ranking-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1rem;
-            transition: color 0.3s;
-            padding: 5px;
-        }
-
-        .opponent-selection-container {
-            position: relative;
             margin-bottom: 15px;
         }
 
-        .opponent-selection-container input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            background: #252525;
-            border: 1px solid #444;
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-
-        .opponent-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #444;
-            border-radius: 10px;
-            background: #252525;
-            padding: 5px;
-        }
-
-        .opponent-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            border-radius: 8px;
-        }
-
-        .opponent-item:hover {
-            background-color: #333;
-        }
-
-        .opponent-item input[type="checkbox"] {
-            margin-right: 10px;
-        }
-
-        .opponent-item img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 10px;
-        }
-
-        .opponent-item.selected {
-            background-color: rgba(255, 152, 0, 0.2);
-            border: 1px solid var(--primary);
-        }
-
-        .selected-opponents-display {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #444;
-            border-radius: 10px;
-            background: #252525;
-            min-height: 40px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .selected-opponent-tag {
-            background: var(--primary);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
+        .challenge-type {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 5px;
             font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .selected-opponent-tag .remove-tag {
-            cursor: pointer;
             font-weight: bold;
         }
 
-        .delete-challenge-btn:hover {
-            color: var(--error);
+        .challenge-vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
         }
-        .view-ranking-btn:hover {
+
+        .athlete-v {
+            text-align: center;
+            flex: 1;
+        }
+
+        .athlete-v img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #444; margin-bottom: 5px; }
+        .athlete-v span { display: block; font-size: 0.8rem; color: var(--text-secondary); }
+
+        .vs-circle {
+            width: 30px;
+            height: 30px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
             color: var(--primary);
         }
 
-        /* Modal Styles */
+        .challenge-status {
+            text-align: center;
+            font-size: 0.8rem;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .status-pending { background: rgba(255, 193, 7, 0.1); color: var(--pending); }
+        .status-accepted { background: rgba(76, 175, 80, 0.1); color: var(--success); }
+        .status-rejected { background: rgba(244, 67, 54, 0.1); color: var(--error); }
+
+        .challenge-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-accept { background: var(--success); color: white; }
+        .btn-reject { background: var(--error); color: white; }
+        .btn-ranking { background: #333; color: white; border: 1px solid #444; }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #555;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .delete-btn:hover { color: var(--error); }
+
+        /* Modal */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            padding-top: 60px;
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-content {
-            background-color: var(--card-bg);
-            margin: 5% auto; /* 15% from the top and centered */
-            padding: 30px;
-            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
             border-radius: 20px;
-            width: 90%; /* Could be more or less, depending on screen size */
-            max-width: 500px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .close-button {
-            color: var(--text-secondary);
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            cursor: pointer;
-        }
-
-        .close-button:hover, .close-button:focus {
-            color: var(--primary);
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .modal-content h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-align: center;
         }
 
         .ranking-item {
             display: flex;
             align-items: center;
+            gap: 10px;
             padding: 10px 0;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid #333;
         }
 
-        .ranking-item:last-child { border-bottom: none; }
+        .ranking-pos { font-weight: bold; color: var(--primary); width: 25px; }
+        .ranking-item img { width: 30px; height: 30px; border-radius: 50%; }
+        .ranking-value { margin-left: auto; font-weight: bold; }
 
-        .ranking-item img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 15px;
-            border: 2px solid var(--primary);
+        /* Bulk Delete */
+        .bulk-actions {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--error);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            z-index: 100;
+            font-weight: bold;
         }
 
-        .ranking-item .name { flex-grow: 1; font-weight: 600; }
-        .ranking-item .result { font-weight: bold; color: var(--primary); }
-
-        /* Responsividade */
-        @media (max-width: 480px) {
-            .challenge-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .challenge-header > div {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .challenge-date {
-                text-align: right;
-            }
+        .challenge-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--error);
         }
 
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; }
+        .nav-item { color: var(--text-secondary); font-size: 1.5rem; text-decoration: none; }
+        .nav-item.active { color: var(--primary); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Desafios WOD</h1>
+            <h1>Desafios WODPulse</h1>
         </div>
 
         <!-- Criar Desafio -->
         <div class="create-challenge-card">
-            <h2><i class="fas fa-plus-circle"></i> Novo Desafio</h2>
+            <div class="section-title"><i class="fas fa-plus-circle"></i> Novo Desafio</div>
+            
             <div class="form-group">
                 <label>Selecione o(s) Oponente(s)</label>
-                <div id="opponentSelectionContainer" class="opponent-selection-container">
-                    <input type="text" id="opponentSearch" placeholder="Buscar atletas..." onkeyup="filterOpponents()">
-                    <div id="opponentList" class="opponent-list">
-                        <p>Carregando atletas...</p>
-                    </div>
+                <input type="text" class="search-input" id="athleteSearch" placeholder="Buscar atletas..." oninput="filterAthletes()">
+                <div class="athlete-selector" id="athleteList">
+                    <div style="padding: 10px; color: #666; text-align: center;">Carregando atletas...</div>
                 </div>
-                <input type="hidden" id="selectedOpponentIds">
-                <div id="selectedOpponentsDisplay" class="selected-opponents-display"></div>
             </div>
+
             <div class="form-group">
                 <label>Tipo de Desafio</label>
-                <select id="challengeType">
-                    <option value="AMRAP 15min">AMRAP 15min</option>
-                    <option value="For Time: 100 Burpees">For Time: 100 Burpees</option>
-                    <option value="Max Weight: Deadlift">Max Weight: Deadlift</option>
-                    <option value="Max Reps: Pull-ups">Max Reps: Pull-ups</option>
-                    <option value="Murph">Murph</option>
-                    <option value="Frequência: 5 dias/semana">Frequência: 5 dias/semana</option>
+                <select class="search-input" id="challengeType">
+                    <option value="AMRAP 15min">AMRAP 15min (Repetições)</option>
+                    <option value="For Time: 100 Burpees">For Time: 100 Burpees (Tempo)</option>
+                    <option value="Max Weight: Deadlift">Max Weight: Deadlift (Carga)</option>
+                    <option value="Murph">Murph (Tempo)</option>
+                    <option value="Check-in Streak (7 dias)">Check-in Streak (7 dias)</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label>Duração (dias)</label>
-                <input type="number" id="challengeDuration" value="7" min="1">
+                <input type="number" class="search-input" id="challengeDuration" value="7" min="1">
             </div>
-            <button class="btn-submit" onclick="createChallenge()">Lançar Desafio! 🚀</button>
+
+            <button class="btn-submit" onclick="createChallenge()" id="btnCreate">Lançar Desafio! 🚀</button>
         </div>
 
         <!-- Lista de Desafios -->
-        <div class="section-title">
-            <i class="fas fa-trophy"></i>
-            <span>Desafios Ativos</span>
-        </div>
+        <div class="section-title"><i class="fas fa-fire"></i> Seus Desafios</div>
         <div id="challengesList">
-            <div class="empty-state">Carregando desafios...</div>
-        </div>
-
-        <div id="bulkDeleteContainer" style="display: none; text-align: right; margin-top: 20px;">
-            <button class="btn-submit" style="width: auto; background: #dc3545;" onclick="bulkDeleteChallenges()">Excluir Selecionados</button>
+            <div style="text-align:center; padding:20px;">Carregando desafios...</div>
         </div>
     </div>
 
-    <!-- Modal de Ranking -->
+    <!-- Bulk Delete Button -->
+    <div id="bulkDeleteBtn" class="bulk-actions" onclick="bulkDelete()">
+        <i class="fas fa-trash"></i> Excluir Selecionados (<span id="selectedCount">0</span>)
+    </div>
+
+    <!-- Modal Ranking -->
     <div id="rankingModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" onclick="closeRankingModal()">&times;</span>
-            <h2 id="rankingTitle">Ranking do Desafio</h2>
-            <div id="rankingList">
-                <p>Carregando ranking...</p>
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h3 id="rankingTitle">Ranking</h3>
+                <i class="fas fa-times" onclick="closeModal()" style="cursor:pointer;"></i>
             </div>
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="resultInput">Seu Resultado:</label>
-                <input type="text" id="resultInput" placeholder="Ex: 12:30 (tempo), 100 (kg), 50 (reps)">
+            <div id="rankingContent"></div>
+            
+            <div style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">
+                <label style="font-size:0.8rem; color:var(--text-secondary);">Registrar meu resultado:</label>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input type="text" id="myResultValue" class="search-input" placeholder="Ex: 12:30 ou 150kg" style="margin-bottom:0;">
+                    <button class="btn-submit" onclick="saveResult()" style="margin-top:0; width:auto; padding:0 15px;">Salvar</button>
+                </div>
             </div>
-            <button class="btn-submit" onclick="submitResult()">Registrar Resultado</button>
         </div>
     </div>
 
@@ -385,70 +314,66 @@
         <a href="perfil-social.html" class="nav-item"><i class="fas fa-home"></i></a>
         <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
         <a href="desafios.html" class="nav-item active"><i class="fas fa-medal"></i></a>
-        <a href="#" id="navProgresso" class="nav-item"><i class="fas fa-chart-line"></i></a>
     </nav>
 
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-        let currentChallengeId = null;
-        let loggedInUserId = null; // Variável para armazenar o ID do usuário logado
-        let allParticipants = []; // Armazena todos os participantes para a seleção de desafios
-        let selectedOpponents = new Map(); // Armazena os oponentes selecionados para o desafio (id -> {name, photo})
+        let currentUserId = null;
+        let allAthletes = [];
+        let selectedChallengeId = null;
 
         if (!token) window.location.href = 'login.html';
 
-        function formatPhoto(photo) {
-            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
-            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
-            return `data:image/jpeg;base64,${photo}`;
+        async function init() {
+            await loadProfile();
+            await loadAthletes();
+            await loadChallenges();
         }
 
-        async function getUserId() {
-            if (loggedInUserId) return loggedInUserId; // Retorna se já tiver o ID
+        async function loadProfile() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                loggedInUserId = data.id; // Armazena o ID
-                return loggedInUserId;
-            } catch (err) {
-                console.error('Erro ao obter ID do usuário:', err);
-                return null;
-            }
+                currentUserId = data.id;
+            } catch (err) { console.error('Erro perfil:', err); }
         }
 
-        async function loadInitialData() {
+        async function loadAthletes() {
             try {
-                loggedInUserId = await getUserId(); // Carrega o ID do usuário logado
-
-                // Carregar Participantes para o select
-                const participantsRes = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const participantsData = await participantsRes.json();
-                console.log("Dados de Participantes para Desafios:", participantsData);
-                const opponentListDiv = document.getElementById("opponentList");
-                
-                if (participantsData.success && participantsData.participants.length > 0) {
-                    allParticipants = participantsData.participants; // Armazena todos os participantes
-                    renderOpponentList(allParticipants);
-                } else {
-                    opponentListDiv.innerHTML = '<p class="empty-state">Nenhum atleta encontrado.</p>';
+                const data = await res.json();
+                if (data.success) {
+                    allAthletes = data.participants;
+                    renderAthleteList(allAthletes);
                 }
+            } catch (err) { console.error('Erro atletas:', err); }
+        }
 
-                // Carregar Desafios
-                loadChallenges();
+        function renderAthleteList(list) {
+            const container = document.getElementById('athleteList');
+            container.innerHTML = list.map(a => `
+                <div class="athlete-option" onclick="toggleAthlete(${a.id})">
+                    <input type="checkbox" id="ath-${a.id}" value="${a.id}" onclick="event.stopPropagation()">
+                    <img src="${formatPhoto(a.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                    <span>${a.name}</span>
+                </div>
+            `).join('');
+        }
 
-                // Carregar link de progresso
-                const profileRes = await fetch(`${API_BASE_URL}/api/social/profile`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const profileData = await profileRes.json();
-                document.getElementById('navProgresso').href = `meu-progresso.html?id=${profileData.id}`;
+        function filterAthletes() {
+            const term = document.getElementById('athleteSearch').value.toLowerCase();
+            const filtered = allAthletes.filter(a => a.name.toLowerCase().includes(term));
+            renderAthleteList(filtered);
+        }
 
-            } catch (err) { console.error(err); }
+        function toggleAthlete(id) {
+            const cb = document.getElementById(`ath-${id}`);
+            if (cb) cb.checked = !cb.checked;
         }
 
         async function loadChallenges() {
@@ -457,294 +382,224 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                const list = document.getElementById('challengesList');
+                
+                if (!data.success) {
+                    document.getElementById('challengesList').innerHTML = `<div style="color:var(--error); padding:20px; text-align:center;">${data.error || 'Erro ao carregar desafios'}</div>`;
+                    return;
+                }
 
-                if (data.success && data.challenges.length > 0) {
-                    list.innerHTML = data.challenges.map(c => {
-                        const isCreator = c.creator_id === loggedInUserId;
-                        const isOpponent = c.opponent_id === loggedInUserId;
-                        return `
-                        <div class="challenge-card">
-                            <div class="challenge-header">
-                                <span class="challenge-type">${c.challenge_type}</span>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="challenge-date">Termina em: ${new Date(c.end_date).toLocaleDateString()}</span>
-                                    <button class="view-ranking-btn" onclick="openRankingModal(${c.id}, '${c.challenge_type}')" title="Ver Ranking"><i class="fas fa-chart-bar"></i></button>
-                                    ${isCreator ? `<input type="checkbox" class="challenge-checkbox" data-challenge-id="${c.id}" onchange="toggleBulkDeleteButton()">` : ''}
-                                    ${isCreator ? `<button class="delete-challenge-btn" onclick="deleteChallenge(${c.id})" title="Excluir Desafio"><i class="fas fa-trash"></i></button>` : ''}
-                                </div>
+                renderChallenges(data.challenges);
+            } catch (err) { 
+                console.error('Erro desafios:', err);
+                document.getElementById('challengesList').innerHTML = `<div style="color:var(--error); padding:20px; text-align:center;">Erro de conexão com o servidor.</div>`;
+            }
+        }
+
+        function renderChallenges(challenges) {
+            const container = document.getElementById('challengesList');
+            if (challenges.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Nenhum desafio ativo.</p>';
+                return;
+            }
+
+            container.innerHTML = challenges.map(c => {
+                const isCreator = c.creator_id === currentUserId;
+                const isOpponent = c.opponent_id === currentUserId;
+                const statusClass = `status-${c.status}`;
+                const statusText = c.status === 'pending' ? 'Pendente' : (c.status === 'accepted' ? 'Aceito' : 'Recusado');
+
+                return `
+                    <div class="challenge-card">
+                        ${isCreator ? `<input type="checkbox" class="challenge-checkbox" value="${c.id}" onchange="updateBulkUI()">` : ''}
+                        ${isCreator ? `<i class="fas fa-trash delete-btn" onclick="deleteChallenge(${c.id})"></i>` : ''}
+                        
+                        <div class="challenge-header">
+                            <span class="challenge-type">${c.challenge_type}</span>
+                            <span style="font-size:0.7rem; color:#666;">Expira em: ${new Date(c.end_date).toLocaleDateString()}</span>
+                        </div>
+
+                        <div class="challenge-vs">
+                            <div class="athlete-v">
+                                <img src="${formatPhoto(c.creator_photo)}">
+                                <span>${c.creator_name.split(' ')[0]}</span>
                             </div>
-                            ${c.status === 'pending' && isOpponent ? `
-                                <div class="challenge-actions" style="display: flex; gap: 10px; margin-top: 10px;">
-                                    <input type="text" id="responseMessage-${c.id}" placeholder="Sua mensagem (opcional)" style="flex-grow: 1; padding: 8px; border-radius: 8px; border: 1px solid #444; background: #252525; color: white;">
-                                    <button class="btn-submit" style="width: auto; padding: 8px 15px; background: #28a745;" onclick="respondToChallenge(${c.id}, 'accept')">Aceitar</button>
-                                    <button class="btn-submit" style="width: auto; padding: 8px 15px; background: #dc3545;" onclick="respondToChallenge(${c.id}, 'reject')">Recusar</button>
-                                </div>
-                            ` : ''}
-                            ${c.status !== 'pending' ? `
-                                <div class="challenge-status" style="margin-top: 10px; font-size: 0.9rem;">
-                                    Status: <span style="font-weight: bold; color: ${c.status === 'accepted' ? '#28a745' : '#dc3545'}">${c.status.toUpperCase()}</span>
-                                    ${c.response_message ? `<p style="margin-top: 5px; font-style: italic; color: #aaa;">"${c.response_message}"</p>` : ''}
-                                </div>
-                            ` : ''}
-                            <div class="challenge-participants">
-                                <div class="participant">
-                                    <img src="${formatPhoto(c.creator_photo)}" alt="${c.creator_name}">
-                                    <p>${c.creator_name.split(' ')[0]}</p>
-                                </div>
-                                <div class="vs">VS</div>
-                                <div class="participant">
-                                    <img src="${formatPhoto(c.opponent_photo)}" alt="${c.opponent_name}">
-                                    <p>${c.opponent_name.split(' ')[0]}</p>
-                                </div>
+                            <div class="vs-circle">VS</div>
+                            <div class="athlete-v">
+                                <img src="${formatPhoto(c.opponent_photo)}">
+                                <span>${c.opponent_name.split(' ')[0]}</span>
                             </div>
                         </div>
-                    `}).join('');
-                    toggleBulkDeleteButton(); // Atualiza o estado do botão de exclusão em massa
-                } else {
-                    list.innerHTML = '<div class="empty-state">Você ainda não tem desafios ativos.</div>';
-                }
-            } catch (err) { console.error(err); }
-        }
 
-        async function deleteChallenge(challengeId) {
-            if (!confirm("Tem certeza que deseja excluir este desafio?")) return;
+                        <div class="challenge-status ${statusClass}">
+                            ${statusText} ${c.response_message ? `<br><small>"${c.response_message}"</small>` : ''}
+                        </div>
 
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert('Desafio excluído com sucesso!');
-                    loadChallenges(); // Recarrega a lista de desafios
-                } else {
-                    alert('Erro ao excluir desafio: ' + (data.error || 'Desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao excluir desafio:', err);
-                alert('Erro ao excluir desafio.');
-            }
-        }
-
-        async function respondToChallenge(challengeId, action) {
-            const messageInput = document.getElementById(`responseMessage-${challengeId}`);
-            const message = messageInput ? messageInput.value : '';
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}/respond`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ action, message })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(`Desafio ${action === 'accept' ? 'aceito' : 'recusado'} com sucesso!`);
-                    loadChallenges();
-                } else {
-                    alert('Erro ao responder desafio: ' + (data.error || 'Desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao responder desafio:', err);
-                alert('Erro ao responder desafio.');
-            }
-        }
-
-        async function bulkDeleteChallenges() {
-            const selectedCheckboxes = document.querySelectorAll('.challenge-checkbox:checked');
-            const challengeIdsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.challengeId);
-
-            if (challengeIdsToDelete.length === 0) {
-                alert('Selecione pelo menos um desafio para excluir.');
-                return;
-            }
-
-            if (!confirm(`Tem certeza que deseja excluir ${challengeIdsToDelete.length} desafio(s) selecionado(s)?`)) {
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenges/bulk-delete`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ challengeIds: challengeIdsToDelete })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(data.message);
-                    loadChallenges();
-                } else {
-                    alert('Erro ao excluir desafios: ' + (data.error || 'Desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao excluir desafios em massa:', err);
-                alert('Erro ao excluir desafios em massa.');
-            }
-        }
-
-        function toggleBulkDeleteButton() {
-            const selectedCheckboxes = document.querySelectorAll('.challenge-checkbox:checked');
-            const bulkDeleteContainer = document.getElementById('bulkDeleteContainer');
-            if (selectedCheckboxes.length > 0) {
-                bulkDeleteContainer.style.display = 'block';
-            } else {
-                bulkDeleteContainer.style.display = 'none';
-            }
+                        <div class="challenge-actions">
+                            ${isOpponent && c.status === 'pending' ? `
+                                <button class="btn-action btn-accept" onclick="respondChallenge(${c.id}, 'accept')">Aceitar</button>
+                                <button class="btn-action btn-reject" onclick="respondChallenge(${c.id}, 'reject')">Recusar</button>
+                            ` : `
+                                <button class="btn-action btn-ranking" onclick="openRanking(${c.id}, '${c.challenge_type}')">
+                                    <i class="fas fa-trophy"></i> Ver Ranking
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function createChallenge() {
-            const selectedOpponentIdsInput = document.getElementById("selectedOpponentIds");
-            const opponentIds = selectedOpponentIdsInput.value.split(',').filter(id => id !== '');
+            const selectedIds = Array.from(document.querySelectorAll('#athleteList input:checked')).map(cb => parseInt(cb.value));
             const type = document.getElementById('challengeType').value;
             const duration = document.getElementById('challengeDuration').value;
 
-            if (opponentIds.length === 0) return alert("Selecione pelo menos um oponente!");
+            if (selectedIds.length === 0) return alert('Selecione pelo menos um oponente!');
+
+            const btn = document.getElementById('btnCreate');
+            btn.disabled = true;
+            btn.innerText = 'Lançando...';
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/create`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ opponentIds, type, duration })
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ opponentIds: selectedIds, type, duration })
                 });
-                const data = await res.json();
-                if (data.success) {
-                    alert('Desafio lançado com sucesso! 🚀');
+                if (res.ok) {
+                    alert('Desafio lançado com sucesso!');
                     loadChallenges();
+                    document.querySelectorAll('#athleteList input:checked').forEach(cb => cb.checked = false);
                 } else {
-                    alert('Erro ao lançar desafio: ' + (data.error || 'Desconhecido'));
+                    const err = await res.json();
+                    alert('Erro: ' + (err.error || 'Falha ao criar'));
                 }
-            } catch (err) { 
-                console.error('Erro ao lançar desafio:', err);
-                alert('Erro ao lançar desafio.');
+            } catch (err) { alert('Erro de conexão'); }
+            finally {
+                btn.disabled = false;
+                btn.innerText = 'Lançar Desafio! 🚀';
             }
         }
 
-        async function openRankingModal(challengeId, challengeType) {
-            currentChallengeId = challengeId;
-            document.getElementById("rankingTitle").textContent = `Ranking: ${challengeType}`;
-            document.getElementById("rankingModal").style.display = "block";
-            await loadRanking(challengeId);
-        }
-
-        function closeRankingModal() {
-            document.getElementById("rankingModal").style.display = "none";
-            document.getElementById("rankingList").innerHTML = "<p>Carregando ranking...</p>"; // Limpa ao fechar
-            document.getElementById("resultInput").value = ""; // Limpa o input de resultado
-        }
-
-        async function loadRanking(challengeId) {
+        async function deleteChallenge(id) {
+            if (!confirm('Deseja excluir este desafio?')) return;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}/ranking`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) loadChallenges();
+                else {
+                    const data = await res.json();
+                    alert(data.error || 'Erro ao excluir');
+                }
+            } catch (err) { alert('Erro ao excluir'); }
+        }
+
+        async function respondChallenge(id, action) {
+            const message = prompt('Mande um recado (opcional):', action === 'accept' ? 'Desafio aceito! Vou ganhar!' : 'Fica pra próxima!');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, message })
+                });
+                if (res.ok) loadChallenges();
+            } catch (err) { alert('Erro ao responder'); }
+        }
+
+        function updateBulkUI() {
+            const selected = document.querySelectorAll('.challenge-checkbox:checked');
+            const btn = document.getElementById('bulkDeleteBtn');
+            const count = document.getElementById('selectedCount');
+            
+            if (selected.length > 0) {
+                btn.style.display = 'block';
+                count.innerText = selected.length;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        async function bulkDelete() {
+            const ids = Array.from(document.querySelectorAll('.challenge-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (!confirm(`Excluir ${ids.length} desafios?`)) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenges/bulk-delete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ challengeIds: ids })
+                });
+                if (res.ok) {
+                    loadChallenges();
+                    document.getElementById('bulkDeleteBtn').style.display = 'none';
+                }
+            } catch (err) { alert('Erro na exclusão em massa'); }
+        }
+
+        async function openRanking(id, type) {
+            selectedChallengeId = id;
+            document.getElementById('rankingTitle').innerText = type;
+            document.getElementById('rankingModal').style.display = 'flex';
+            document.getElementById('rankingContent').innerHTML = 'Carregando ranking...';
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}/ranking`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                const rankingList = document.getElementById("rankingList");
-
-                if (data.success && data.ranking.length > 0) {
-                    rankingList.innerHTML = data.ranking.map((item, index) => `
-                        <div class="ranking-item">
-                            <img src="${formatPhoto(item.photo)}" alt="${item.name}">
-                            <span class="name">${index + 1}. ${item.name}</span>
-                            <span class="result">${item.result_value}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    rankingList.innerHTML = "<p>Nenhum resultado registrado ainda.</p>";
+                if (data.success) {
+                    renderRanking(data.ranking);
                 }
-            } catch (err) {
-                console.error('Erro ao carregar ranking:', err);
-                rankingList.innerHTML = "<p>Erro ao carregar ranking.</p>";
-            }
+            } catch (err) { document.getElementById('rankingContent').innerHTML = 'Erro ao carregar ranking.'; }
         }
 
-        async function submitResult() {
-            const resultValue = document.getElementById("resultInput").value;
-            if (!resultValue) {
-                alert("Por favor, insira seu resultado.");
+        function renderRanking(list) {
+            const container = document.getElementById('rankingContent');
+            if (list.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666;">Nenhum resultado registrado ainda.</p>';
                 return;
             }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${currentChallengeId}/result`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ result_value: resultValue })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert('Resultado registrado com sucesso!');
-                    document.getElementById("resultInput").value = ""; // Limpa o input
-                    loadRanking(currentChallengeId); // Recarrega o ranking
-                } else {
-                    alert('Erro ao registrar resultado: ' + (data.error || 'Desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao registrar resultado:', err);
-                alert('Erro ao registrar resultado.');
-            }
-        }
-
-        loadInitialData();
-
-        function renderOpponentList(participantsToRender) {
-            const opponentListDiv = document.getElementById("opponentList");
-            opponentListDiv.innerHTML = participantsToRender.map(p => `
-                <div class="opponent-item ${selectedOpponents.has(p.id) ? 'selected' : ''}" onclick="toggleOpponentSelection('${p.id}', '${p.name}', '${p.photo}')">
-                    <input type="checkbox" id="opponent-${p.id}" value="${p.id}" ${selectedOpponents.has(p.id) ? 'checked' : ''} onchange="event.stopPropagation(); toggleOpponentSelection('${p.id}', '${p.name}', '${p.photo}')">
-                    <img src="${formatPhoto(p.photo)}" alt="${p.name}">
-                    <span>${p.name} (${p.age || '--'} anos)</span>
+            container.innerHTML = list.map((item, idx) => `
+                <div class="ranking-item">
+                    <span class="ranking-pos">${idx + 1}º</span>
+                    <img src="${formatPhoto(item.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                    <span>${item.name}</span>
+                    <span class="ranking-value">${item.result_value}</span>
                 </div>
             `).join('');
-            updateSelectedOpponentsDisplay();
         }
 
-        function filterOpponents() {
-            const searchTerm = document.getElementById("opponentSearch").value.toLowerCase();
-            const filtered = allParticipants.filter(p => p.name.toLowerCase().includes(searchTerm));
-            renderOpponentList(filtered);
+        async function saveResult() {
+            const val = document.getElementById('myResultValue').value;
+            if (!val) return alert('Insira seu resultado!');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${selectedChallengeId}/result`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ result_value: val })
+                });
+                if (res.ok) {
+                    alert('Resultado salvo!');
+                    openRanking(selectedChallengeId, document.getElementById('rankingTitle').innerText);
+                    document.getElementById('myResultValue').value = '';
+                }
+            } catch (err) { alert('Erro ao salvar resultado'); }
         }
 
-        function toggleOpponentSelection(id, name, photo) {
-            if (selectedOpponents.has(id)) {
-                selectedOpponents.delete(id);
-            } else {
-                selectedOpponents.set(id, { name, photo });
-            }
-            // Atualiza o estado do checkbox visualmente
-            const checkbox = document.getElementById(`opponent-${id}`);
-            if (checkbox) checkbox.checked = selectedOpponents.has(id);
-            updateSelectedOpponentsDisplay();
+        function closeModal() {
+            document.getElementById('rankingModal').style.display = 'none';
         }
 
-        function updateSelectedOpponentsDisplay() {
-            const selectedOpponentIdsInput = document.getElementById("selectedOpponentIds");
-            const selectedOpponentsDisplay = document.getElementById("selectedOpponentsDisplay");
-            
-            selectedOpponentIdsInput.value = Array.from(selectedOpponents.keys()).join(',');
-
-            if (selectedOpponentsDisplay) {
-                selectedOpponentsDisplay.innerHTML = Array.from(selectedOpponents.entries()).map(([id, opponent]) => `
-                    <span class="selected-opponent-tag">
-                        ${opponent.name.split(' ')[0]}
-                        <i class="fas fa-times remove-tag" onclick="toggleOpponentSelection('${id}', '', '')"></i>
-                    </span>
-                `).join('');
-            }
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
         }
 
+        init();
     </script>
 </body>
 </html>

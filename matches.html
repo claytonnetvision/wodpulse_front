@@ -183,6 +183,7 @@
         .match-notification.show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
         }
 
         .match-notification h2 { font-size: 2.5rem; margin-bottom: 10px; }
@@ -217,6 +218,22 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .btn-view-profile {
+            display: inline-block;
+            background: white;
+            color: var(--primary);
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        .btn-view-profile:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -246,7 +263,7 @@
     <div id="matchPopup" class="match-notification">
         <h2>É MATCH! 🎉</h2>
         <p>Vocês agora podem treinar juntos!</p>
-        <a href="#" id="viewMatchProfileLink" class="btn-submit" style="margin-top: 20px; width: auto; padding: 10px 20px;" onclick="closeMatchPopup()">Ver Perfil</a>
+        <a href="#" id="viewMatchProfileLink" class="btn-view-profile">Ver Perfil</a>
     </div>
 
     <script>
@@ -348,14 +365,12 @@
                 
                 const data = await res.json();
                 
-                // Se for um match mútuo, mostra o popup
                 if (data.mutualMatch) {
                     const popup = document.getElementById('matchPopup');
+                    const profileLink = document.getElementById('viewMatchProfileLink');
+                    profileLink.href = `perfil-social.html?id=${userId}`;
                     popup.classList.add('show');
-                    document.getElementById('viewMatchProfileLink').href = `perfil-social.html?id=${userId}`;
-                    setTimeout(() => {
-                        popup.classList.remove('show');
-                    }, 5000); // Mostra o popup por 5 segundos antes de fechar
+                    setTimeout(() => popup.classList.remove('show'), 6000);
                 }
 
             } catch (err) { 
@@ -371,17 +386,12 @@
             }, 500);
         }
 
-        // Suporte a gestos (opcional - teclado para teste rápido)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight') swipe('right');
             if (e.key === 'ArrowLeft') swipe('left');
         });
 
         loadCandidates();
-
-        function closeMatchPopup() {
-            document.getElementById('matchPopup').classList.remove('show');
-        }
     </script>
 </body>
 </html>
