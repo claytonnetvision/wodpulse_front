@@ -1370,11 +1370,7 @@
                 }
             } catch (err) { alert('Erro ao salvar.'); }
         }
-        // Verifica privacidade
-
-
-// Chame isso logo após pegar alunoId
-if (!(await verificarAcesso())) return;
+       
 
         document.getElementById('fotos-progresso').addEventListener('change', (e) => {
             const preview = document.getElementById('preview-fotos');
