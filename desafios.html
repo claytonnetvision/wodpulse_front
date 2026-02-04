@@ -191,7 +191,6 @@
         .btn-reject { background: var(--error); color: white; }
         .btn-ranking { background: #333; color: white; }
 
-        /* Bulk Delete */
         .bulk-actions {
             position: fixed;
             bottom: 90px;
@@ -213,7 +212,6 @@
             font-weight: bold;
         }
 
-        /* Modal Ranking */
         .modal {
             display: none;
             position: fixed;
@@ -267,6 +265,8 @@
                     <option value="for_time">For Time (menor tempo)</option>
                     <option value="max_reps">Max Reps</option>
                     <option value="murph">Murph Time</option>
+                    <option value="calories_week">Calorias Queimadas (7 dias)</option>
+                    <option value="calories_month">Calorias Queimadas (30 dias)</option>
                 </select>
             </div>
 
@@ -324,7 +324,6 @@
         }
 
         async function init() {
-            // Carrega ID do usuário logado
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -339,7 +338,6 @@
             await loadParticipants();
             await loadChallenges();
 
-            // Filtro de busca em tempo real
             document.getElementById('searchAthletes').addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const list = document.getElementById('athleteList');
@@ -363,7 +361,6 @@
                 const data = await res.json();
                 participants = data.participants || [];
 
-                // Render inicial
                 document.getElementById('athleteList').innerHTML = participants.map(p => `
                     <div class="athlete-option">
                         <input type="checkbox" value="${p.id}">
@@ -405,14 +402,21 @@
                             </div>`;
                     }
                     if (c.status === 'accepted') {
+                        let inputHtml = '';
+                        if (c.challenge_type.startsWith('calories_')) {
+                            inputHtml = '<p style="color:#FF9800; text-align:center; margin:15px 0; font-style:italic;">Calorias calculadas automaticamente do seu histórico de aulas!</p>';
+                        } else {
+                            inputHtml = `
+                                <div class="result-input-group">
+                                    <input type="text" placeholder="Seu resultado (ex: 12:45 ou 250)" id="result-${c.id}">
+                                    <button class="btn-action" onclick="submitResult(${c.id})">Enviar</button>
+                                </div>`;
+                        }
                         actions += `
-                            <div class="result-input-group">
-                                <input type="text" placeholder="Seu resultado (ex: 12:45 ou 250)" id="result-${c.id}">
-                                <button class="btn-action" onclick="submitResult(${c.id})">Enviar</button>
-                            </div>
+                            ${inputHtml}
                             <div class="challenge-actions">
-                                <button class="btn-action btn-ranking" onclick="openRanking(${c.id}, '${c.challenge_type.toUpperCase()}')">
-                                    <i class="fas fa-trophy"></i> Ver Ranking
+                                <button class="btn-action btn-ranking" onclick="openRanking(${c.id}, '${c.challenge_type.toUpperCase().replace('_', ' ')}')">
+                                    <i class="fas fa-trophy"></i> Ver Ranking Atual
                                 </button>
                             </div>`;
                     }
@@ -425,7 +429,7 @@
                             <input type="checkbox" class="challenge-checkbox" value="${c.id}" onchange="updateBulkUI()">
                             ${actions}
                             <div class="challenge-header">
-                                <span class="challenge-type">${c.challenge_type.toUpperCase()}</span>
+                                <span class="challenge-type">${c.challenge_type.toUpperCase().replace('_', ' ')}</span>
                             </div>
                             <div class="challenge-vs">
                                 <div class="athlete-v">
@@ -521,7 +525,7 @@
                 if (res.ok) {
                     alert('Resultado enviado!');
                     input.value = '';
-                    loadChallenges(); // atualiza status/visual
+                    loadChallenges();
                 }
             } catch (err) { alert('Erro ao enviar resultado'); }
         }
@@ -552,6 +556,13 @@
         }
 
         async function openRanking(id, typeTitle) {
+            // Calcula calorias automaticamente se for o tipo
+            if (typeTitle.includes('CALORIES')) {
+                await fetch(`${API_BASE_URL}/api/social/challenge/${id}/calories-summary`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).catch(() => {});
+            }
+
             document.getElementById('rankingTitle').innerText = typeTitle;
             document.getElementById('rankingModal').style.display = 'flex';
             document.getElementById('rankingContent').innerHTML = '<p style="text-align:center;">Carregando...</p>';
@@ -582,10 +593,7 @@
             document.getElementById('rankingModal').style.display = 'none';
         }
 
-        // Atualiza a cada 30s
         setInterval(loadChallenges, 30000);
-
-        // Inicia tudo
         init();
     </script>
 </body>
