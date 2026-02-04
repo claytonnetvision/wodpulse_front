@@ -246,6 +246,7 @@
     <div id="matchPopup" class="match-notification">
         <h2>É MATCH! 🎉</h2>
         <p>Vocês agora podem treinar juntos!</p>
+        <a href="#" id="viewMatchProfileLink" class="btn-submit" style="margin-top: 20px; width: auto; padding: 10px 20px;" onclick="closeMatchPopup()">Ver Perfil</a>
     </div>
 
     <script>
@@ -351,7 +352,10 @@
                 if (data.mutualMatch) {
                     const popup = document.getElementById('matchPopup');
                     popup.classList.add('show');
-                    setTimeout(() => popup.classList.remove('show'), 3000);
+                    document.getElementById('viewMatchProfileLink').href = `perfil-social.html?id=${userId}`;
+                    setTimeout(() => {
+                        popup.classList.remove('show');
+                    }, 5000); // Mostra o popup por 5 segundos antes de fechar
                 }
 
             } catch (err) { 
@@ -374,6 +378,10 @@
         });
 
         loadCandidates();
+
+        function closeMatchPopup() {
+            document.getElementById('matchPopup').classList.remove('show');
+        }
     </script>
 </body>
 </html>
