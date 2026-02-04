@@ -10,36 +10,29 @@
             --primary: #FF9800;
             --dark-bg: #0f0f0f;
             --card-bg: #1e1e1e;
+            --card-hover: #2a2a2a;
             --text-primary: #ffffff;
             --text-secondary: #888888;
             --border-color: #333333;
+            --success: #4CAF50;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--dark-bg);
             color: var(--text-primary);
             padding-bottom: 100px;
+            line-height: 1.6;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
-        .profile-header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%);
-            border-radius: 0 0 40px 40px;
-            margin-bottom: 30px;
-        }
-        .profile-pic {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid var(--primary);
-            object-fit: cover;
-            margin-bottom: 15px;
-        }
+
         .back-btn {
             position: absolute;
             top: 20px;
@@ -52,50 +45,162 @@
             border-radius: 50%;
             font-size: 1.5rem;
             cursor: pointer;
+            z-index: 10;
         }
+
+        .profile-header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(180deg, rgba(255,152,0,0.15) 0%, transparent 100%);
+            border-radius: 0 0 40px 40px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 5px solid var(--primary);
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(255,152,0,0.2);
+        }
+
+        .profile-header h1 {
+            font-size: 2rem;
+            margin: 15px 0 8px;
+            font-weight: 700;
+        }
+
+        .profile-header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
         .match-badge {
             background: var(--primary);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             margin-top: 15px;
-            display: inline-block;
         }
-        .btn-add-friend {
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 5px;
+        }
+
+        .actions-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .btn-primary {
             background: var(--primary);
             color: white;
-            padding: 12px 30px;
+            padding: 15px;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 1rem;
-            margin-top: 30px;
-            display: block;
-            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .self-message {
+            background: rgba(255,152,0,0.1);
+            border: 1px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <button class="back-btn" onclick="window.history.back()">←</button>
-        
+
         <div class="profile-header">
-            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic" alt="Foto">
+            <img id="userPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png" alt="Foto do atleta">
             <h1 id="userName">Carregando...</h1>
-            <p id="userAge"></p>
-            <p id="userBox">Box ID: --</p>
-            <div class="match-badge"><i class="fas fa-heart"></i> Match Mútuo!</div>
+            <p class="subtitle" id="userAgeBox"></p>
+            <div id="matchBadge" class="match-badge" style="display:none;">
+                <i class="fas fa-heart"></i> Match Mútuo!
+            </div>
+            <div id="selfMessage" class="self-message" style="display:none;">
+                <i class="fas fa-user"></i> Este é o seu perfil público!<br>
+                <small>Outros atletas veem esta versão.</small>
+            </div>
         </div>
 
-        <button class="btn-add-friend" onclick="requestFriendship()">
-            <i class="fas fa-user-plus"></i> Adicionar como Amigo
-        </button>
+        <!-- ESTATÍSTICAS PÚBLICAS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value" id="statChallenges">0</span>
+                <span class="stat-label">Desafios</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statLikes">0</span>
+                <span class="stat-label">Likes Recebidos</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="statMatches">0</span>
+                <span class="stat-label">Matches</span>
+            </div>
+        </div>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <a href="desafios.html" style="background: var(--primary); color: white; padding: 15px 30px; border-radius: 20px; text-decoration: none; display: inline-block;">
-                <i class="fas fa-trophy"></i> Desafiar
-            </a>
+        <!-- AÇÕES -->
+        <div class="actions-section">
+            <button id="btnAddFriend" class="btn-primary btn-success" onclick="requestFriendship()">
+                <i class="fas fa-user-plus"></i> Adicionar como Amigo
+            </button>
+
+            <button class="btn-primary" onclick="challengeUser()">
+                <i class="fas fa-trophy"></i> Desafiar Agora
+            </button>
         </div>
     </div>
 
@@ -103,7 +208,12 @@
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
 
-        if (!token) window.location.href = 'login.html';
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        let currentUserId = null;
+        let viewedUserId = null;
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
@@ -111,43 +221,103 @@
             return `data:image/jpeg;base64,${photo}`;
         }
 
-        async function loadProfile() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id');
-            if (!userId) return window.location.href = 'perfil-social.html';
-
+        async function loadCurrentUserId() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${userId}`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) throw new Error('Não encontrado ou sem permissão');
                 const data = await res.json();
-
-                document.getElementById('userName').textContent = data.name;
-                document.getElementById('userAge').textContent = data.age ? `${data.age} anos` : '';
-                document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
-                document.getElementById('userPhoto').src = formatPhoto(data.photo);
+                currentUserId = data.id;
             } catch (err) {
-                alert('Perfil não encontrado ou acesso negado');
+                console.error('Erro ao carregar ID do usuário logado');
+            }
+        }
+
+        async function loadProfile() {
+            await loadCurrentUserId();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            viewedUserId = parseInt(urlParams.get('id'));
+            if (!viewedUserId) return window.location.href = 'perfil-social.html';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${viewedUserId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                let data = {};
+                let isMatch = false;
+
+                if (res.ok) {
+                    data = await res.json();
+                    isMatch = true;
+                } else {
+                    // Fallback básico se não for match
+                    const fallbackRes = await fetch(`${API_BASE_URL}/api/participants/${viewedUserId}`);
+                    if (!fallbackRes.ok) throw new Error('Perfil não encontrado');
+                    const fallback = await fallbackRes.json();
+                    data = fallback.participant;
+                    // Stats zeradas ou "?"
+                    document.getElementById('statChallenges').textContent = '?';
+                    document.getElementById('statLikes').textContent = '?';
+                    document.getElementById('statMatches').textContent = '?';
+                }
+
+                document.getElementById('userName').textContent = data.name || 'Atleta';
+                document.getElementById('userAgeBox').textContent = 
+                    (data.age ? `${data.age} anos • ` : '') + `Box ID: ${data.box_id || '--'}`;
+                document.getElementById('userPhoto').src = formatPhoto(data.photo);
+
+                if (isMatch) {
+                    document.getElementById('matchBadge').style.display = 'inline-flex';
+                    // Tenta carregar stats se for match
+                    document.getElementById('statChallenges').textContent = data.stats?.challenges || 0;
+                    document.getElementById('statLikes').textContent = data.stats?.likes || 0;
+                    document.getElementById('statMatches').textContent = data.stats?.matches || 0;
+                }
+
+                if (viewedUserId === currentUserId) {
+                    document.getElementById('selfMessage').style.display = 'block';
+                    document.getElementById('btnAddFriend').style.display = 'none';
+                } else {
+                    // Verifica status de amizade
+                    const friendRes = await fetch(`${API_BASE_URL}/api/social/is-friend/${viewedUserId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const friendData = await friendRes.json();
+                    if (friendData.isFriend) {
+                        document.getElementById('btnAddFriend').textContent = 'Já são Amigos ✓';
+                        document.getElementById('btnAddFriend').disabled = true;
+                        document.getElementById('btnAddFriend').style.background = '#444';
+                    }
+                }
+
+            } catch (err) {
+                alert('Perfil não encontrado');
                 window.location.href = 'perfil-social.html';
             }
         }
 
         async function requestFriendship() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetId = urlParams.get('id');
+            if (viewedUserId === currentUserId) return;
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetId: parseInt(targetId) })
+                    body: JSON.stringify({ targetId: viewedUserId })
                 });
                 const data = await res.json();
-                alert(data.message || 'Pedido de amizade enviado!');
+                alert(data.message || 'Pedido enviado!');
+                document.getElementById('btnAddFriend').textContent = 'Pedido Enviado';
+                document.getElementById('btnAddFriend').disabled = true;
             } catch (err) {
                 alert('Erro ao enviar pedido');
             }
+        }
+
+        function challengeUser() {
+            window.location.href = `desafios.html?opponent=${viewedUserId}`;
         }
 
         loadProfile();
