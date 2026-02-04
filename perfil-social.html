@@ -3,90 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WODPulse Social - Meu Perfil</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>WODPulse Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <link rel="stylesheet" href="social-style.css">
     <style>
-        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; --text: #e0e0e0; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 100px; }
+        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: white; padding-bottom: 100px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        
         .profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%); border-radius: 0 0 40px 40px; }
-        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(255,152,0,0.2); background: #333; }
-        .profile-name { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
-        .profile-box { font-size: 0.9rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-
-        .social-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0; }
-        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-value { display: block; font-size: 1.4rem; font-weight: 700; color: var(--primary); }
-        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; }
-
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .action-btn { background: var(--card-bg); border: 1px solid rgba(255,152,0,0.2); padding: 25px 15px; border-radius: 24px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: inherit; }
-        .action-btn i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; display: block; }
-        .action-btn span { font-weight: 600; font-size: 0.9rem; }
-        .action-btn:hover { background: rgba(255,152,0,0.1); transform: translateY(-5px); }
-
-        .full-width-btn { background: #252525; border: 1px solid #333; padding: 18px; border-radius: 20px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; margin-bottom: 15px; transition: 0.3s; }
-        .full-width-btn:hover { background: #333; border-color: var(--primary); }
-        .full-width-btn i { font-size: 1.4rem; color: var(--primary); width: 30px; }
-
-        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; z-index: 100; }
-        .nav-item { color: #666; font-size: 1.5rem; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; background: #333; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 15px; text-align: center; }
+        .stat-value { display: block; font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .action-btn { background: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 20px; text-align: center; text-decoration: none; color: white; transition: 0.3s; }
+        .action-btn:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .action-btn i { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; display: block; }
+        .full-width-btn { background: #252525; padding: 18px; border-radius: 15px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; margin-top: 15px; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; }
+        .nav-item { color: #666; font-size: 1.5rem; text-decoration: none; }
         .nav-item.active { color: var(--primary); }
-
-        .btn-logout { width: 100%; padding: 12px; background: transparent; border: 1px solid #444; color: #888; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 20px; }
-        
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,152,0,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading-overlay">
-        <div class="spinner"></div>
-    </div>
-
     <div class="container">
         <div class="profile-header">
-            <img src="https://via.placeholder.com/150" alt="Foto" id="userPhoto" class="profile-pic">
-            <h1 class="profile-name" id="userName">Carregando...</h1>
-            <p class="profile-box" id="userBox">CrossFit Unit</p>
+            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic">
+            <h1 id="userName">Carregando...</h1>
+            <p id="userBox" style="color: #888; font-size: 0.9rem;">Box: --</p>
         </div>
 
-        <div class="social-stats">
+        <div class="stats-grid">
             <div class="stat-card"><span class="stat-value" id="stat-challenges">0</span><span class="stat-label">Desafios</span></div>
             <div class="stat-card"><span class="stat-value" id="stat-likes">0</span><span class="stat-label">Curtidas</span></div>
             <div class="stat-card"><span class="stat-value" id="stat-matches">0</span><span class="stat-label">Matches</span></div>
         </div>
 
         <div class="action-grid">
-            <a href="matches.html" class="action-btn">
-                <i class="fas fa-fire"></i>
-                <span>WOD Match</span>
-            </a>
-            <a href="desafios.html" class="action-btn">
-                <i class="fas fa-trophy"></i>
-                <span>Desafios 1x1</span>
-            </a>
-        </div>
-
-        <div class="section-title">
-            <span>Acesso Rápido</span>
+            <a href="matches.html" class="action-btn"><i class="fas fa-fire"></i><span>WOD Match</span></a>
+            <a href="desafios.html" class="action-btn"><i class="fas fa-trophy"></i><span>Novo Desafio</span></a>
         </div>
 
         <a href="#" id="linkProgresso" class="full-width-btn">
-            <i class="fas fa-chart-line"></i>
-            <div>
-                <strong>Meu Progresso Técnico</strong>
-                <p style="font-size: 0.8rem; color: #aaa; margin: 0;">Ver gráficos e histórico de aulas</p>
-            </div>
+            <i class="fas fa-chart-line" style="color: var(--primary);"></i>
+            <div><strong>Meu Progresso Técnico</strong><p style="font-size: 0.8rem; color: #888;">Ver gráficos e histórico</p></div>
         </a>
 
-        <button class="btn-logout" onclick="logout()">Sair da Conta</button>
+        <button onclick="logout()" style="width: 100%; margin-top: 30px; padding: 12px; background: transparent; border: 1px solid #444; color: #888; border-radius: 10px; cursor: pointer;">Sair da Conta</button>
     </div>
 
     <nav class="nav-bar">
@@ -99,50 +63,35 @@
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-
-        // PROTEÇÃO DE LOGIN
-        if (!token) {
-            window.location.href = 'login.html';
-        }
+        if (!token) window.location.href = 'login.html';
 
         async function loadProfile() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!response.ok) {
-                    if (response.status === 401) throw new Error('Sessão expirada');
-                    throw new Error('Erro ao carregar dados');
-                }
-
-                const data = await response.json();
+                const data = await res.json();
                 
-                // Preenche os dados
                 document.getElementById('userName').textContent = data.name;
-                document.getElementById('userPhoto').src = data.photo || 'https://via.placeholder.com/150';
                 document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
                 
-                // Links para o progresso original
-                const progressoUrl = `meu-progresso.html?id=${data.id}`;
-                document.getElementById('linkProgresso').href = progressoUrl;
-                document.getElementById('navProgresso').href = progressoUrl;
+                // Trata foto Base64 ou URL
+                if (data.photo) {
+                    const photoImg = document.getElementById('userPhoto');
+                    photoImg.src = data.photo.startsWith('data:') ? data.photo : data.photo;
+                }
 
-                // Esconde o loading
-                document.getElementById('loading').style.display = 'none';
+                // Preenche estatísticas
+                document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
+                document.getElementById('stat-likes').textContent = data.stats.likes || 0;
+                document.getElementById('stat-matches').textContent = data.stats.matches || 0;
 
-            } catch (err) {
-                console.error(err);
-                alert('Sessão inválida. Por favor, faça login novamente.');
-                logout();
-            }
+                const progUrl = `meu-progresso.html?id=${data.id}`;
+                document.getElementById('linkProgresso').href = progUrl;
+                document.getElementById('navProgresso').href = progUrl;
+            } catch (err) { console.error(err); }
         }
-
-        function logout() {
-            localStorage.removeItem('wodpulse_social_token');
-            window.location.href = 'login.html';
-        }
-
+        function logout() { localStorage.removeItem('wodpulse_social_token'); window.location.href = 'login.html'; }
         loadProfile();
     </script>
 </body>
