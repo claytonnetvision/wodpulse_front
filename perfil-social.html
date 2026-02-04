@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WODPulse Social - Meu Perfil</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; --text: #e0e0e0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 80px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        .profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%); border-radius: 0 0 40px 40px; }
+        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(255,152,0,0.2); }
+        .profile-name { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .profile-box { font-size: 0.9rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+
+        .social-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0; }
+        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-value { display: block; font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; }
+
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .action-btn { background: var(--card-bg); border: 1px solid rgba(255,152,0,0.2); padding: 25px 15px; border-radius: 24px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: inherit; }
+        .action-btn i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; display: block; }
+        .action-btn span { font-weight: 600; font-size: 0.9rem; }
+        .action-btn:hover { background: rgba(255,152,0,0.1); transform: translateY(-5px); }
+
+        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .feed-item { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .feed-user { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .feed-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .feed-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
+        .feed-actions { display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+        .feed-action { color: #888; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .feed-action:hover { color: var(--primary); }
+        .feed-action i { margin-right: 5px; }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { color: #666; font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <img src="" alt="Foto" id="userPhoto" class="profile-pic">
+            <h1 class="profile-name" id="userName">Carregando...</h1>
+            <p class="profile-box" id="userBox">CrossFit Unit</p>
+        </div>
+
+        <div class="social-stats">
+            <div class="stat-card"><span class="stat-value">12</span><span class="stat-label">Desafios</span></div>
+            <div class="stat-card"><span class="stat-value">85</span><span class="stat-label">Curtidas</span></div>
+            <div class="stat-card"><span class="stat-value">4</span><span class="stat-label">Matches</span></div>
+        </div>
+
+        <div class="action-grid">
+            <a href="matches.html" class="action-btn">
+                <i class="fas fa-fire"></i>
+                <span>WOD Match</span>
+            </a>
+            <a href="desafios.html" class="action-btn">
+                <i class="fas fa-trophy"></i>
+                <span>Desafios 1x1</span>
+            </a>
+        </div>
+
+        <div class="section-title">
+            <span>Feed da Galera</span>
+            <i class="fas fa-sliders-h" style="font-size: 0.9rem; color: #666;"></i>
+        </div>
+
+        <div id="socialFeed">
+            <!-- Mock Feed -->
+            <div class="feed-item">
+                <div class="feed-user">
+                    <img src="https://i.pravatar.cc/150?u=1" alt="">
+                    <div>
+                        <div style="font-weight: 700;">Ricardo Silva</div>
+                        <div style="font-size: 0.7rem; color: #666;">Há 2 horas • Box Centro</div>
+                    </div>
+                </div>
+                <div class="feed-content">
+                    Acabou de queimar <strong>650 kcal</strong> no WOD de hoje! 🚀 Novo recorde pessoal de batimentos.
+                </div>
+                <div class="feed-actions">
+                    <div class="feed-action"><i class="far fa-heart"></i> 12</div>
+                    <div class="feed-action"><i class="far fa-comment"></i> 3</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="window.location.href='matches.html'"><i class="fas fa-heart"></i></div>
+        <div class="nav-item" onclick="window.location.href='desafios.html'"><i class="fas fa-medal"></i></div>
+        <div class="nav-item" onclick="window.location.href='meu-progresso.html'"><i class="fas fa-chart-line"></i></div>
+    </nav>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+        const token = localStorage.getItem('wodpulse_social_token');
+
+        if (!token) window.location.href = 'login.html';
+
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('userName').textContent = data.name;
+                document.getElementById('userPhoto').src = data.photo || 'https://via.placeholder.com/150';
+                // Aqui você pode buscar o nome do box pelo box_id se quiser
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

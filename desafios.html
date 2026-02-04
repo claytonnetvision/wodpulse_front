@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WODPulse - Desafios 1x1</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: white; padding: 20px; padding-bottom: 80px; }
+        
+        .header { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .back-btn { font-size: 1.2rem; color: white; cursor: pointer; }
+        
+        .create-challenge { background: linear-gradient(135deg, var(--primary) 0%, #e68a00 100%); border-radius: 24px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255,152,0,0.2); }
+        .create-challenge h2 { font-size: 1.4rem; margin-bottom: 10px; }
+        .create-challenge p { font-size: 0.9rem; opacity: 0.9; margin-bottom: 20px; }
+        .btn-new { background: white; color: var(--primary); border: none; padding: 12px 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: var(--card-bg); border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
+        .tab.active { background: rgba(255,152,0,0.1); border-color: var(--primary); color: var(--primary); }
+
+        .challenge-card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .vs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .vs-user { text-align: center; flex: 1; }
+        .vs-user img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 5px; }
+        .vs-user span { display: block; font-size: 0.8rem; font-weight: 600; }
+        .vs-divider { font-weight: 900; color: var(--primary); font-style: italic; font-size: 1.2rem; }
+
+        .challenge-info { text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
+        .challenge-type { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .challenge-score { font-size: 1.1rem; font-weight: 700; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-top: 10px; }
+        .status-win { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+        .status-pending { background: rgba(255, 152, 0, 0.2); color: #FF9800; }
+
+        /* Modal Simple */
+        #challengeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: var(--card-bg); width: 90%; max-width: 400px; border-radius: 24px; padding: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #888; }
+        .form-group select, .form-group input { width: 100%; padding: 12px; border-radius: 10px; background: #2a2a2a; border: 1px solid #444; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fas fa-chevron-left back-btn" onclick="window.location.href='perfil-social.html'"></i>
+        <h1 style="font-size: 1.5rem; font-weight: 800;">Desafios 1x1</h1>
+    </div>
+
+    <div class="create-challenge">
+        <h2>Desafie um Amigo!</h2>
+        <p>Quem queima mais calorias esta semana? Escolha o oponente e a meta.</p>
+        <button class="btn-new" onclick="openModal()">Novo Desafio</button>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active">Ativos</div>
+        <div class="tab">Histórico</div>
+        <div class="tab">Convites</div>
+    </div>
+
+    <div id="challengesList">
+        <!-- Mock Challenge -->
+        <div class="challenge-card">
+            <div class="vs-header">
+                <div class="vs-user">
+                    <img src="https://via.placeholder.com/150" id="myPic">
+                    <span>Você</span>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="vs-user">
+                    <img src="https://i.pravatar.cc/150?u=2">
+                    <span>Marcos Paulo</span>
+                </div>
+            </div>
+            <div class="challenge-info">
+                <div class="challenge-type">Meta: Mais Calorias (7 dias)</div>
+                <div class="challenge-score">2.450 <span style="color: #666; font-size: 0.8rem;">vs</span> 2.100</div>
+                <div class="status-badge status-win">Você está na frente! 🚀</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo Desafio -->
+    <div id="challengeModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Criar Desafio</h2>
+            <div class="form-group">
+                <label>Oponente</label>
+                <select id="opponentSelect">
+                    <option>Carregando amigos...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo de Competição</label>
+                <select id="challengeType">
+                    <option value="calories">Mais Calorias na Semana</option>
+                    <option value="points">Mais Queima Points</option>
+                    <option value="frequency">Mais Treinos (Frequência)</option>
+                </select>
+            </div>
+            <button class="btn-new" style="width: 100%;" onclick="createChallenge()">Lançar Desafio!</button>
+            <button class="btn-new" style="width: 100%; background: transparent; color: #888; margin-top: 10px;" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal() { document.getElementById('challengeModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('challengeModal').style.display = 'none'; }
+        
+        // Lógica de carregar desafios do backend viria aqui
+    </script>
+</body>
+</html>
