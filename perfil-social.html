@@ -65,6 +65,13 @@
         const token = localStorage.getItem('wodpulse_social_token');
         if (!token) window.location.href = 'login.html';
 
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            // Se for Base64 puro sem o prefixo, nós adicionamos
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
         async function loadProfile() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
@@ -75,11 +82,8 @@
                 document.getElementById('userName').textContent = data.name;
                 document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
                 
-                // Trata foto Base64 ou URL
-                if (data.photo) {
-                    const photoImg = document.getElementById('userPhoto');
-                    photoImg.src = data.photo.startsWith('data:') ? data.photo : data.photo;
-                }
+                // Trata a foto com a nova função
+                document.getElementById('userPhoto').src = formatPhoto(data.photo);
 
                 // Preenche estatísticas
                 document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;

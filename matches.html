@@ -55,6 +55,12 @@
         let candidates = [];
         let currentIndex = 0;
 
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
         async function loadCandidates() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/social/candidates`, {
@@ -62,6 +68,7 @@
                 });
                 if (!response.ok) throw new Error('Falha ao carregar');
                 candidates = await response.json();
+                currentIndex = 0;
                 renderCards();
             } catch (err) {
                 console.error('Erro ao carregar candidatos:', err);
@@ -87,8 +94,7 @@
                 card.className = 'match-card';
                 card.style.zIndex = candidates.length - index;
                 
-                // Foto real ou logo do WODPulse como fallback
-                const photoUrl = user.photo || 'https://www.infrapower.com.br/logo-v6.png';
+                const photoUrl = formatPhoto(user.photo);
                 
                 card.innerHTML = `
                     <img src="${photoUrl}" class="user-photo" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
@@ -126,7 +132,7 @@
                 topCard.remove();
                 currentIndex++;
                 if (currentIndex >= candidates.length) {
-                    loadCandidates(); // Busca mais
+                    loadCandidates();
                 }
             }, 500);
         }
