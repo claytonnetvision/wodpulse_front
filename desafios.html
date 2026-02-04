@@ -13,6 +13,7 @@
             --text-primary: #ffffff;
             --text-secondary: #888888;
             --border-color: #333333;
+            --error: #ff4d4d;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -89,7 +90,14 @@
             gap: 15px;
         }
 
-        .challenge-header { display: flex; justify-content: space-between; align-items: center; }
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas pequenas */
+            gap: 10px; /* Espaçamento entre os itens do header */
+        }
+
         .challenge-type { 
             background: rgba(255, 152, 0, 0.2); 
             color: var(--primary); 
@@ -113,6 +121,112 @@
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid var(--border-color); }
         .nav-item { color: var(--text-secondary); font-size: 1.5rem; text-decoration: none; }
         .nav-item.active { color: var(--primary); }
+
+        .delete-challenge-btn, .view-ranking-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.3s;
+            padding: 5px;
+        }
+
+        .delete-challenge-btn:hover {
+            color: var(--error);
+        }
+        .view-ranking-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .close-button {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .close-button:hover, .close-button:focus {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-content h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .ranking-item:last-child { border-bottom: none; }
+
+        .ranking-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid var(--primary);
+        }
+
+        .ranking-item .name { flex-grow: 1; font-weight: 600; }
+        .ranking-item .result { font-weight: bold; color: var(--primary); }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .challenge-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .challenge-header > div {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .challenge-date {
+                text-align: right;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -125,8 +239,8 @@
         <div class="create-challenge-card">
             <h2><i class="fas fa-plus-circle"></i> Novo Desafio</h2>
             <div class="form-group">
-                <label>Selecione o Oponente (Matches)</label>
-                <select id="opponentSelect">
+                <label>Selecione o(s) Oponente(s) (Matches)</label>
+                <select id="opponentSelect" multiple size="5">
                     <option value="">Carregando seus matches...</option>
                 </select>
             </div>
@@ -136,6 +250,7 @@
                     <option value="AMRAP 15min">AMRAP 15min</option>
                     <option value="For Time: 100 Burpees">For Time: 100 Burpees</option>
                     <option value="Max Weight: Deadlift">Max Weight: Deadlift</option>
+                    <option value="Max Reps: Pull-ups">Max Reps: Pull-ups</option>
                     <option value="Murph">Murph</option>
                     <option value="Frequência: 5 dias/semana">Frequência: 5 dias/semana</option>
                 </select>
@@ -157,6 +272,22 @@
         </div>
     </div>
 
+    <!-- Modal de Ranking -->
+    <div id="rankingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeRankingModal()">&times;</span>
+            <h2 id="rankingTitle">Ranking do Desafio</h2>
+            <div id="rankingList">
+                <p>Carregando ranking...</p>
+            </div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="resultInput">Seu Resultado:</label>
+                <input type="text" id="resultInput" placeholder="Ex: 12:30 (tempo), 100 (kg), 50 (reps)">
+            </div>
+            <button class="btn-submit" onclick="submitResult()">Registrar Resultado</button>
+        </div>
+    </div>
+
     <nav class="nav-bar">
         <a href="perfil-social.html" class="nav-item"><i class="fas fa-home"></i></a>
         <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
@@ -167,6 +298,8 @@
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
+        let currentChallengeId = null;
+        let loggedInUserId = null; // Variável para armazenar o ID do usuário logado
 
         if (!token) window.location.href = 'login.html';
 
@@ -176,19 +309,38 @@
             return `data:image/jpeg;base64,${photo}`;
         }
 
+        async function getUserId() {
+            if (loggedInUserId) return loggedInUserId; // Retorna se já tiver o ID
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                loggedInUserId = data.id; // Armazena o ID
+                return loggedInUserId;
+            } catch (err) {
+                console.error('Erro ao obter ID do usuário:', err);
+                return null;
+            }
+        }
+
         async function loadInitialData() {
             try {
+                loggedInUserId = await getUserId(); // Carrega o ID do usuário logado
+
                 // Carregar Matches para o select
                 const matchesRes = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const matchesData = await matchesRes.json();
+                console.log('Dados de Matches Mútuos:', matchesData);
                 const select = document.getElementById('opponentSelect');
                 
                 if (matchesData.success && matchesData.matches.length > 0) {
-                    select.innerHTML = matchesData.matches.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+                    select.innerHTML = matchesData.matches.map(m => `<option value="${m.id}">${m.name} (${m.age || '--'} anos)</option>`).join('');
                 } else {
                     select.innerHTML = '<option value="">Nenhum match encontrado</option>';
+                    select.disabled = true; // Desabilita o select se não houver matches
                 }
 
                 // Carregar Desafios
@@ -217,16 +369,20 @@
                         <div class="challenge-card">
                             <div class="challenge-header">
                                 <span class="challenge-type">${c.challenge_type}</span>
-                                <span class="challenge-date">Termina em: ${new Date(c.end_date).toLocaleDateString()}</span>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="challenge-date">Termina em: ${new Date(c.end_date).toLocaleDateString()}</span>
+                                    <button class="view-ranking-btn" onclick="openRankingModal(${c.id}, '${c.challenge_type}')" title="Ver Ranking"><i class="fas fa-chart-bar"></i></button>
+                                    ${c.creator_id === loggedInUserId ? `<button class="delete-challenge-btn" onclick="deleteChallenge(${c.id})" title="Excluir Desafio"><i class="fas fa-trash"></i></button>` : ''}
+                                </div>
                             </div>
                             <div class="challenge-participants">
                                 <div class="participant">
-                                    <img src="${formatPhoto(c.creator_photo)}">
+                                    <img src="${formatPhoto(c.creator_photo)}" alt="${c.creator_name}">
                                     <p>${c.creator_name.split(' ')[0]}</p>
                                 </div>
                                 <div class="vs">VS</div>
                                 <div class="participant">
-                                    <img src="${formatPhoto(c.opponent_photo)}">
+                                    <img src="${formatPhoto(c.opponent_photo)}" alt="${c.opponent_name}">
                                     <p>${c.opponent_name.split(' ')[0]}</p>
                                 </div>
                             </div>
@@ -238,12 +394,34 @@
             } catch (err) { console.error(err); }
         }
 
+        async function deleteChallenge(challengeId) {
+            if (!confirm("Tem certeza que deseja excluir este desafio?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Desafio excluído com sucesso!');
+                    loadChallenges(); // Recarrega a lista de desafios
+                } else {
+                    alert('Erro ao excluir desafio: ' + (data.error || 'Desconhecido'));
+                }
+            } catch (err) {
+                console.error('Erro ao excluir desafio:', err);
+                alert('Erro ao excluir desafio.');
+            }
+        }
+
         async function createChallenge() {
-            const opponentId = document.getElementById('opponentSelect').value;
+            const selectElement = document.getElementById("opponentSelect");
+            const opponentIds = Array.from(selectElement.selectedOptions).map(option => option.value);
             const type = document.getElementById('challengeType').value;
             const duration = document.getElementById('challengeDuration').value;
 
-            if (!opponentId) return alert('Selecione um oponente!');
+            if (opponentIds.length === 0) return alert("Selecione pelo menos um oponente!");
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/create`, {
@@ -252,14 +430,87 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ opponentIds: [opponentId], type, duration })
+                    body: JSON.stringify({ opponentIds, type, duration })
                 });
                 const data = await res.json();
                 if (data.success) {
                     alert('Desafio lançado com sucesso! 🚀');
                     loadChallenges();
+                } else {
+                    alert('Erro ao lançar desafio: ' + (data.error || 'Desconhecido'));
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error('Erro ao lançar desafio:', err);
+                alert('Erro ao lançar desafio.');
+            }
+        }
+
+        async function openRankingModal(challengeId, challengeType) {
+            currentChallengeId = challengeId;
+            document.getElementById("rankingTitle").textContent = `Ranking: ${challengeType}`;
+            document.getElementById("rankingModal").style.display = "block";
+            await loadRanking(challengeId);
+        }
+
+        function closeRankingModal() {
+            document.getElementById("rankingModal").style.display = "none";
+            document.getElementById("rankingList").innerHTML = "<p>Carregando ranking...</p>"; // Limpa ao fechar
+            document.getElementById("resultInput").value = ""; // Limpa o input de resultado
+        }
+
+        async function loadRanking(challengeId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}/ranking`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const rankingList = document.getElementById("rankingList");
+
+                if (data.success && data.ranking.length > 0) {
+                    rankingList.innerHTML = data.ranking.map((item, index) => `
+                        <div class="ranking-item">
+                            <img src="${formatPhoto(item.photo)}" alt="${item.name}">
+                            <span class="name">${index + 1}. ${item.name}</span>
+                            <span class="result">${item.result_value}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    rankingList.innerHTML = "<p>Nenhum resultado registrado ainda.</p>";
+                }
+            } catch (err) {
+                console.error('Erro ao carregar ranking:', err);
+                rankingList.innerHTML = "<p>Erro ao carregar ranking.</p>";
+            }
+        }
+
+        async function submitResult() {
+            const resultValue = document.getElementById("resultInput").value;
+            if (!resultValue) {
+                alert("Por favor, insira seu resultado.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${currentChallengeId}/result`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ result_value: resultValue })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Resultado registrado com sucesso!');
+                    document.getElementById("resultInput").value = ""; // Limpa o input
+                    loadRanking(currentChallengeId); // Recarrega o ranking
+                } else {
+                    alert('Erro ao registrar resultado: ' + (data.error || 'Desconhecido'));
+                }
+            } catch (err) {
+                console.error('Erro ao registrar resultado:', err);
+                alert('Erro ao registrar resultado.');
+            }
         }
 
         loadInitialData();
