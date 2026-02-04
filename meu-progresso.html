@@ -1370,6 +1370,36 @@
                 }
             } catch (err) { alert('Erro ao salvar.'); }
         }
+        // Verifica privacidade
+async function verificarAcesso() {
+    const myProfile = await fetch(`${API_BASE_URL}/api/social/profile`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json());
+    if (alunoId == myProfile.id) return true;  // sempre pode ver o próprio
+
+    const privacyRes = await fetch(`${API_BASE_URL}/api/participants/${alunoId}`);
+    const targetUser = await privacyRes.json();
+    const privacy = targetUser.participant.progress_privacy;
+
+    if (privacy === 'public') return true;
+
+    if (privacy === 'private') {
+        alert('Este progresso é privado.');
+        window.location.href = 'perfil-social.html';
+        return false;
+    }
+
+    // friends_only
+    const friendRes = await fetch(`${API_BASE_URL}/api/social/is-friend/${alunoId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const friendData = await friendRes.json();
+    if (!friendData.isFriend) {
+        alert('Este progresso é visível apenas para amigos.');
+        window.location.href = `perfil-participante.html?id=${alunoId}`;
+        return false;
+    }
+    return true;
+}
+
+// Chame isso logo após pegar alunoId
+if (!(await verificarAcesso())) return;
 
         document.getElementById('fotos-progresso').addEventListener('change', (e) => {
             const preview = document.getElementById('preview-fotos');

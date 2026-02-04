@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WODPulse - Perfil do Atleta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <style>
+        :root {
+            --primary: #FF9800;
+            --dark-bg: #0f0f0f;
+            --card-bg: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-color: #333333;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            padding-bottom: 100px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .profile-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%);
+            border-radius: 0 0 40px 40px;
+            margin-bottom: 30px;
+        }
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--primary);
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .match-badge {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        .btn-add-friend {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 30px;
+            display: block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="window.history.back()">←</button>
+        
+        <div class="profile-header">
+            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic" alt="Foto">
+            <h1 id="userName">Carregando...</h1>
+            <p id="userAge"></p>
+            <p id="userBox">Box ID: --</p>
+            <div class="match-badge"><i class="fas fa-heart"></i> Match Mútuo!</div>
+        </div>
+
+        <button class="btn-add-friend" onclick="requestFriendship()">
+            <i class="fas fa-user-plus"></i> Adicionar como Amigo
+        </button>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="desafios.html" style="background: var(--primary); color: white; padding: 15px 30px; border-radius: 20px; text-decoration: none; display: inline-block;">
+                <i class="fas fa-trophy"></i> Desafiar
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token');
+
+        if (!token) window.location.href = 'login.html';
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        async function loadProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+            if (!userId) return window.location.href = 'perfil-social.html';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Não encontrado ou sem permissão');
+                const data = await res.json();
+
+                document.getElementById('userName').textContent = data.name;
+                document.getElementById('userAge').textContent = data.age ? `${data.age} anos` : '';
+                document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
+                document.getElementById('userPhoto').src = formatPhoto(data.photo);
+            } catch (err) {
+                alert('Perfil não encontrado ou acesso negado');
+                window.location.href = 'perfil-social.html';
+            }
+        }
+
+        async function requestFriendship() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetId = urlParams.get('id');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId: parseInt(targetId) })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido de amizade enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido');
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

@@ -38,7 +38,6 @@
             padding: 20px;
         }
 
-        /* ===== HEADER DO PERFIL ===== */
         .profile-header {
             text-align: center;
             padding: 40px 20px;
@@ -71,7 +70,6 @@
             font-size: 0.95rem;
         }
 
-        /* ===== GRID DE ESTATÍSTICAS ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -109,7 +107,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* ===== GRID DE AÇÕES ===== */
         .action-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -151,7 +148,6 @@
             font-size: 0.95rem;
         }
 
-        /* ===== BOTÕES DE AÇÃO COMPLETA ===== */
         .full-width-btn {
             background: var(--card-bg);
             padding: 18px 20px;
@@ -194,11 +190,6 @@
             color: var(--text-secondary);
         }
 
-        /* ===== SEÇÃO DE MATCHES MÚTUOS ===== */
-        .mutual-matches-section {
-            margin-bottom: 30px;
-        }
-
         .section-title {
             font-size: 1.2rem;
             font-weight: 700;
@@ -213,12 +204,6 @@
             font-size: 1.3rem;
         }
 
-        .matches-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
         .mutual-match-card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -226,23 +211,16 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            margin-bottom: 10px;
             border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .mutual-match-card:hover {
-            background: var(--card-hover);
-            border-color: var(--primary);
-            transform: translateX(5px);
         }
 
         .match-photo {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--primary);
-            flex-shrink: 0;
         }
 
         .match-info {
@@ -250,18 +228,13 @@
         }
 
         .match-info h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 5px;
         }
 
         .match-indicator {
-            color: var(--primary);
             font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
+            color: var(--primary);
         }
 
         .view-profile-btn {
@@ -269,142 +242,97 @@
             color: white;
             border: none;
             padding: 8px 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-
-        .view-profile-btn:hover {
-            background: #e68a00;
-            transform: scale(1.05);
         }
 
         .empty-state {
             text-align: center;
-            padding: 30px 20px;
-            background: var(--card-bg);
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
+            padding: 40px;
+            color: var(--text-secondary);
         }
 
         .empty-state i {
-            font-size: 2.5rem;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
         }
 
-        .empty-state p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        /* ===== BOTÃO DE LOGOUT ===== */
-        .logout-btn {
-            width: 100%;
-            margin-top: 30px;
-            padding: 12px;
-            background: transparent;
+        .privacy-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
             border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            border-radius: 10px;
+        }
+
+        .friend-request-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .friend-request-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .friend-request-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
         }
 
-        .logout-btn:hover {
-            border-color: var(--error);
+        .btn-accept-friend {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-reject-friend {
+            background: var(--error);
+            color: white;
+        }
+
+        .logout-btn {
+            background: var(--card-bg);
             color: var(--error);
-            background: rgba(255, 77, 77, 0.05);
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
         }
 
-        /* ===== NAVEGAÇÃO INFERIOR ===== */
         .nav-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-around;
-            padding: 15px;
-            border-top: 1px solid var(--border-color);
+            padding: 15px 0;
             z-index: 100;
         }
 
         .nav-item {
             color: var(--text-secondary);
             font-size: 1.5rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-        }
-
-        .nav-item:hover {
-            background: var(--card-hover);
+            padding: 10px;
         }
 
         .nav-item.active {
             color: var(--primary);
-            background: rgba(255, 152, 0, 0.1);
-        }
-
-        /* ===== RESPONSIVIDADE ===== */
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-
-            .profile-header {
-                padding: 30px 15px;
-            }
-
-            .action-grid {
-                gap: 10px;
-            }
-
-            .stats-grid {
-                gap: 10px;
-            }
-        }
-
-        /* ===== ANIMAÇÕES ===== */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .mutual-match-card {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        /* ===== LOADING STATE ===== */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--border-color);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -412,9 +340,9 @@
     <div class="container">
         <!-- HEADER DO PERFIL -->
         <div class="profile-header">
-            <img id="userPhoto" src="https://www.infrapower.com.br/logo-v6.png" class="profile-pic" alt="Foto de Perfil">
-            <h1 id="userName">Carregando...</h1>
-            <p id="userBox">Box: --</p>
+            <img id="userPhoto" class="profile-pic" src="" alt="Foto do usuário">
+            <h1 id="userName"></h1>
+            <p id="userBox"></p>
         </div>
 
         <!-- ESTATÍSTICAS -->
@@ -425,7 +353,7 @@
             </div>
             <div class="stat-card">
                 <span class="stat-value" id="stat-likes">0</span>
-                <span class="stat-label">Curtidas</span>
+                <span class="stat-label">Likes</span>
             </div>
             <div class="stat-card">
                 <span class="stat-value" id="stat-matches">0</span>
@@ -433,10 +361,10 @@
             </div>
         </div>
 
-        <!-- AÇÕES PRINCIPAIS -->
+        <!-- AÇÕES -->
         <div class="action-grid">
             <a href="matches.html" class="action-btn">
-                <i class="fas fa-fire"></i>
+                <i class="fas fa-heart"></i>
                 <span>WOD Match</span>
             </a>
             <a href="desafios.html" class="action-btn">
@@ -454,7 +382,33 @@
             </div>
         </a>
 
-        <!-- SEÇÃO DE MATCHES MÚTUOS -->
+        <!-- PRIVACIDADE DO PROGRESSO -->
+        <div class="privacy-section">
+            <div class="section-title">
+                <i class="fas fa-lock"></i>
+                <span>Privacidade do Meu Progresso</span>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                Atual: <strong id="currentPrivacyText">Carregando...</strong>
+            </p>
+            <select id="privacySelect" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:10px; color:white; margin-bottom:10px;">
+                <option value="public">Público (qualquer um com o link)</option>
+                <option value="friends_only">Só Amigos</option>
+                <option value="private">Privado (só eu)</option>
+            </select>
+            <button onclick="savePrivacy()" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer;">
+                Salvar Configuração
+            </button>
+        </div>
+
+        <!-- PEDIDOS DE AMIZADE PENDENTES -->
+        <div class="section-title">
+            <i class="fas fa-user-plus"></i>
+            <span>Pedidos de Amizade</span>
+        </div>
+        <div id="pendingRequests"></div>
+
+        <!-- MATCHES MÚTUOS -->
         <div class="mutual-matches-section">
             <div class="section-title">
                 <i class="fas fa-heart"></i>
@@ -493,7 +447,6 @@
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
-            // Se for Base64 puro sem o prefixo, adiciona o prefixo
             return `data:image/jpeg;base64,${photo}`;
         }
 
@@ -508,7 +461,6 @@
                 document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
                 document.getElementById('userPhoto').src = formatPhoto(data.photo);
 
-                // Preenche estatísticas
                 document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
                 document.getElementById('stat-likes').textContent = data.stats.likes || 0;
                 document.getElementById('stat-matches').textContent = data.stats.matches || 0;
@@ -517,8 +469,15 @@
                 document.getElementById('linkProgresso').href = progUrl;
                 document.getElementById('navProgresso').href = progUrl;
 
-                // Carrega matches mútuos
+                // Privacidade
+                const privacy = data.progress_privacy || 'friends_only';
+                document.getElementById('currentPrivacyText').textContent = 
+                    privacy === 'public' ? 'Público' : 
+                    privacy === 'friends_only' ? 'Só Amigos' : 'Privado';
+                document.getElementById('privacySelect').value = privacy;
+
                 loadMutualMatches();
+                loadPendingRequests();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
@@ -543,7 +502,7 @@
                                     <i class="fas fa-heart"></i> Match!
                                 </span>
                             </div>
-                            <button class="view-profile-btn" onclick="viewProfile(${match.id})">
+                            <button class="view-profile-btn" onclick="openProfile(${match.id})">
                                 Ver Perfil
                             </button>
                         </div>
@@ -561,9 +520,80 @@
             }
         }
 
-        function viewProfile(matchId) {
-            // Redireciona para o perfil do match ou abre um modal
-            window.location.href = `perfil-participante.html?id=${matchId}`;
+        async function loadPendingRequests() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                const container = document.getElementById('pendingRequests');
+                if (data.pendingRequests && data.pendingRequests.length > 0) {
+                    container.innerHTML = data.pendingRequests.map(req => `
+                        <div class="friend-request-card">
+                            <img src="${formatPhoto(req.photo)}" class="match-photo">
+                            <div>${req.name} quer ser seu amigo</div>
+                            <div class="friend-request-actions">
+                                <button class="btn-accept-friend" onclick="respondFriend(${req.id}, 'accept')">Aceitar</button>
+                                <button class="btn-reject-friend" onclick="respondFriend(${req.id}, 'reject')">Recusar</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="color:#888; text-align:center;">Nenhum pedido pendente</p>';
+                }
+            } catch (err) {
+                console.error('Erro ao carregar pedidos:', err);
+            }
+        }
+
+        async function openProfile(userId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/is-friend/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.isFriend) {
+                    window.location.href = `meu-progresso.html?id=${userId}`;
+                } else {
+                    window.location.href = `perfil-participante.html?id=${userId}`;
+                }
+            } catch (err) {
+                window.location.href = `perfil-participante.html?id=${userId}`;
+            }
+        }
+
+        async function savePrivacy() {
+            const privacy = document.getElementById('privacySelect').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/privacy/set`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ privacy })
+                });
+                if (res.ok) {
+                    alert('Privacidade atualizada!');
+                    loadProfile();
+                }
+            } catch (err) {
+                alert('Erro ao salvar privacidade');
+            }
+        }
+
+        async function respondFriend(requesterId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requesterId, action })
+                });
+                if (res.ok) {
+                    loadPendingRequests();
+                }
+            } catch (err) {
+                alert('Erro ao responder');
+            }
         }
 
         function logout() {
@@ -573,11 +603,11 @@
             }
         }
 
-        // Carrega o perfil ao abrir a página
         loadProfile();
-
-        // Recarrega matches a cada 30 segundos (opcional)
-        setInterval(loadMutualMatches, 30000);
+        setInterval(() => {
+            loadMutualMatches();
+            loadPendingRequests();
+        }, 30000);
     </script>
 </body>
 </html>

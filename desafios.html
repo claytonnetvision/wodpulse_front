@@ -15,97 +15,109 @@
             --success: #4CAF50;
             --error: #f44336;
             --pending: #FFC107;
+            --border-color: #333333;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--dark-bg); color: white; font-family: 'Inter', sans-serif; padding-bottom: 80px; }
+        body { background: var(--dark-bg); color: var(--text-primary); font-family: 'Inter', sans-serif; padding-bottom: 100px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        
-        .header { margin-bottom: 30px; }
-        .header h1 { font-size: 1.8rem; color: var(--primary); }
+        .header h1 { font-size: 1.8rem; color: var(--primary); text-align: center; margin-bottom: 30px; }
 
-        .section-title { font-size: 1.2rem; margin: 20px 0 15px; display: flex; align-items: center; gap: 10px; }
-
-        /* Novo Card de Criação de Desafio */
         .create-challenge-card {
             background: var(--card-bg);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 30px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
         }
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem; }
-        
+
+        .search-input {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
         .athlete-selector {
             background: #2a2a2a;
             border-radius: 10px;
             padding: 10px;
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #444;
+            border: 1px solid var(--border-color);
         }
 
         .athlete-option {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px;
+            gap: 12px;
+            padding: 10px;
             cursor: pointer;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
             transition: background 0.2s;
         }
         .athlete-option:hover { background: #333; }
-        .athlete-option input { width: 18px; height: 18px; accent-color: var(--primary); }
-        .athlete-option img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-
-        .search-input {
-            width: 100%;
-            background: #2a2a2a;
-            border: 1px solid #444;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
+        .athlete-option input { accent-color: var(--primary); }
+        .athlete-option img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 
         .btn-submit {
             width: 100%;
             background: var(--primary);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
-        /* Cards de Desafio */
         .challenge-card {
             background: var(--card-bg);
             border-radius: 15px;
-            padding: 15px;
+            padding: 18px;
             margin-bottom: 15px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
             position: relative;
         }
 
+        .challenge-checkbox {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .delete-btn:hover { color: var(--error); }
+
         .challenge-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 15px;
         }
 
         .challenge-type {
-            background: rgba(255, 152, 0, 0.1);
+            background: rgba(255, 152, 0, 0.2);
             color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: bold;
         }
 
@@ -113,267 +125,255 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin: 15px 0;
+            gap: 20px;
+            margin: 20px 0;
         }
 
         .athlete-v {
             text-align: center;
             flex: 1;
         }
-
-        .athlete-v img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #444; margin-bottom: 5px; }
-        .athlete-v span { display: block; font-size: 0.8rem; color: var(--text-secondary); }
+        .athlete-v img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--border-color); }
+        .athlete-v strong { display: block; margin-top: 8px; }
 
         .vs-circle {
-            width: 30px;
-            height: 30px;
-            background: #333;
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: black;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
             font-weight: bold;
-            color: var(--primary);
+            font-size: 1rem;
         }
 
         .challenge-status {
             text-align: center;
-            font-size: 0.8rem;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .status-pending { background: rgba(255, 193, 7, 0.2); color: var(--pending); }
+        .status-accepted { background: rgba(76, 175, 80, 0.2); color: var(--success); }
+        .status-rejected { background: rgba(244, 67, 54, 0.2); color: var(--error); }
+
+        .result-input-group {
+            display: flex;
+            gap: 10px;
             margin-top: 10px;
         }
-
-        .status-pending { background: rgba(255, 193, 7, 0.1); color: var(--pending); }
-        .status-accepted { background: rgba(76, 175, 80, 0.1); color: var(--success); }
-        .status-rejected { background: rgba(244, 67, 54, 0.1); color: var(--error); }
+        .result-input-group input {
+            flex: 1;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: white;
+        }
 
         .challenge-actions {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
-
         .btn-action {
             flex: 1;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             border: none;
-            font-size: 0.8rem;
             font-weight: bold;
             cursor: pointer;
         }
-
         .btn-accept { background: var(--success); color: white; }
         .btn-reject { background: var(--error); color: white; }
-        .btn-ranking { background: #333; color: white; border: 1px solid #444; }
-
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #555;
-            cursor: pointer;
-            padding: 5px;
-        }
-        .delete-btn:hover { color: var(--error); }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            border-radius: 20px;
-        }
-
-        .ranking-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #333;
-        }
-
-        .ranking-pos { font-weight: bold; color: var(--primary); width: 25px; }
-        .ranking-item img { width: 30px; height: 30px; border-radius: 50%; }
-        .ranking-value { margin-left: auto; font-weight: bold; }
+        .btn-ranking { background: #333; color: white; }
 
         /* Bulk Delete */
         .bulk-actions {
-            display: none;
             position: fixed;
             bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .bulk-actions button {
             background: var(--error);
             color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            cursor: pointer;
-            z-index: 100;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
             font-weight: bold;
         }
 
-        .challenge-checkbox {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 20px;
-            height: 20px;
-            accent-color: var(--error);
+        /* Modal Ranking */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
-
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; }
-        .nav-item { color: var(--text-secondary); font-size: 1.5rem; text-decoration: none; }
-        .nav-item.active { color: var(--primary); }
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .ranking-pos { font-size: 1.5rem; font-weight: bold; color: var(--primary); width: 40px; }
+        .ranking-item img { width: 40px; height: 40px; border-radius: 50%; }
+        .ranking-value { margin-left: auto; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Desafios WODPulse</h1>
+            <h1><i class="fas fa-trophy"></i> Desafios</h1>
         </div>
 
-        <!-- Criar Desafio -->
+        <!-- Criação de Desafio -->
         <div class="create-challenge-card">
-            <div class="section-title"><i class="fas fa-plus-circle"></i> Novo Desafio</div>
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Lançar Novo Desafio</h2>
             
             <div class="form-group">
-                <label>Selecione o(s) Oponente(s)</label>
-                <input type="text" class="search-input" id="athleteSearch" placeholder="Buscar atletas..." oninput="filterAthletes()">
-                <div class="athlete-selector" id="athleteList">
-                    <div style="padding: 10px; color: #666; text-align: center;">Carregando atletas...</div>
-                </div>
-            </div>
-
-            <div class="form-group">
                 <label>Tipo de Desafio</label>
-                <select class="search-input" id="challengeType">
-                    <option value="AMRAP 15min">AMRAP 15min (Repetições)</option>
-                    <option value="For Time: 100 Burpees">For Time: 100 Burpees (Tempo)</option>
-                    <option value="Max Weight: Deadlift">Max Weight: Deadlift (Carga)</option>
-                    <option value="Murph">Murph (Tempo)</option>
-                    <option value="Check-in Streak (7 dias)">Check-in Streak (7 dias)</option>
+                <select id="challengeType" class="search-input">
+                    <option value="amrap">AMRAP (mais rounds/reps)</option>
+                    <option value="for_time">For Time (menor tempo)</option>
+                    <option value="max_reps">Max Reps</option>
+                    <option value="murph">Murph Time</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Duração (dias)</label>
-                <input type="number" class="search-input" id="challengeDuration" value="7" min="1">
+                <input type="number" id="durationDays" class="search-input" value="7" min="1">
             </div>
 
-            <button class="btn-submit" onclick="createChallenge()" id="btnCreate">Lançar Desafio! 🚀</button>
+            <div class="form-group">
+                <label>Oponentes (selecione quantos quiser)</label>
+                <input type="text" id="searchAthletes" class="search-input" placeholder="Buscar por nome...">
+                <div class="athlete-selector" id="athleteList"></div>
+            </div>
+
+            <button class="btn-submit" id="btnCreate" onclick="createChallenge()">Lançar Desafio! 🚀</button>
         </div>
 
         <!-- Lista de Desafios -->
-        <div class="section-title"><i class="fas fa-fire"></i> Seus Desafios</div>
         <div id="challengesList">
-            <div style="text-align:center; padding:20px;">Carregando desafios...</div>
+            <p style="text-align:center; color:#666;">Carregando desafios...</p>
         </div>
-    </div>
 
-    <!-- Bulk Delete Button -->
-    <div id="bulkDeleteBtn" class="bulk-actions" onclick="bulkDelete()">
-        <i class="fas fa-trash"></i> Excluir Selecionados (<span id="selectedCount">0</span>)
+        <!-- Bulk Delete -->
+        <div class="bulk-actions" id="bulkDeleteBtn">
+            <span>Selecionados: <strong id="selectedCount">0</strong></span>
+            <button onclick="bulkDelete()">Excluir Selecionados</button>
+        </div>
     </div>
 
     <!-- Modal Ranking -->
-    <div id="rankingModal" class="modal">
+    <div class="modal" id="rankingModal">
         <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h3 id="rankingTitle">Ranking</h3>
-                <i class="fas fa-times" onclick="closeModal()" style="cursor:pointer;"></i>
+            <div class="modal-header">
+                <h2 id="rankingTitle">Ranking</h2>
+                <i class="fas fa-times" style="font-size:1.5rem; cursor:pointer;" onclick="closeModal()"></i>
             </div>
-            <div id="rankingContent"></div>
-            
-            <div style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">
-                <label style="font-size:0.8rem; color:var(--text-secondary);">Registrar meu resultado:</label>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <input type="text" id="myResultValue" class="search-input" placeholder="Ex: 12:30 ou 150kg" style="margin-bottom:0;">
-                    <button class="btn-submit" onclick="saveResult()" style="margin-top:0; width:auto; padding:0 15px;">Salvar</button>
-                </div>
+            <div id="rankingContent">
+                Carregando...
             </div>
         </div>
     </div>
-
-    <nav class="nav-bar">
-        <a href="perfil-social.html" class="nav-item"><i class="fas fa-home"></i></a>
-        <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
-        <a href="desafios.html" class="nav-item active"><i class="fas fa-medal"></i></a>
-    </nav>
 
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-        let currentUserId = null;
-        let allAthletes = [];
-        let selectedChallengeId = null;
-
         if (!token) window.location.href = 'login.html';
 
-        async function init() {
-            await loadProfile();
-            await loadAthletes();
-            await loadChallenges();
+        let currentUserId = null;
+        let participants = [];
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
         }
 
-        async function loadProfile() {
+        async function init() {
+            // Carrega ID do usuário logado
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
                 currentUserId = data.id;
-            } catch (err) { console.error('Erro perfil:', err); }
+            } catch (err) {
+                alert('Erro ao carregar perfil');
+                return;
+            }
+
+            await loadParticipants();
+            await loadChallenges();
+
+            // Filtro de busca em tempo real
+            document.getElementById('searchAthletes').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const list = document.getElementById('athleteList');
+                list.innerHTML = participants
+                    .filter(p => p.name.toLowerCase().includes(term))
+                    .map(p => `
+                        <div class="athlete-option">
+                            <input type="checkbox" value="${p.id}">
+                            <img src="${formatPhoto(p.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                            <span>${p.name}</span>
+                        </div>
+                    `).join('');
+            });
         }
 
-        async function loadAthletes() {
+        async function loadParticipants() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                if (data.success) {
-                    allAthletes = data.participants;
-                    renderAthleteList(allAthletes);
-                }
-            } catch (err) { console.error('Erro atletas:', err); }
-        }
+                participants = data.participants || [];
 
-        function renderAthleteList(list) {
-            const container = document.getElementById('athleteList');
-            container.innerHTML = list.map(a => `
-                <div class="athlete-option" onclick="toggleAthlete(${a.id})">
-                    <input type="checkbox" id="ath-${a.id}" value="${a.id}" onclick="event.stopPropagation()">
-                    <img src="${formatPhoto(a.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
-                    <span>${a.name}</span>
-                </div>
-            `).join('');
-        }
-
-        function filterAthletes() {
-            const term = document.getElementById('athleteSearch').value.toLowerCase();
-            const filtered = allAthletes.filter(a => a.name.toLowerCase().includes(term));
-            renderAthleteList(filtered);
-        }
-
-        function toggleAthlete(id) {
-            const cb = document.getElementById(`ath-${id}`);
-            if (cb) cb.checked = !cb.checked;
+                // Render inicial
+                document.getElementById('athleteList').innerHTML = participants.map(p => `
+                    <div class="athlete-option">
+                        <input type="checkbox" value="${p.id}">
+                        <img src="${formatPhoto(p.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                        <span>${p.name}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('athleteList').innerHTML = '<p style="color:#f44336;">Erro ao carregar atletas</p>';
+            }
         }
 
         async function loadChallenges() {
@@ -382,79 +382,81 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                
-                if (!data.success) {
-                    document.getElementById('challengesList').innerHTML = `<div style="color:var(--error); padding:20px; text-align:center;">${data.error || 'Erro ao carregar desafios'}</div>`;
+
+                const container = document.getElementById('challengesList');
+                if (!data.challenges || data.challenges.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#888;">Nenhum desafio no momento. Lance um!</p>';
                     return;
                 }
 
-                renderChallenges(data.challenges);
-            } catch (err) { 
-                console.error('Erro desafios:', err);
-                document.getElementById('challengesList').innerHTML = `<div style="color:var(--error); padding:20px; text-align:center;">Erro de conexão com o servidor.</div>`;
-            }
-        }
+                container.innerHTML = data.challenges.map(c => {
+                    const isCreator = c.creator_id === currentUserId;
+                    const isOpponent = c.opponent_id === currentUserId;
 
-        function renderChallenges(challenges) {
-            const container = document.getElementById('challengesList');
-            if (challenges.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Nenhum desafio ativo.</p>';
-                return;
-            }
-
-            container.innerHTML = challenges.map(c => {
-                const isCreator = c.creator_id === currentUserId;
-                const isOpponent = c.opponent_id === currentUserId;
-                const statusClass = `status-${c.status}`;
-                const statusText = c.status === 'pending' ? 'Pendente' : (c.status === 'accepted' ? 'Aceito' : 'Recusado');
-
-                return `
-                    <div class="challenge-card">
-                        ${isCreator ? `<input type="checkbox" class="challenge-checkbox" value="${c.id}" onchange="updateBulkUI()">` : ''}
-                        ${isCreator ? `<i class="fas fa-trash delete-btn" onclick="deleteChallenge(${c.id})"></i>` : ''}
-                        
-                        <div class="challenge-header">
-                            <span class="challenge-type">${c.challenge_type}</span>
-                            <span style="font-size:0.7rem; color:#666;">Expira em: ${new Date(c.end_date).toLocaleDateString()}</span>
-                        </div>
-
-                        <div class="challenge-vs">
-                            <div class="athlete-v">
-                                <img src="${formatPhoto(c.creator_photo)}">
-                                <span>${c.creator_name.split(' ')[0]}</span>
-                            </div>
-                            <div class="vs-circle">VS</div>
-                            <div class="athlete-v">
-                                <img src="${formatPhoto(c.opponent_photo)}">
-                                <span>${c.opponent_name.split(' ')[0]}</span>
-                            </div>
-                        </div>
-
-                        <div class="challenge-status ${statusClass}">
-                            ${statusText} ${c.response_message ? `<br><small>"${c.response_message}"</small>` : ''}
-                        </div>
-
-                        <div class="challenge-actions">
-                            ${isOpponent && c.status === 'pending' ? `
+                    let actions = '';
+                    if (isCreator && c.status === 'pending') {
+                        actions += `<i class="fas fa-trash delete-btn" onclick="deleteChallenge(${c.id})"></i>`;
+                    }
+                    if (isOpponent && c.status === 'pending') {
+                        actions += `
+                            <div class="challenge-actions">
                                 <button class="btn-action btn-accept" onclick="respondChallenge(${c.id}, 'accept')">Aceitar</button>
                                 <button class="btn-action btn-reject" onclick="respondChallenge(${c.id}, 'reject')">Recusar</button>
-                            ` : `
-                                <button class="btn-action btn-ranking" onclick="openRanking(${c.id}, '${c.challenge_type}')">
+                            </div>`;
+                    }
+                    if (c.status === 'accepted') {
+                        actions += `
+                            <div class="result-input-group">
+                                <input type="text" placeholder="Seu resultado (ex: 12:45 ou 250)" id="result-${c.id}">
+                                <button class="btn-action" onclick="submitResult(${c.id})">Enviar</button>
+                            </div>
+                            <div class="challenge-actions">
+                                <button class="btn-action btn-ranking" onclick="openRanking(${c.id}, '${c.challenge_type.toUpperCase()}')">
                                     <i class="fas fa-trophy"></i> Ver Ranking
                                 </button>
-                            `}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                            </div>`;
+                    }
+
+                    const statusClass = `status-${c.status}`;
+                    const statusText = c.status === 'pending' ? 'Pendente' : c.status === 'accepted' ? 'Aceito' : 'Recusado';
+
+                    return `
+                        <div class="challenge-card">
+                            <input type="checkbox" class="challenge-checkbox" value="${c.id}" onchange="updateBulkUI()">
+                            ${actions}
+                            <div class="challenge-header">
+                                <span class="challenge-type">${c.challenge_type.toUpperCase()}</span>
+                            </div>
+                            <div class="challenge-vs">
+                                <div class="athlete-v">
+                                    <img src="${formatPhoto(c.creator_photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                                    <strong>${c.creator_name}</strong>
+                                </div>
+                                <div class="vs-circle">VS</div>
+                                <div class="athlete-v">
+                                    <img src="${formatPhoto(c.opponent_photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                                    <strong>${c.opponent_name}</strong>
+                                </div>
+                            </div>
+                            <div class="challenge-status ${statusClass}">
+                                ${statusText} • Até ${new Date(c.end_date).toLocaleDateString('pt-BR')}
+                            </div>
+                        </div>`;
+                }).join('');
+                
+                updateBulkUI();
+            } catch (err) {
+                container.innerHTML = '<p style="color:#f44336;">Erro ao carregar desafios</p>';
+            }
         }
 
         async function createChallenge() {
-            const selectedIds = Array.from(document.querySelectorAll('#athleteList input:checked')).map(cb => parseInt(cb.value));
             const type = document.getElementById('challengeType').value;
-            const duration = document.getElementById('challengeDuration').value;
+            const duration = document.getElementById('durationDays').value;
+            const selected = document.querySelectorAll('#athleteList input:checked');
+            const opponentIds = Array.from(selected).map(cb => parseInt(cb.value));
 
-            if (selectedIds.length === 0) return alert('Selecione pelo menos um oponente!');
+            if (opponentIds.length === 0) return alert('Selecione pelo menos um oponente!');
 
             const btn = document.getElementById('btnCreate');
             btn.disabled = true;
@@ -464,65 +466,76 @@
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/create`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ opponentIds: selectedIds, type, duration })
+                    body: JSON.stringify({ opponentIds, type, duration })
                 });
                 if (res.ok) {
-                    alert('Desafio lançado com sucesso!');
+                    alert('Desafios lançados com sucesso!');
+                    selected.forEach(cb => cb.checked = false);
                     loadChallenges();
-                    document.querySelectorAll('#athleteList input:checked').forEach(cb => cb.checked = false);
                 } else {
                     const err = await res.json();
-                    alert('Erro: ' + (err.error || 'Falha ao criar'));
+                    alert('Erro: ' + (err.error || 'Tente novamente'));
                 }
-            } catch (err) { alert('Erro de conexão'); }
-            finally {
+            } catch (err) {
+                alert('Erro de conexão');
+            } finally {
                 btn.disabled = false;
                 btn.innerText = 'Lançar Desafio! 🚀';
             }
         }
 
         async function deleteChallenge(id) {
-            if (!confirm('Deseja excluir este desafio?')) return;
+            if (!confirm('Excluir este desafio?')) return;
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) loadChallenges();
-                else {
-                    const data = await res.json();
-                    alert(data.error || 'Erro ao excluir');
-                }
             } catch (err) { alert('Erro ao excluir'); }
         }
 
         async function respondChallenge(id, action) {
-            const message = prompt('Mande um recado (opcional):', action === 'accept' ? 'Desafio aceito! Vou ganhar!' : 'Fica pra próxima!');
+            const message = prompt('Mensagem opcional:', action === 'accept' ? 'Bora!' : 'Não dá dessa vez');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}/respond`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, message })
+                    body: JSON.stringify({ action, message: message || '' })
                 });
                 if (res.ok) loadChallenges();
             } catch (err) { alert('Erro ao responder'); }
         }
 
+        async function submitResult(challengeId) {
+            const input = document.getElementById(`result-${challengeId}`);
+            const value = input.value.trim();
+            if (!value) return alert('Digite seu resultado!');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}/result`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ result_value: value })
+                });
+                if (res.ok) {
+                    alert('Resultado enviado!');
+                    input.value = '';
+                    loadChallenges(); // atualiza status/visual
+                }
+            } catch (err) { alert('Erro ao enviar resultado'); }
+        }
+
         function updateBulkUI() {
-            const selected = document.querySelectorAll('.challenge-checkbox:checked');
-            const btn = document.getElementById('bulkDeleteBtn');
-            const count = document.getElementById('selectedCount');
-            
-            if (selected.length > 0) {
-                btn.style.display = 'block';
-                count.innerText = selected.length;
-            } else {
-                btn.style.display = 'none';
-            }
+            const selected = document.querySelectorAll('.challenge-checkbox:checked').length;
+            const bulkBtn = document.getElementById('bulkDeleteBtn');
+            document.getElementById('selectedCount').innerText = selected;
+            bulkBtn.style.display = selected > 0 ? 'block' : 'none';
         }
 
         async function bulkDelete() {
-            const ids = Array.from(document.querySelectorAll('.challenge-checkbox:checked')).map(cb => parseInt(cb.value));
+            const ids = Array.from(document.querySelectorAll('.challenge-checkbox:checked'))
+                .map(cb => parseInt(cb.value));
             if (!confirm(`Excluir ${ids.length} desafios?`)) return;
 
             try {
@@ -533,72 +546,46 @@
                 });
                 if (res.ok) {
                     loadChallenges();
-                    document.getElementById('bulkDeleteBtn').style.display = 'none';
+                    updateBulkUI();
                 }
-            } catch (err) { alert('Erro na exclusão em massa'); }
+            } catch (err) { alert('Erro na exclusão'); }
         }
 
-        async function openRanking(id, type) {
-            selectedChallengeId = id;
-            document.getElementById('rankingTitle').innerText = type;
+        async function openRanking(id, typeTitle) {
+            document.getElementById('rankingTitle').innerText = typeTitle;
             document.getElementById('rankingModal').style.display = 'flex';
-            document.getElementById('rankingContent').innerHTML = 'Carregando ranking...';
-            
+            document.getElementById('rankingContent').innerHTML = '<p style="text-align:center;">Carregando...</p>';
+
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/challenge/${id}/ranking`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                if (data.success) {
-                    renderRanking(data.ranking);
+                if (data.success && data.ranking.length > 0) {
+                    document.getElementById('rankingContent').innerHTML = data.ranking.map((r, i) => `
+                        <div class="ranking-item">
+                            <span class="ranking-pos">${i + 1}º</span>
+                            <img src="${formatPhoto(r.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                            <strong>${r.name}</strong>
+                            <span class="ranking-value">${r.result_value}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('rankingContent').innerHTML = '<p style="text-align:center; color:#888;">Nenhum resultado ainda.</p>';
                 }
-            } catch (err) { document.getElementById('rankingContent').innerHTML = 'Erro ao carregar ranking.'; }
-        }
-
-        function renderRanking(list) {
-            const container = document.getElementById('rankingContent');
-            if (list.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#666;">Nenhum resultado registrado ainda.</p>';
-                return;
+            } catch (err) {
+                document.getElementById('rankingContent').innerHTML = '<p style="color:#f44336;">Erro ao carregar</p>';
             }
-            container.innerHTML = list.map((item, idx) => `
-                <div class="ranking-item">
-                    <span class="ranking-pos">${idx + 1}º</span>
-                    <img src="${formatPhoto(item.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
-                    <span>${item.name}</span>
-                    <span class="ranking-value">${item.result_value}</span>
-                </div>
-            `).join('');
-        }
-
-        async function saveResult() {
-            const val = document.getElementById('myResultValue').value;
-            if (!val) return alert('Insira seu resultado!');
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${selectedChallengeId}/result`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ result_value: val })
-                });
-                if (res.ok) {
-                    alert('Resultado salvo!');
-                    openRanking(selectedChallengeId, document.getElementById('rankingTitle').innerText);
-                    document.getElementById('myResultValue').value = '';
-                }
-            } catch (err) { alert('Erro ao salvar resultado'); }
         }
 
         function closeModal() {
             document.getElementById('rankingModal').style.display = 'none';
         }
 
-        function formatPhoto(photo) {
-            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
-            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
-            return `data:image/jpeg;base64,${photo}`;
-        }
+        // Atualiza a cada 30s
+        setInterval(loadChallenges, 30000);
 
+        // Inicia tudo
         init();
     </script>
 </body>
