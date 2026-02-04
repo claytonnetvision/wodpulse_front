@@ -9,11 +9,11 @@
     <style>
         :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; --text: #e0e0e0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 80px; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: var(--text); padding-bottom: 100px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
         .profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, rgba(255,152,0,0.1) 0%, transparent 100%); border-radius: 0 0 40px 40px; }
-        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(255,152,0,0.2); }
+        .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--primary); object-fit: cover; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(255,152,0,0.2); background: #333; }
         .profile-name { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
         .profile-box { font-size: 0.9rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -28,33 +28,39 @@
         .action-btn span { font-weight: 600; font-size: 0.9rem; }
         .action-btn:hover { background: rgba(255,152,0,0.1); transform: translateY(-5px); }
 
-        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .feed-item { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .feed-user { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
-        .feed-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .feed-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
-        .feed-actions { display: flex; gap: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
-        .feed-action { color: #888; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
-        .feed-action:hover { color: var(--primary); }
-        .feed-action i { margin-right: 5px; }
+        .full-width-btn { background: #252525; border: 1px solid #333; padding: 18px; border-radius: 20px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; margin-bottom: 15px; transition: 0.3s; }
+        .full-width-btn:hover { background: #333; border-color: var(--primary); }
+        .full-width-btn i { font-size: 1.4rem; color: var(--primary); width: 30px; }
 
+        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; z-index: 100; }
-        .nav-item { color: #666; font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .nav-item { color: #666; font-size: 1.5rem; cursor: pointer; transition: 0.3s; text-decoration: none; }
         .nav-item.active { color: var(--primary); }
+
+        .btn-logout { width: 100%; padding: 12px; background: transparent; border: 1px solid #444; color: #888; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,152,0,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
     <div class="container">
         <div class="profile-header">
-            <img src="" alt="Foto" id="userPhoto" class="profile-pic">
+            <img src="https://via.placeholder.com/150" alt="Foto" id="userPhoto" class="profile-pic">
             <h1 class="profile-name" id="userName">Carregando...</h1>
             <p class="profile-box" id="userBox">CrossFit Unit</p>
         </div>
 
         <div class="social-stats">
-            <div class="stat-card"><span class="stat-value">12</span><span class="stat-label">Desafios</span></div>
-            <div class="stat-card"><span class="stat-value">85</span><span class="stat-label">Curtidas</span></div>
-            <div class="stat-card"><span class="stat-value">4</span><span class="stat-label">Matches</span></div>
+            <div class="stat-card"><span class="stat-value" id="stat-challenges">0</span><span class="stat-label">Desafios</span></div>
+            <div class="stat-card"><span class="stat-value" id="stat-likes">0</span><span class="stat-label">Curtidas</span></div>
+            <div class="stat-card"><span class="stat-value" id="stat-matches">0</span><span class="stat-label">Matches</span></div>
         </div>
 
         <div class="action-grid">
@@ -69,56 +75,72 @@
         </div>
 
         <div class="section-title">
-            <span>Feed da Galera</span>
-            <i class="fas fa-sliders-h" style="font-size: 0.9rem; color: #666;"></i>
+            <span>Acesso Rápido</span>
         </div>
 
-        <div id="socialFeed">
-            <!-- Mock Feed -->
-            <div class="feed-item">
-                <div class="feed-user">
-                    <img src="https://i.pravatar.cc/150?u=1" alt="">
-                    <div>
-                        <div style="font-weight: 700;">Ricardo Silva</div>
-                        <div style="font-size: 0.7rem; color: #666;">Há 2 horas • Box Centro</div>
-                    </div>
-                </div>
-                <div class="feed-content">
-                    Acabou de queimar <strong>650 kcal</strong> no WOD de hoje! 🚀 Novo recorde pessoal de batimentos.
-                </div>
-                <div class="feed-actions">
-                    <div class="feed-action"><i class="far fa-heart"></i> 12</div>
-                    <div class="feed-action"><i class="far fa-comment"></i> 3</div>
-                </div>
+        <a href="#" id="linkProgresso" class="full-width-btn">
+            <i class="fas fa-chart-line"></i>
+            <div>
+                <strong>Meu Progresso Técnico</strong>
+                <p style="font-size: 0.8rem; color: #aaa; margin: 0;">Ver gráficos e histórico de aulas</p>
             </div>
-        </div>
+        </a>
+
+        <button class="btn-logout" onclick="logout()">Sair da Conta</button>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="window.location.href='matches.html'"><i class="fas fa-heart"></i></div>
-        <div class="nav-item" onclick="window.location.href='desafios.html'"><i class="fas fa-medal"></i></div>
-        <div class="nav-item" onclick="window.location.href='meu-progresso.html'"><i class="fas fa-chart-line"></i></div>
+        <a href="perfil-social.html" class="nav-item active"><i class="fas fa-home"></i></a>
+        <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
+        <a href="desafios.html" class="nav-item"><i class="fas fa-medal"></i></a>
+        <a href="#" id="navProgresso" class="nav-item"><i class="fas fa-chart-line"></i></a>
     </nav>
 
     <script>
-        const API_BASE_URL = 'http://localhost:3001';
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
 
-        if (!token) window.location.href = 'login.html';
+        // PROTEÇÃO DE LOGIN
+        if (!token) {
+            window.location.href = 'login.html';
+        }
 
         async function loadProfile() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                const response = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await res.json();
+
+                if (!response.ok) {
+                    if (response.status === 401) throw new Error('Sessão expirada');
+                    throw new Error('Erro ao carregar dados');
+                }
+
+                const data = await response.json();
+                
+                // Preenche os dados
                 document.getElementById('userName').textContent = data.name;
                 document.getElementById('userPhoto').src = data.photo || 'https://via.placeholder.com/150';
-                // Aqui você pode buscar o nome do box pelo box_id se quiser
+                document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
+                
+                // Links para o progresso original
+                const progressoUrl = `meu-progresso.html?id=${data.id}`;
+                document.getElementById('linkProgresso').href = progressoUrl;
+                document.getElementById('navProgresso').href = progressoUrl;
+
+                // Esconde o loading
+                document.getElementById('loading').style.display = 'none';
+
             } catch (err) {
                 console.error(err);
+                alert('Sessão inválida. Por favor, faça login novamente.');
+                logout();
             }
+        }
+
+        function logout() {
+            localStorage.removeItem('wodpulse_social_token');
+            window.location.href = 'login.html';
         }
 
         loadProfile();
