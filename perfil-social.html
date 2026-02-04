@@ -193,7 +193,7 @@
         .section-title {
             font-size: 1.2rem;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin: 20px 0 15px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -203,6 +203,70 @@
             color: var(--primary);
             font-size: 1.3rem;
         }
+
+        /* Busca de atletas */
+        .search-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .search-results {
+            margin-top: 15px;
+        }
+
+        .search-result-card {
+            background: #252525;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-result-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .search-result-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .btn-view-profile { background: var(--primary); color: white; }
+        .btn-add-friend { background: var(--success); color: white; }
+        .btn-challenge { background: #333; color: white; }
 
         .mutual-match-card {
             background: var(--card-bg);
@@ -373,6 +437,16 @@
             </a>
         </div>
 
+        <!-- BUSCA DE ATLETAS -->
+        <div class="search-section">
+            <div class="section-title">
+                <i class="fas fa-search"></i>
+                <span>Encontrar Atletas</span>
+            </div>
+            <input type="text" id="searchUsersInput" class="search-input" placeholder="Digite o nome do atleta...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
         <!-- PROGRESSO TÉCNICO -->
         <a href="#" id="linkProgresso" class="full-width-btn">
             <i class="fas fa-chart-line"></i>
@@ -448,6 +522,74 @@
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
             return `data:image/jpeg;base64,${photo}`;
+        }
+
+        let searchTimeout;
+
+        // Busca de atletas
+        document.getElementById('searchUsersInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+            searchTimeout = setTimeout(() => searchUsers(query), 500);
+        });
+
+        async function searchUsers(query) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('searchResults');
+                if (data.users.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Nenhum atleta encontrado</p>';
+                    return;
+                }
+                container.innerHTML = data.users.map(user => `
+                    <div class="search-result-card">
+                        <img src="${formatPhoto(user.photo)}" class="search-result-photo" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                        <div class="search-result-info">
+                            <strong>${user.name}</strong>
+                            <p style="color:#888; font-size:0.8rem; margin-top:4px;">Box ID: ${user.box_id || '--'}</p>
+                        </div>
+                        <div class="search-result-actions">
+                            <button class="btn-view-profile" onclick="openProfile(${user.id})">
+                                Ver Perfil
+                            </button>
+                            <button class="btn-add-friend" onclick="requestFriendship(${user.id})">
+                                Adicionar Amigo
+                            </button>
+                            <button class="btn-challenge" onclick="challengeUser(${user.id})">
+                                Desafiar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('searchResults').innerHTML = '<p style="color:#f44336; text-align:center;">Erro na busca</p>';
+            }
+        }
+
+        async function requestFriendship(targetId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+                searchUsers(document.getElementById('searchUsersInput').value.trim());
+            } catch (err) {
+                alert('Erro ao enviar pedido');
+            }
+        }
+
+        function challengeUser(userId) {
+            window.location.href = `desafios.html?opponent=${userId}`;
         }
 
         async function loadProfile() {
@@ -532,7 +674,10 @@
                     container.innerHTML = data.pendingRequests.map(req => `
                         <div class="friend-request-card">
                             <img src="${formatPhoto(req.photo)}" class="match-photo">
-                            <div>${req.name} quer ser seu amigo</div>
+                            <div class="match-info">
+                                <h3>${req.name}</h3>
+                                <span>Pede para ser amigo</span>
+                            </div>
                             <div class="friend-request-actions">
                                 <button class="btn-accept-friend" onclick="respondFriend(${req.id}, 'accept')">Aceitar</button>
                                 <button class="btn-reject-friend" onclick="respondFriend(${req.id}, 'reject')">Recusar</button>
@@ -540,7 +685,7 @@
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<p style="color:#888; text-align:center;">Nenhum pedido pendente</p>';
+                    container.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">Nenhum pedido pendente</p>';
                 }
             } catch (err) {
                 console.error('Erro ao carregar pedidos:', err);
@@ -573,11 +718,13 @@
                     body: JSON.stringify({ privacy })
                 });
                 if (res.ok) {
-                    alert('Privacidade atualizada!');
+                    alert('Privacidade atualizada com sucesso!');
                     loadProfile();
+                } else {
+                    alert('Erro ao salvar privacidade');
                 }
             } catch (err) {
-                alert('Erro ao salvar privacidade');
+                alert('Erro de conexão');
             }
         }
 
@@ -592,7 +739,7 @@
                     loadPendingRequests();
                 }
             } catch (err) {
-                alert('Erro ao responder');
+                alert('Erro ao responder pedido');
             }
         }
 
@@ -603,7 +750,10 @@
             }
         }
 
+        // Carrega tudo
         loadProfile();
+
+        // Atualiza matches e pedidos a cada 30s
         setInterval(() => {
             loadMutualMatches();
             loadPendingRequests();
