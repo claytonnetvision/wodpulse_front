@@ -132,6 +132,90 @@
             padding: 5px;
         }
 
+        .opponent-selection-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .opponent-selection-container input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .opponent-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 10px;
+            background: #252525;
+            padding: 5px;
+        }
+
+        .opponent-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 8px;
+        }
+
+        .opponent-item:hover {
+            background-color: #333;
+        }
+
+        .opponent-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .opponent-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .opponent-item.selected {
+            background-color: rgba(255, 152, 0, 0.2);
+            border: 1px solid var(--primary);
+        }
+
+        .selected-opponents-display {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 10px;
+            background: #252525;
+            min-height: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .selected-opponent-tag {
+            background: var(--primary);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .selected-opponent-tag .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         .delete-challenge-btn:hover {
             color: var(--error);
         }
@@ -239,10 +323,15 @@
         <div class="create-challenge-card">
             <h2><i class="fas fa-plus-circle"></i> Novo Desafio</h2>
             <div class="form-group">
-                <label>Selecione o(s) Oponente(s) (Matches)</label>
-                <select id="opponentSelect" multiple size="5">
-                    <option value="">Carregando seus matches...</option>
-                </select>
+                <label>Selecione o(s) Oponente(s)</label>
+                <div id="opponentSelectionContainer" class="opponent-selection-container">
+                    <input type="text" id="opponentSearch" placeholder="Buscar atletas..." onkeyup="filterOpponents()">
+                    <div id="opponentList" class="opponent-list">
+                        <p>Carregando atletas...</p>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedOpponentIds">
+                <div id="selectedOpponentsDisplay" class="selected-opponents-display"></div>
             </div>
             <div class="form-group">
                 <label>Tipo de Desafio</label>
@@ -269,6 +358,10 @@
         </div>
         <div id="challengesList">
             <div class="empty-state">Carregando desafios...</div>
+        </div>
+
+        <div id="bulkDeleteContainer" style="display: none; text-align: right; margin-top: 20px;">
+            <button class="btn-submit" style="width: auto; background: #dc3545;" onclick="bulkDeleteChallenges()">Excluir Selecionados</button>
         </div>
     </div>
 
@@ -300,6 +393,8 @@
         const token = localStorage.getItem('wodpulse_social_token');
         let currentChallengeId = null;
         let loggedInUserId = null; // Variável para armazenar o ID do usuário logado
+        let allParticipants = []; // Armazena todos os participantes para a seleção de desafios
+        let selectedOpponents = new Map(); // Armazena os oponentes selecionados para o desafio (id -> {name, photo})
 
         if (!token) window.location.href = 'login.html';
 
@@ -328,19 +423,19 @@
             try {
                 loggedInUserId = await getUserId(); // Carrega o ID do usuário logado
 
-                // Carregar Matches para o select
-                const matchesRes = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
+                // Carregar Participantes para o select
+                const participantsRes = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const matchesData = await matchesRes.json();
-                console.log('Dados de Matches Mútuos:', matchesData);
-                const select = document.getElementById('opponentSelect');
+                const participantsData = await participantsRes.json();
+                console.log("Dados de Participantes para Desafios:", participantsData);
+                const opponentListDiv = document.getElementById("opponentList");
                 
-                if (matchesData.success && matchesData.matches.length > 0) {
-                    select.innerHTML = matchesData.matches.map(m => `<option value="${m.id}">${m.name} (${m.age || '--'} anos)</option>`).join('');
+                if (participantsData.success && participantsData.participants.length > 0) {
+                    allParticipants = participantsData.participants; // Armazena todos os participantes
+                    renderOpponentList(allParticipants);
                 } else {
-                    select.innerHTML = '<option value="">Nenhum match encontrado</option>';
-                    select.disabled = true; // Desabilita o select se não houver matches
+                    opponentListDiv.innerHTML = '<p class="empty-state">Nenhum atleta encontrado.</p>';
                 }
 
                 // Carregar Desafios
@@ -365,16 +460,33 @@
                 const list = document.getElementById('challengesList');
 
                 if (data.success && data.challenges.length > 0) {
-                    list.innerHTML = data.challenges.map(c => `
+                    list.innerHTML = data.challenges.map(c => {
+                        const isCreator = c.creator_id === loggedInUserId;
+                        const isOpponent = c.opponent_id === loggedInUserId;
+                        return `
                         <div class="challenge-card">
                             <div class="challenge-header">
                                 <span class="challenge-type">${c.challenge_type}</span>
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span class="challenge-date">Termina em: ${new Date(c.end_date).toLocaleDateString()}</span>
                                     <button class="view-ranking-btn" onclick="openRankingModal(${c.id}, '${c.challenge_type}')" title="Ver Ranking"><i class="fas fa-chart-bar"></i></button>
-                                    ${c.creator_id === loggedInUserId ? `<button class="delete-challenge-btn" onclick="deleteChallenge(${c.id})" title="Excluir Desafio"><i class="fas fa-trash"></i></button>` : ''}
+                                    ${isCreator ? `<input type="checkbox" class="challenge-checkbox" data-challenge-id="${c.id}" onchange="toggleBulkDeleteButton()">` : ''}
+                                    ${isCreator ? `<button class="delete-challenge-btn" onclick="deleteChallenge(${c.id})" title="Excluir Desafio"><i class="fas fa-trash"></i></button>` : ''}
                                 </div>
                             </div>
+                            ${c.status === 'pending' && isOpponent ? `
+                                <div class="challenge-actions" style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <input type="text" id="responseMessage-${c.id}" placeholder="Sua mensagem (opcional)" style="flex-grow: 1; padding: 8px; border-radius: 8px; border: 1px solid #444; background: #252525; color: white;">
+                                    <button class="btn-submit" style="width: auto; padding: 8px 15px; background: #28a745;" onclick="respondToChallenge(${c.id}, 'accept')">Aceitar</button>
+                                    <button class="btn-submit" style="width: auto; padding: 8px 15px; background: #dc3545;" onclick="respondToChallenge(${c.id}, 'reject')">Recusar</button>
+                                </div>
+                            ` : ''}
+                            ${c.status !== 'pending' ? `
+                                <div class="challenge-status" style="margin-top: 10px; font-size: 0.9rem;">
+                                    Status: <span style="font-weight: bold; color: ${c.status === 'accepted' ? '#28a745' : '#dc3545'}">${c.status.toUpperCase()}</span>
+                                    ${c.response_message ? `<p style="margin-top: 5px; font-style: italic; color: #aaa;">"${c.response_message}"</p>` : ''}
+                                </div>
+                            ` : ''}
                             <div class="challenge-participants">
                                 <div class="participant">
                                     <img src="${formatPhoto(c.creator_photo)}" alt="${c.creator_name}">
@@ -387,7 +499,8 @@
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                    `}).join('');
+                    toggleBulkDeleteButton(); // Atualiza o estado do botão de exclusão em massa
                 } else {
                     list.innerHTML = '<div class="empty-state">Você ainda não tem desafios ativos.</div>';
                 }
@@ -415,9 +528,80 @@
             }
         }
 
+        async function respondToChallenge(challengeId, action) {
+            const messageInput = document.getElementById(`responseMessage-${challengeId}`);
+            const message = messageInput ? messageInput.value : '';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenge/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action, message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Desafio ${action === 'accept' ? 'aceito' : 'recusado'} com sucesso!`);
+                    loadChallenges();
+                } else {
+                    alert('Erro ao responder desafio: ' + (data.error || 'Desconhecido'));
+                }
+            } catch (err) {
+                console.error('Erro ao responder desafio:', err);
+                alert('Erro ao responder desafio.');
+            }
+        }
+
+        async function bulkDeleteChallenges() {
+            const selectedCheckboxes = document.querySelectorAll('.challenge-checkbox:checked');
+            const challengeIdsToDelete = Array.from(selectedCheckboxes).map(cb => cb.dataset.challengeId);
+
+            if (challengeIdsToDelete.length === 0) {
+                alert('Selecione pelo menos um desafio para excluir.');
+                return;
+            }
+
+            if (!confirm(`Tem certeza que deseja excluir ${challengeIdsToDelete.length} desafio(s) selecionado(s)?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/challenges/bulk-delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ challengeIds: challengeIdsToDelete })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    loadChallenges();
+                } else {
+                    alert('Erro ao excluir desafios: ' + (data.error || 'Desconhecido'));
+                }
+            } catch (err) {
+                console.error('Erro ao excluir desafios em massa:', err);
+                alert('Erro ao excluir desafios em massa.');
+            }
+        }
+
+        function toggleBulkDeleteButton() {
+            const selectedCheckboxes = document.querySelectorAll('.challenge-checkbox:checked');
+            const bulkDeleteContainer = document.getElementById('bulkDeleteContainer');
+            if (selectedCheckboxes.length > 0) {
+                bulkDeleteContainer.style.display = 'block';
+            } else {
+                bulkDeleteContainer.style.display = 'none';
+            }
+        }
+
         async function createChallenge() {
-            const selectElement = document.getElementById("opponentSelect");
-            const opponentIds = Array.from(selectElement.selectedOptions).map(option => option.value);
+            const selectedOpponentIdsInput = document.getElementById("selectedOpponentIds");
+            const opponentIds = selectedOpponentIdsInput.value.split(',').filter(id => id !== '');
             const type = document.getElementById('challengeType').value;
             const duration = document.getElementById('challengeDuration').value;
 
@@ -514,6 +698,53 @@
         }
 
         loadInitialData();
+
+        function renderOpponentList(participantsToRender) {
+            const opponentListDiv = document.getElementById("opponentList");
+            opponentListDiv.innerHTML = participantsToRender.map(p => `
+                <div class="opponent-item ${selectedOpponents.has(p.id) ? 'selected' : ''}" onclick="toggleOpponentSelection('${p.id}', '${p.name}', '${p.photo}')">
+                    <input type="checkbox" id="opponent-${p.id}" value="${p.id}" ${selectedOpponents.has(p.id) ? 'checked' : ''} onchange="event.stopPropagation(); toggleOpponentSelection('${p.id}', '${p.name}', '${p.photo}')">
+                    <img src="${formatPhoto(p.photo)}" alt="${p.name}">
+                    <span>${p.name} (${p.age || '--'} anos)</span>
+                </div>
+            `).join('');
+            updateSelectedOpponentsDisplay();
+        }
+
+        function filterOpponents() {
+            const searchTerm = document.getElementById("opponentSearch").value.toLowerCase();
+            const filtered = allParticipants.filter(p => p.name.toLowerCase().includes(searchTerm));
+            renderOpponentList(filtered);
+        }
+
+        function toggleOpponentSelection(id, name, photo) {
+            if (selectedOpponents.has(id)) {
+                selectedOpponents.delete(id);
+            } else {
+                selectedOpponents.set(id, { name, photo });
+            }
+            // Atualiza o estado do checkbox visualmente
+            const checkbox = document.getElementById(`opponent-${id}`);
+            if (checkbox) checkbox.checked = selectedOpponents.has(id);
+            updateSelectedOpponentsDisplay();
+        }
+
+        function updateSelectedOpponentsDisplay() {
+            const selectedOpponentIdsInput = document.getElementById("selectedOpponentIds");
+            const selectedOpponentsDisplay = document.getElementById("selectedOpponentsDisplay");
+            
+            selectedOpponentIdsInput.value = Array.from(selectedOpponents.keys()).join(',');
+
+            if (selectedOpponentsDisplay) {
+                selectedOpponentsDisplay.innerHTML = Array.from(selectedOpponents.entries()).map(([id, opponent]) => `
+                    <span class="selected-opponent-tag">
+                        ${opponent.name.split(' ')[0]}
+                        <i class="fas fa-times remove-tag" onclick="toggleOpponentSelection('${id}', '', '')"></i>
+                    </span>
+                `).join('');
+            }
+        }
+
     </script>
 </body>
 </html>
