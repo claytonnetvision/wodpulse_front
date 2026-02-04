@@ -3,117 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WODPulse - Desafios 1x1</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>WODPulse - Desafios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <link rel="stylesheet" href="social-style.css">
     <style>
-        :root { --primary: #FF9800; --dark-bg: #0f0f0f; --card-bg: #1e1e1e; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--dark-bg); color: white; padding: 20px; padding-bottom: 80px; }
-        
-        .header { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
-        .back-btn { font-size: 1.2rem; color: white; cursor: pointer; }
-        
-        .create-challenge { background: linear-gradient(135deg, var(--primary) 0%, #e68a00 100%); border-radius: 24px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255,152,0,0.2); }
-        .create-challenge h2 { font-size: 1.4rem; margin-bottom: 10px; }
-        .create-challenge p { font-size: 0.9rem; opacity: 0.9; margin-bottom: 20px; }
-        .btn-new { background: white; color: var(--primary); border: none; padding: 12px 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: var(--card-bg); border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .tab.active { background: rgba(255,152,0,0.1); border-color: var(--primary); color: var(--primary); }
-
-        .challenge-card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .vs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .vs-user { text-align: center; flex: 1; }
-        .vs-user img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary); margin-bottom: 5px; }
-        .vs-user span { display: block; font-size: 0.8rem; font-weight: 600; }
-        .vs-divider { font-weight: 900; color: var(--primary); font-style: italic; font-size: 1.2rem; }
-
-        .challenge-info { text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
-        .challenge-type { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .challenge-score { font-size: 1.1rem; font-weight: 700; }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-top: 10px; }
-        .status-win { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
-        .status-pending { background: rgba(255, 152, 0, 0.2); color: #FF9800; }
-
-        /* Modal Simple */
-        #challengeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: var(--card-bg); width: 90%; max-width: 400px; border-radius: 24px; padding: 30px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #888; }
-        .form-group select, .form-group input { width: 100%; padding: 12px; border-radius: 10px; background: #2a2a2a; border: 1px solid #444; color: white; }
+        body { font-family: 'Inter', sans-serif; background: #121212; color: white; padding-bottom: 50px; }
+        .challenge-container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .user-list { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; max-height: 300px; overflow-y: auto; padding-right: 10px; }
+        .user-item { 
+            background: #252525; padding: 15px; border-radius: 12px; 
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
+            border: 2px solid transparent; transition: 0.3s;
+        }
+        .user-item.selected { border-color: #ff5722; background: #2d2d2d; }
+        .user-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #333; }
+        .challenge-form { background: #1e1e1e; padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid #333; }
+        select, input { width: 100%; padding: 12px; margin: 10px 0; background: #333; border: 1px solid #444; color: white; border-radius: 8px; font-size: 1rem; }
+        .btn-challenge { width: 100%; padding: 15px; background: #ff5722; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
+        .btn-challenge:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
+    <div class="challenge-container">
+        <h1>🏆 Criar Desafio</h1>
+        <p style="color: #888;">Selecione um ou mais amigos para desafiar!</p>
 
-    <div class="header">
-        <i class="fas fa-chevron-left back-btn" onclick="window.location.href='perfil-social.html'"></i>
-        <h1 style="font-size: 1.5rem; font-weight: 800;">Desafios 1x1</h1>
-    </div>
-
-    <div class="create-challenge">
-        <h2>Desafie um Amigo!</h2>
-        <p>Quem queima mais calorias esta semana? Escolha o oponente e a meta.</p>
-        <button class="btn-new" onclick="openModal()">Novo Desafio</button>
-    </div>
-
-    <div class="tabs">
-        <div class="tab active">Ativos</div>
-        <div class="tab">Histórico</div>
-        <div class="tab">Convites</div>
-    </div>
-
-    <div id="challengesList">
-        <!-- Mock Challenge -->
-        <div class="challenge-card">
-            <div class="vs-header">
-                <div class="vs-user">
-                    <img src="https://via.placeholder.com/150" id="myPic">
-                    <span>Você</span>
-                </div>
-                <div class="vs-divider">VS</div>
-                <div class="vs-user">
-                    <img src="https://i.pravatar.cc/150?u=2">
-                    <span>Marcos Paulo</span>
-                </div>
-            </div>
-            <div class="challenge-info">
-                <div class="challenge-type">Meta: Mais Calorias (7 dias)</div>
-                <div class="challenge-score">2.450 <span style="color: #666; font-size: 0.8rem;">vs</span> 2.100</div>
-                <div class="status-badge status-win">Você está na frente! 🚀</div>
-            </div>
+        <div class="user-list" id="userList">
+            <div style="text-align: center; padding: 20px;">Carregando atletas...</div>
         </div>
-    </div>
 
-    <!-- Modal Novo Desafio -->
-    <div id="challengeModal">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">Criar Desafio</h2>
-            <div class="form-group">
-                <label>Oponente</label>
-                <select id="opponentSelect">
-                    <option>Carregando amigos...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Tipo de Competição</label>
-                <select id="challengeType">
-                    <option value="calories">Mais Calorias na Semana</option>
-                    <option value="points">Mais Queima Points</option>
-                    <option value="frequency">Mais Treinos (Frequência)</option>
-                </select>
-            </div>
-            <button class="btn-new" style="width: 100%;" onclick="createChallenge()">Lançar Desafio!</button>
-            <button class="btn-new" style="width: 100%; background: transparent; color: #888; margin-top: 10px;" onclick="closeModal()">Cancelar</button>
+        <div class="challenge-form">
+            <label>Tipo de Desafio:</label>
+            <select id="challengeType">
+                <option value="calories">🔥 Mais Calorias Queimadas</option>
+                <option value="points">⭐ Mais Queima Points</option>
+                <option value="frequency">📅 Maior Frequência Semanal</option>
+            </select>
+
+            <label>Duração (dias):</label>
+            <input type="number" id="duration" value="7" min="1" max="30">
+
+            <button class="btn-challenge" onclick="createChallenge()">Lançar Desafio!</button>
         </div>
+
+        <a href="perfil-social.html" style="display: block; text-align: center; margin-top: 20px; color: #ff5722; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Voltar ao Perfil
+        </a>
     </div>
 
     <script>
-        function openModal() { document.getElementById('challengeModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('challengeModal').style.display = 'none'; }
-        
-        // Lógica de carregar desafios do backend viria aqui
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token');
+        let selectedUsers = [];
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const users = await response.json();
+                const list = document.getElementById('userList');
+                list.innerHTML = '';
+                
+                if (users.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Nenhum atleta encontrado.</div>';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const item = document.createElement('div');
+                    item.className = 'user-item';
+                    const photoUrl = user.photo || 'https://www.infrapower.com.br/logo-v6.png';
+                    item.innerHTML = `
+                        <img src="${photoUrl}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                        <div>
+                            <strong>${user.name}</strong>
+                            <p style="font-size: 0.8rem; color: #888; margin: 0;">Box ID: ${user.box_id || '--'}</p>
+                        </div>
+                    `;
+                    item.onclick = () => toggleUser(user.id, item);
+                    list.appendChild(item);
+                });
+            } catch (err) { 
+                console.error(err); 
+                document.getElementById('userList').innerHTML = '<div style="text-align: center; color: #ff4444;">Erro ao carregar lista.</div>';
+            }
+        }
+
+        function toggleUser(id, element) {
+            const index = selectedUsers.indexOf(id);
+            if (index > -1) {
+                selectedUsers.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                selectedUsers.push(id);
+                element.classList.add('selected');
+            }
+        }
+
+        async function createChallenge() {
+            if (selectedUsers.length === 0) return alert('Selecione pelo menos um atleta!');
+            
+            const type = document.getElementById('challengeType').value;
+            const duration = document.getElementById('duration').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/social/challenge/create`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        opponentIds: selectedUsers, 
+                        type, 
+                        duration 
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Desafio lançado com sucesso! 🚀');
+                    window.location.href = 'perfil-social.html';
+                } else {
+                    alert('Erro ao criar desafio no servidor.');
+                }
+            } catch (err) { alert('Erro ao criar desafio.'); }
+        }
+
+        loadUsers();
     </script>
 </body>
 </html>
