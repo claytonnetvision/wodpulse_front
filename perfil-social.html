@@ -5,126 +5,203 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WODPulse Social</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
-    <link rel="stylesheet" href="style_social.css"> <!-- CSS externo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="social-style-new.css">
+    <style>
+        .profile-cover-modern {
+            height: 180px;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            position: relative;
+            margin-bottom: -60px;
+        }
+        .profile-info-card {
+            padding-top: 70px;
+            text-align: center;
+        }
+        .btn-edit-floating {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0 15px;
+            padding: 0 5px;
+        }
+        .section-header div { display: flex; align-items: center; gap: 10px; }
+        .section-header i { color: var(--primary); }
+        .section-header h2 { font-size: 1.1rem; font-weight: 700; }
+        .view-all { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+
+        .friends-grid-fb {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .friend-card-fb {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .friend-card-fb:active { transform: scale(0.95); }
+        .friend-card-fb img {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+        .friend-card-fb span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mutual-match-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--glass-bg);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            border: 1px solid var(--glass-border);
+        }
+        .match-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .match-info h3 { font-size: 1rem; margin-bottom: 2px; }
+        .match-indicator { font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: #1a1a1a;
+            width: 100%;
+            max-width: 400px;
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+        }
+        .bio-textarea {
+            width: 100%;
+            height: 100px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: var(--radius-sm);
+            color: white;
+            padding: 10px;
+            margin: 15px 0;
+            resize: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER ESTILO FACEBOOK -->
-        <div id="profileCover" class="profile-cover"></div>
+    <div class="container animate-up" style="padding-bottom: 100px;">
+        <div id="profileCover" class="profile-cover-modern">
+            <button id="btnEditProfile" class="btn-edit-floating" onclick="openEditModal()">
+                <i class="fas fa-camera"></i> Editar
+            </button>
+        </div>
         
-        <img id="userPhotoLarge" class="profile-pic-large" src="" alt="Foto do usuário">
-
-        <div class="profile-info-header">
-            <h1 id="userName">Carregando...</h1>
-            <p id="userBio" class="profile-bio">Adicione uma bio clicando em Editar Perfil</p>
-            <button id="btnEditProfile" class="btn-edit-profile" onclick="openEditModal()">Editar Perfil</button>
-            <p id="userBox" style="margin-top: 20px; color: var(--text-secondary); font-size: 0.95rem;">Box ID: --</p>
+        <div class="glass-card profile-info-card">
+            <div class="profile-pic-wrapper" style="margin-top: -120px;">
+                <img id="userPhotoLarge" class="profile-pic-modern" src="" alt="Foto do usuário">
+            </div>
+            <h1 id="userName" class="profile-name">Carregando...</h1>
+            <p id="userBio" class="profile-subtitle" style="margin: 10px 0;">Adicione uma bio clicando em Editar Perfil</p>
+            <p id="userBox" style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Box ID: --</p>
         </div>
 
-        <!-- ESTATÍSTICAS -->
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-item">
                 <span class="stat-value" id="stat-challenges">0</span>
                 <span class="stat-label">Desafios</span>
             </div>
-            <div class="stat-card">
+            <div class="stat-item">
                 <span class="stat-value" id="stat-likes">0</span>
                 <span class="stat-label">Likes</span>
             </div>
-            <div class="stat-card">
+            <div class="stat-item">
                 <span class="stat-value" id="stat-matches">0</span>
                 <span class="stat-label">Matches</span>
             </div>
         </div>
 
-        <!-- AÇÕES -->
-        <div class="action-grid">
-            <a href="matches.html" class="action-btn">
-                <i class="fas fa-heart"></i>
-                <span>WOD Match</span>
-            </a>
-            <a href="desafios.html" class="action-btn">
-                <i class="fas fa-trophy"></i>
-                <span>Novo Desafio</span>
-            </a>
+        <!-- BUSCA -->
+        <div class="search-box" style="position: relative; margin-bottom: 20px;">
+            <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="searchUsersInput" placeholder="Encontrar atletas..." style="width: 100%; padding: 12px 12px 12px 45px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-md); color: white;">
+            <div id="searchResults" style="margin-top: 10px;"></div>
         </div>
 
-        <!-- BUSCA DE ATLETAS -->
-        <div class="search-section">
-            <div class="section-title">
-                <i class="fas fa-search"></i>
-                <span>Encontrar Atletas</span>
-            </div>
-            <input type="text" id="searchUsersInput" class="search-input" placeholder="Digite o nome do atleta...">
-            <div id="searchResults" class="search-results"></div>
-        </div>
-
-        <!-- PROGRESSO TÉCNICO -->
-        <a href="#" id="linkProgresso" class="full-width-btn">
-            <i class="fas fa-chart-line"></i>
+        <!-- AMIGOS (GRADE ESTILO FACEBOOK) -->
+        <div class="section-header">
             <div>
-                <strong>Meu Progresso Técnico</strong>
-                <p>Ver gráficos e histórico</p>
+                <i class="fas fa-users"></i>
+                <h2>Amigos <span id="friendsCount" style="color: var(--text-muted); font-weight: 400;">(0)</span></h2>
             </div>
-        </a>
-
-        <!-- PRIVACIDADE DO PROGRESSO -->
-        <div class="privacy-section">
-            <div class="section-title">
-                <i class="fas fa-lock"></i>
-                <span>Privacidade do Meu Progresso</span>
-            </div>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                Atual: <strong id="currentPrivacyText">Carregando...</strong>
-            </p>
-            <select id="privacySelect" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:10px; color:white; margin-bottom:10px;">
-                <option value="public">Público (qualquer um com o link)</option>
-                <option value="friends_only">Só Amigos</option>
-                <option value="private">Privado (só eu)</option>
-            </select>
-            <button onclick="savePrivacy()" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer;">
-                Salvar Configuração
-            </button>
+            <a href="#" class="view-all">Ver todos</a>
+        </div>
+        <div id="friendsGrid" class="friends-grid-fb">
+            <!-- Amigos carregados aqui -->
         </div>
 
-        <!-- PEDIDOS DE AMIZADE PENDENTES -->
-        <div class="section-title">
-            <i class="fas fa-user-plus"></i>
-            <span>Pedidos de Amizade</span>
+        <!-- PEDIDOS -->
+        <div class="section-header">
+            <div>
+                <i class="fas fa-user-plus"></i>
+                <h2>Pedidos de Amizade</h2>
+            </div>
         </div>
         <div id="pendingRequests"></div>
 
-        <!-- AMIGOS CONFIRMADOS -->
-        <div class="friends-section">
-            <div class="section-title">
-                <i class="fas fa-users"></i>
-                <span>Amigos <strong id="friendsCount">(0)</strong></span>
-            </div>
-            <div id="friendsGrid" class="friends-grid"></div>
-            <button class="btn-view-all-friends" onclick="alert('Página completa de amigos em desenvolvimento')">Ver todos os amigos</button>
-        </div>
-
-        <!-- MATCHES MÚTUOS -->
-        <div class="mutual-matches-section">
-            <div class="section-title">
+        <!-- MATCHES -->
+        <div class="section-header">
+            <div>
                 <i class="fas fa-heart"></i>
-                <span>Seus Matches</span>
-            </div>
-            <div class="matches-container" id="matchesContainer">
-                <div class="empty-state">
-                    <i class="fas fa-heart-broken"></i>
-                    <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
-                </div>
+                <h2>Seus Matches</h2>
             </div>
         </div>
+        <div id="matchesContainer"></div>
 
-        <!-- BOTÃO DE LOGOUT -->
-        <button class="logout-btn" onclick="logout()">
+        <button class="btn btn-secondary" onclick="logout()" style="margin-top: 40px; border-color: var(--error); color: var(--error);">
             <i class="fas fa-sign-out-alt"></i> Sair da Conta
         </button>
     </div>
 
-    <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="nav-bar">
         <a href="perfil-social.html" class="nav-item active"><i class="fas fa-home"></i></a>
         <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
@@ -132,21 +209,18 @@
         <a href="#" id="navProgresso" class="nav-item"><i class="fas fa-chart-line"></i></a>
     </nav>
 
-    <!-- MODAL DE EDIÇÃO DE PERFIL -->
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Editar Perfil</h2>
+            <h2 style="color: var(--primary); margin-bottom: 15px;">Editar Perfil</h2>
+            <label style="font-size: 0.8rem; color: var(--text-muted);">Foto de Capa</label>
+            <input type="file" id="coverInput" accept="image/*" style="margin: 10px 0; font-size: 0.8rem;">
             
-            <p style="margin-bottom: 10px;">Foto de Capa</p>
-            <input type="file" id="coverInput" accept="image/*" style="margin-bottom: 10px;">
-            <img id="coverPreview" class="cover-preview" src="" alt="Preview da capa">
+            <label style="font-size: 0.8rem; color: var(--text-muted);">Sua Bio</label>
+            <textarea id="bioInput" class="bio-textarea" placeholder="Fale sobre seus treinos..."></textarea>
             
-            <p style="margin: 30px 0 10px;">Bio</p>
-            <textarea id="bioInput" class="bio-textarea" placeholder="Fale um pouco sobre você... (ex: Atleta desde 2020, apaixonado por WODs pesados)"></textarea>
-            
-            <div class="modal-buttons">
-                <button class="btn-save-profile" onclick="saveProfile()">Salvar</button>
-                <button class="btn-cancel-profile" onclick="closeEditModal()">Cancelar</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="saveProfile()">Salvar</button>
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
             </div>
         </div>
     </div>
@@ -155,82 +229,12 @@
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
         
-        if (!token) {
-            window.location.href = 'login.html';
-        }
+        if (!token) window.location.href = 'login.html';
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
             return `data:image/jpeg;base64,${photo}`;
-        }
-
-        let searchTimeout;
-
-        // Busca de atletas
-        document.getElementById('searchUsersInput').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            const query = e.target.value.trim();
-            if (query.length < 2) {
-                document.getElementById('searchResults').innerHTML = '';
-                return;
-            }
-            searchTimeout = setTimeout(() => searchUsers(query), 500);
-        });
-
-        async function searchUsers(query) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                const container = document.getElementById('searchResults');
-                if (data.users.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Nenhum atleta encontrado</p>';
-                    return;
-                }
-                container.innerHTML = data.users.map(user => `
-                    <div class="search-result-card">
-                        <img src="${formatPhoto(user.photo)}" class="search-result-photo" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
-                        <div class="search-result-info">
-                            <strong>${user.name}</strong>
-                            <p style="color:#888; font-size:0.8rem; margin-top:4px;">Box ID: ${user.box_id || '--'}</p>
-                        </div>
-                        <div class="search-result-actions">
-                            <button class="btn-view-profile" onclick="openProfile(${user.id})">
-                                Ver Perfil
-                            </button>
-                            <button class="btn-add-friend" onclick="requestFriendship(${user.id})">
-                                Adicionar Amigo
-                            </button>
-                            <button class="btn-challenge" onclick="challengeUser(${user.id})">
-                                Desafiar
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                document.getElementById('searchResults').innerHTML = '<p style="color:#f44336; text-align:center;">Erro na busca</p>';
-            }
-        }
-
-        async function requestFriendship(targetId) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetId })
-                });
-                const data = await res.json();
-                alert(data.message || 'Pedido enviado!');
-                searchUsers(document.getElementById('searchUsersInput').value.trim());
-            } catch (err) {
-                alert('Erro ao enviar pedido');
-            }
-        }
-
-        function challengeUser(userId) {
-            window.location.href = `desafios.html?opponent=${userId}`;
         }
 
         async function loadProfile() {
@@ -240,10 +244,7 @@
                 });
                 const data = await res.json();
                 
-                // Foto de perfil grande
                 document.getElementById('userPhotoLarge').src = formatPhoto(data.photo);
-
-                // Capa
                 const coverEl = document.getElementById('profileCover');
                 if (data.cover_photo) {
                     coverEl.style.backgroundImage = `url(data:image;base64,${data.cover_photo})`;
@@ -251,70 +252,17 @@
                     coverEl.style.backgroundImage = 'linear-gradient(135deg, #FF9800, #E63946)';
                 }
 
-                // Nome, bio, box
                 document.getElementById('userName').textContent = data.name || 'Atleta';
                 document.getElementById('userBio').textContent = data.bio || 'Adicione uma bio no Editar Perfil';
                 document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
 
-                // Stats
                 document.getElementById('stat-challenges').textContent = data.stats?.challenges || 0;
                 document.getElementById('stat-likes').textContent = data.stats?.likes || 0;
                 document.getElementById('stat-matches').textContent = data.stats?.matches || 0;
 
-                // Links progresso
-                const progUrl = `meu-progresso.html?id=${data.id}`;
-                document.getElementById('linkProgresso').href = progUrl;
-                document.getElementById('navProgresso').href = progUrl;
-
-                // Privacidade
-                const privacy = data.progress_privacy || 'friends_only';
-                document.getElementById('currentPrivacyText').textContent = 
-                    privacy === 'public' ? 'Público' : 
-                    privacy === 'friends_only' ? 'Só Amigos' : 'Privado';
-                document.getElementById('privacySelect').value = privacy;
-
-                loadMutualMatches();
                 loadFriendsAndRequests();
-            } catch (err) {
-                console.error('Erro ao carregar perfil:', err);
-            }
-        }
-
-        async function loadMutualMatches() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-
-                const container = document.getElementById('matchesContainer');
-                
-                if (data.success && data.matches && data.matches.length > 0) {
-                    container.innerHTML = data.matches.map(match => `
-                        <div class="mutual-match-card">
-                            <img src="${formatPhoto(match.photo)}" alt="${match.name}" class="match-photo">
-                            <div class="match-info">
-                                <h3>${match.name}</h3>
-                                <span class="match-indicator">
-                                    <i class="fas fa-heart"></i> Match!
-                                </span>
-                            </div>
-                            <button class="view-profile-btn" onclick="openProfile(${match.id})">
-                                Ver Perfil
-                            </button>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-heart-broken"></i>
-                            <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
-                        </div>
-                    `;
-                }
-            } catch (err) {
-                console.error('Erro ao carregar matches:', err);
-            }
+                loadMutualMatches();
+            } catch (err) { console.error(err); }
         }
 
         async function loadFriendsAndRequests() {
@@ -323,175 +271,77 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-
-                // Pedidos pendentes
-                const pendingContainer = document.getElementById('pendingRequests');
-                if (data.pendingRequests && data.pendingRequests.length > 0) {
-                    pendingContainer.innerHTML = data.pendingRequests.map(req => `
-                        <div class="friend-request-card">
-                            <img src="${formatPhoto(req.photo)}" class="match-photo">
-                            <div class="match-info">
-                                <h3>${req.name}</h3>
-                                <span>Pede para ser amigo</span>
-                            </div>
-                            <div class="friend-request-actions">
-                                <button class="btn-accept-friend" onclick="respondFriend(${req.id}, 'accept')">Aceitar</button>
-                                <button class="btn-reject-friend" onclick="respondFriend(${req.id}, 'reject')">Recusar</button>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    pendingContainer.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">Nenhum pedido pendente</p>';
-                }
-
-                // Amigos confirmados
+                
+                // Grade de Amigos
                 const friendsGrid = document.getElementById('friendsGrid');
                 const friendsCount = document.getElementById('friendsCount');
                 if (data.confirmedFriends && data.confirmedFriends.length > 0) {
                     friendsCount.textContent = `(${data.confirmedFriends.length})`;
-                    friendsGrid.innerHTML = data.confirmedFriends.slice(0, 9).map(f => `
-                        <div class="friend-item" onclick="openProfile(${f.id})">
+                    friendsGrid.innerHTML = data.confirmedFriends.slice(0, 6).map(f => `
+                        <div class="friend-card-fb" onclick="openProfile(${f.id})">
                             <img src="${formatPhoto(f.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
                             <span>${f.name.split(' ')[0]}</span>
                         </div>
                     `).join('');
                 } else {
-                    friendsCount.textContent = '(0)';
-                    friendsGrid.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center; padding:20px;">Nenhum amigo ainda</p>';
+                    friendsGrid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align:center; padding:20px;">Nenhum amigo ainda.</p>';
                 }
-            } catch (err) {
-                console.error('Erro ao carregar amigos/pedidos:', err);
-            }
+
+                // Pedidos
+                const pendingContainer = document.getElementById('pendingRequests');
+                if (data.pendingRequests && data.pendingRequests.length > 0) {
+                    pendingContainer.innerHTML = data.pendingRequests.map(req => `
+                        <div class="mutual-match-card">
+                            <img src="${formatPhoto(req.photo)}" class="match-photo">
+                            <div class="match-info" style="flex:1">
+                                <h3>${req.name}</h3>
+                                <span style="font-size:0.7rem; color:var(--text-muted)">Pedido de amizade</span>
+                            </div>
+                            <div style="display:flex; gap:5px">
+                                <button class="btn btn-primary" style="width:auto; padding:8px; font-size:0.7rem" onclick="respondFriend(${req.id}, 'accept')"><i class="fas fa-check"></i></button>
+                                <button class="btn btn-secondary" style="width:auto; padding:8px; font-size:0.7rem; border-color:var(--error)" onclick="respondFriend(${req.id}, 'reject')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    pendingContainer.innerHTML = '<p style="color:#888; text-align:center; padding:10px;">Nenhum pedido pendente.</p>';
+                }
+            } catch (err) { console.error(err); }
         }
 
-        async function openProfile(userId) {
+        async function loadMutualMatches() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/is-friend/${userId}`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-
-                if (data.isFriend) {
-                    window.location.href = `meu-progresso.html?id=${userId}`;
+                const container = document.getElementById('matchesContainer');
+                if (data.success && data.matches && data.matches.length > 0) {
+                    container.innerHTML = data.matches.map(match => `
+                        <div class="mutual-match-card">
+                            <img src="${formatPhoto(match.photo)}" class="match-photo">
+                            <div class="match-info" style="flex:1">
+                                <h3>${match.name}</h3>
+                                <span class="match-indicator"><i class="fas fa-heart"></i> Match!</span>
+                            </div>
+                            <div style="display:flex; gap:5px">
+                                <button class="btn btn-primary" style="width:auto; padding:8px 12px; font-size:0.7rem" onclick="window.location.href='mensagens.html?id=${match.id}'"><i class="fas fa-comment"></i></button>
+                                <button class="btn btn-secondary" style="width:auto; padding:8px 12px; font-size:0.7rem" onclick="openProfile(${match.id})">Perfil</button>
+                            </div>
+                        </div>
+                    `).join('');
                 } else {
-                    window.location.href = `perfil-participante.html?id=${userId}`;
+                    container.innerHTML = '<p style="color:#888; text-align:center; padding:10px;">Nenhum match ainda.</p>';
                 }
-            } catch (err) {
-                window.location.href = `perfil-participante.html?id=${userId}`;
-            }
+            } catch (err) { console.error(err); }
         }
 
-        async function savePrivacy() {
-            const privacy = document.getElementById('privacySelect').value;
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/privacy/set`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ privacy })
-                });
-                if (res.ok) {
-                    alert('Privacidade atualizada com sucesso!');
-                    loadProfile();
-                } else {
-                    alert('Erro ao salvar privacidade');
-                }
-            } catch (err) {
-                alert('Erro de conexão');
-            }
-        }
+        function openProfile(id) { window.location.href = `perfil-participante.html?id=${id}`; }
+        function logout() { if (confirm('Sair?')) { localStorage.removeItem('wodpulse_social_token'); window.location.href = 'login.html'; } }
+        function openEditModal() { document.getElementById('editModal').style.display = 'flex'; }
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
-        async function respondFriend(requesterId, action) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requesterId, action })
-                });
-                if (res.ok) {
-                    loadFriendsAndRequests();
-                    loadMutualMatches();
-                }
-            } catch (err) {
-                alert('Erro ao responder pedido');
-            }
-        }
-
-        function logout() {
-            if (confirm('Tem certeza que deseja sair da conta?')) {
-                localStorage.removeItem('wodpulse_social_token');
-                window.location.href = 'login.html';
-            }
-        }
-
-        // ===== FUNÇÕES DO NOVO LAYOUT FB =====
-        function openEditModal() {
-            document.getElementById('editModal').style.display = 'flex';
-            // Preenche com valores atuais
-            document.getElementById('bioInput').value = document.getElementById('userBio').textContent.trim() === 'Adicione uma bio no Editar Perfil' ? '' : document.getElementById('userBio').textContent;
-            document.getElementById('coverPreview').src = document.getElementById('profileCover').style.backgroundImage.slice(5, -2) || '';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // Preview da capa ao selecionar arquivo
-        document.getElementById('coverInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    document.getElementById('coverPreview').src = ev.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        async function saveProfile() {
-            const bio = document.getElementById('bioInput').value.trim();
-            const coverFile = document.getElementById('coverInput').files[0];
-
-            let coverBase64 = null;
-            if (coverFile) {
-                coverBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result.split(',')[1]);
-                    reader.readAsDataURL(coverFile);
-                });
-            }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/profile/update`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        bio: bio || null,
-                        cover_photo: coverBase64 
-                    })
-                });
-
-                if (res.ok) {
-                    alert('Perfil atualizado com sucesso!');
-                    closeEditModal();
-                    loadProfile(); // recarrega tudo
-                } else {
-                    const error = await res.json();
-                    alert('Erro: ' + (error.error || 'Tente novamente'));
-                }
-            } catch (err) {
-                alert('Erro de conexão');
-                console.error(err);
-            }
-        }
-
-        // Carrega tudo
         loadProfile();
-
-        // Atualiza periodicamente
-        setInterval(() => {
-            loadMutualMatches();
-            loadFriendsAndRequests();
-        }, 30000);
     </script>
 </body>
 </html>
