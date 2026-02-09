@@ -175,6 +175,16 @@
             margin-top: 10px;
             border: 1px solid #eee;
         }
+        
+        .alert-box {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -191,11 +201,16 @@
             <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
             <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
             <div id="actionButtons">
-                <button class="btn btn-pink" onclick="alert('Funcionalidade de desafio em breve!')">Desafiar Atleta</button>
+                <button id="btnChallenge" class="btn btn-pink" onclick="alert('Funcionalidade de desafio em breve!')">Desafiar Atleta</button>
+                <button id="btnAddFriend" class="btn" style="display:none;" onclick="addFriend()">Adicionar Amigo</button>
             </div>
         </aside>
 
         <main class="main-content">
+            <div id="privacyAlert" class="alert-box" style="display:none;">
+                Este perfil é visível apenas para amigos mútuos (Matches).
+            </div>
+
             <div class="box-header">Perfil do Atleta</div>
             
             <div class="info-row">
@@ -274,24 +289,60 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                if (res.status === 403) {
+                    document.getElementById('privacyAlert').style.display = 'block';
+                    document.getElementById('btnAddFriend').style.display = 'inline-block';
+                    loadBasicInfoFallback();
+                    return;
+                }
+
                 if (!res.ok) throw new Error('Erro ao carregar perfil');
                 
                 const data = await res.json();
-                
-                document.getElementById('targetName').textContent = data.name;
-                document.getElementById('targetBio').textContent = data.bio || 'Sem bio definida.';
-                document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
-                document.getElementById('targetPhoto').src = formatPhoto(data.photo);
-
-                document.getElementById('stat-challenges').textContent = data.stats?.challenges || 0;
-                document.getElementById('stat-likes').textContent = data.stats?.likes || 0;
-                document.getElementById('stat-matches').textContent = data.stats?.matches || 0;
+                renderProfileData(data);
 
                 loadTechnicalStats();
                 loadFeed();
             } catch (err) {
                 console.error(err);
-                alert('Erro ao carregar perfil do atleta.');
+                loadBasicInfoFallback();
+            }
+        }
+
+        async function loadBasicInfoFallback() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const participant = data.participants.find(p => p.id == targetId);
+                
+                if (participant) {
+                    renderProfileData({
+                        name: participant.name,
+                        photo: participant.photo,
+                        bio: 'Perfil restrito (apenas para Matches)',
+                        box_name: 'WODPulse'
+                    });
+                    loadTechnicalStats();
+                } else {
+                    document.getElementById('targetName').textContent = 'Atleta não encontrado';
+                }
+            } catch (err) {
+                console.error('Fallback falhou:', err);
+            }
+        }
+
+        function renderProfileData(data) {
+            document.getElementById('targetName').textContent = data.name;
+            document.getElementById('targetBio').textContent = data.bio || 'Sem bio definida.';
+            document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
+            document.getElementById('targetPhoto').src = formatPhoto(data.photo);
+
+            if (data.stats) {
+                document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
+                document.getElementById('stat-likes').textContent = data.stats.likes || 0;
+                document.getElementById('stat-matches').textContent = data.stats.matches || 0;
             }
         }
 
@@ -350,6 +401,23 @@
             } catch (err) {
                 console.error('Erro ao carregar feed:', err);
                 document.getElementById('feedList').innerHTML = '<p style="color: red; text-align: center;">Erro ao carregar postagens.</p>';
+            }
+        }
+
+        async function addFriend() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido.');
             }
         }
 
