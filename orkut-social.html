@@ -725,7 +725,8 @@
                 
                 if (filteredFriends.length > 0) {
                     suggestionsDiv.innerHTML = filteredFriends.map(f => `
-                        <div class="mention-item" onclick="selectMention('${f.name}', ${lastAtIndex})">
+                        <div class="mention-item" onclick="insertMention('${f.name}', ${lastAtIndex}, ${cursorPosition})">
+                            <img src="${formatPhoto(f.photo)}" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px;">
                             <strong>${f.name}</strong>
                         </div>
                     `).join('');
@@ -738,12 +739,11 @@
             }
         }
 
-        function selectMention(name, atIndex) {
+        function insertMention(name, start, end) {
             const input = document.getElementById('postInput');
             const text = input.value;
-            const before = text.substring(0, atIndex);
-            const after = text.substring(input.selectionStart);
-            input.value = before + '@' + name + ' ' + after;
+            const newText = text.substring(0, start) + '@' + name + ' ' + text.substring(end);
+            input.value = newText;
             document.getElementById('mentionSuggestions').style.display = 'none';
             input.focus();
         }
@@ -755,59 +755,56 @@
                 });
                 userData = await res.json();
                 
+                document.getElementById('userName').textContent = userData.name;
                 document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
-                document.getElementById('userName').textContent = userData.name || 'Atleta';
                 document.getElementById('userBio').textContent = userData.bio || 'Sem bio definida.';
-                document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
+                document.getElementById('stat-challenges').textContent = userData.challenges_count || 0;
+                document.getElementById('stat-likes').textContent = userData.likes_count || 0;
+                document.getElementById('stat-matches').textContent = userData.matches_count || 0;
                 
-                document.getElementById('stat-challenges').textContent = userData.stats?.challenges || 0;
-                document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
-                document.getElementById('stat-matches').textContent = userData.stats?.matches || 0;
+                document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
 
-                loadStats();
                 loadContent();
                 loadFriends();
-                loadMatchCandidates();
                 loadPendingRequests();
-                loadNotifications();
+                loadMatchCandidates();
+                loadStats();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
         }
 
         async function loadStats() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const historicoData = await response.json();
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historicoData = await response.json();
 
-        if (Array.isArray(historicoData)) {
-            const totalAulas = historicoData.length;
-            const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
-            const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
-            const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), 0);
-            const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+                if (Array.isArray(historicoData)) {
+                    const totalAulas = historicoData.length;
+                    const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+                    const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
+                    const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), 0);
+                    const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
 
-            // Atualiza os elementos na tela
-            document.getElementById('stat-aulas').textContent = totalAulas;
-            document.getElementById('stat-calorias').textContent = Math.round(totalCalorias) + ' kcal';
-            document.getElementById('stat-media').textContent = Math.round(avgCalorias) + ' kcal';
-            document.getElementById('stat-fc').textContent = Math.round(maxHrHistorica) + ' bpm';
-            document.getElementById('stat-vo2').textContent = Math.round(totalVO2) + ' min';
-            
-            document.getElementById('frase-motivacional').textContent = 
-                `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
+                    document.getElementById('stat-aulas').textContent = totalAulas;
+                    document.getElementById('stat-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+                    document.getElementById('stat-media').textContent = Math.round(avgCalorias) + ' kcal';
+                    document.getElementById('stat-fc-max').textContent = Math.round(maxHrHistorica) + ' bpm';
+                    document.getElementById('stat-vo2').textContent = Math.round(totalVO2) + ' min';
+                    
+                    document.getElementById('motivational-msg').textContent = 
+                        `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar estatísticas:', err);
+                document.getElementById('motivational-msg').textContent = '❌ Erro ao carregar seus dados de treino.';
+            }
         }
-    } catch (err) {
-        console.error('Erro ao carregar estatísticas:', err);
-        document.getElementById('frase-motivacional').textContent = '❌ Erro ao carregar seus dados de treino.';
-    }
-}
-
 
         async function loadContent() {
-            const container = document.getElementById('dynamic-list');
+            const list = document.getElementById('dynamic-list');
             const title = document.getElementById('content-title');
             const postArea = document.getElementById('post-area');
 
@@ -817,7 +814,7 @@
                 loadFeed();
             } else if (currentSection === 'scraps') {
                 title.textContent = 'Mural de Recados (Scraps)';
-                postArea.style.display = 'none';
+                postArea.style.display = 'block';
                 loadScraps();
             } else if (currentSection === 'photos') {
                 title.textContent = 'Minhas Fotos';
@@ -832,20 +829,42 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const posts = await res.json();
-                const container = document.getElementById('dynamic-list');
+                renderPosts(posts);
+            } catch (err) {
+                console.error('Erro ao carregar feed:', err);
+            }
+        }
 
-                if (posts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem no feed.</p>';
-                    return;
-                }
+        async function loadScraps() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/scraps/${userData.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const scraps = await res.json();
+                renderPosts(scraps);
+            } catch (err) {
+                console.error('Erro ao carregar scraps:', err);
+            }
+        }
 
-                container.innerHTML = posts.map(post => `
+        function renderPosts(posts) {
+            const list = document.getElementById('dynamic-list');
+            if (posts.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem ainda.</p>';
+                return;
+            }
+
+            list.innerHTML = posts.map(post => {
+                const isAuthor = post.user_id === userData.id;
+                const deleteBtn = isAuthor ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Excluir Postagem"><i class="fas fa-trash"></i> EXCLUIR</button>` : '';
+                
+                return `
                     <div class="feed-item">
                         <div class="feed-header">
                             <div class="feed-header-left">
-                                <img src="${formatPhoto(post.user_photo)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
+                                <img src="${formatPhoto(post.author_photo)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
                                 <div class="feed-info">
-                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${post.user_name}</div>
+                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${post.author_name}</div>
                                     <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
@@ -860,63 +879,18 @@
                                 <button class="reaction-btn ${post.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'dislike')">
                                     <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${post.dislikes_count || 0})
                                 </button>
-                                ${post.user_id === userData.id ? `
-                                <button class="delete-btn" onclick="deletePost(${post.id})">
-                                    <i class="fas fa-trash"></i> EXCLUIR
-                                </button>` : ''}
+                                ${deleteBtn}
                             </div>
                         </div>
                     </div>
-                `).join('');
-            } catch (err) {
-                console.error('Erro ao carregar feed:', err);
-            }
-        }
-
-        async function loadScraps() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/scraps/${userData.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const scraps = await res.json();
-                const container = document.getElementById('dynamic-list');
-
-                if (scraps.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhum recado no seu mural.</p>';
-                    return;
-                }
-
-                container.innerHTML = scraps.map(scrap => `
-                    <div class="feed-item">
-                        <div class="feed-header">
-                            <img src="${formatPhoto(scrap.user_photo)}" class="feed-photo-small" onclick="openProfile(${scrap.user_id})">
-                            <div class="feed-info">
-                                <div class="feed-author" onclick="openProfile(${scrap.user_id})">${scrap.user_name}</div>
-                                <div class="feed-time">${new Date(scrap.created_at).toLocaleString()}</div>
-                            </div>
-                        </div>
-                        <div class="feed-content">${scrap.content}</div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.error('Erro ao carregar scraps:', err);
-            }
+                `;
+            }).join('');
         }
 
         async function createPost() {
             const content = document.getElementById('postInput').value.trim();
             const privacy = document.getElementById('postPrivacy').value;
-
-            if (!content && !selectedPhotoData) {
-                alert('Escreva algo ou selecione uma foto!');
-                return;
-            }
-
-            const body = {
-                content: content,
-                privacy: privacy,
-                photoData: selectedPhotoData
-            };
+            if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
@@ -925,25 +899,45 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({ 
+                        content, 
+                        type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                        privacy,
+                        photo_data: selectedPhotoData,
+                        target_user_id: currentSection === 'scraps' ? userData.id : null
+                    })
                 });
 
                 if (res.ok) {
                     document.getElementById('postInput').value = '';
                     document.getElementById('photoPreview').innerHTML = '';
                     selectedPhotoData = null;
-                    document.getElementById('photoInput').value = '';
                     loadContent();
-                } else {
-                    const errData = await res.json();
-                    alert('Erro ao postar: ' + (errData.error || 'Erro desconhecido'));
                 }
             } catch (err) {
-                alert('Erro de conexão');
+                alert('Erro ao postar');
             }
         }
 
-        async function reactToPost(postId, reactionType) {
+        async function deletePost(postId) {
+            if (!confirm('Tem certeza que deseja excluir esta postagem?')) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    loadContent();
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Erro ao excluir postagem');
+                }
+            } catch (err) {
+                alert('Erro ao excluir postagem');
+            }
+        }
+
+        async function reactToPost(postId, type) {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
                     method: 'POST',
@@ -951,38 +945,10 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ reactionType })
+                    body: JSON.stringify({ type })
                 });
-
-                if (res.ok) {
-                    loadContent();
-                }
-            } catch (err) {
-                console.error('Erro ao reagir:', err);
-            }
-        }
-
-        async function deletePost(postId) {
-            if (!confirm('Tem certeza que deseja excluir esta postagem?')) {
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (res.ok) {
-                    loadContent();
-                } else {
-                    const errData = await res.json();
-                    alert('Erro ao excluir: ' + (errData.error || 'Erro desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao excluir postagem:', err);
-                alert('Erro de conexão ao excluir postagem');
-            }
+                if (res.ok) loadContent();
+            } catch (err) {}
         }
 
         async function uploadAlbumPhoto(event) {
@@ -992,13 +958,9 @@
         }
 
         async function saveAlbumPhoto() {
-            if (!selectedAlbumPhotoData) {
-                alert('Selecione uma foto!');
-                return;
-            }
-
+            if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
             const body = {
-                photoData: selectedAlbumPhotoData,
+                photo_data: selectedAlbumPhotoData,
                 description: document.getElementById('photoDescription').value,
                 privacy: document.getElementById('photoPrivacy').value
             };
@@ -1287,6 +1249,8 @@
             if (notificationsCount > 0) {
                 badge.textContent = notificationsCount;
                 badge.style.display = 'flex';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
             } else {
                 badge.style.display = 'none';
             }
