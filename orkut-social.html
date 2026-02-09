@@ -323,6 +323,7 @@
         .reaction-buttons {
             display: flex;
             gap: 15px;
+            align-items: center;
         }
 
         .reaction-btn {
@@ -342,19 +343,19 @@
         .reaction-btn.active { color: var(--orkut-pink); font-weight: bold; background: #fff0f6; }
 
         .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 0;
             background: none;
             border: none;
             color: #999;
             cursor: pointer;
             font-size: 14px;
-            padding: 0 5px;
+            padding: 3px 8px;
             transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
 
-        .delete-btn:hover { color: #ff6b6b; }
+        .delete-btn:hover { color: #ff6b6b; background: #fff5f5; border-radius: 3px; }
 
         .sidebar-right {
             display: flex;
@@ -776,24 +777,22 @@
 
         async function loadStats() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                // Rota correta baseada no meu-progresso.html
+                const res = await fetch(`${API_BASE_URL}/api/stats/my-progress`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
                 
-                const totalAulas = data.length;
-                const totalCalorias = data.reduce((acc, s) => acc + (s.calories || 0), 0);
-                const mediaCalorias = totalAulas > 0 ? Math.round(totalCalorias / totalAulas) : 0;
-                const fcMax = data.reduce((max, s) => Math.max(max, s.hr_max || 0), 0);
-                const totalVo2 = data.reduce((acc, s) => acc + (s.vo2_time || 0), 0);
+                if (data.success && data.data) {
+                    const stats = data.data;
+                    document.getElementById('stat-aulas').textContent = stats.total_sessions || 0;
+                    document.getElementById('stat-calorias').textContent = `${stats.total_calories || 0} kcal`;
+                    document.getElementById('stat-media').textContent = `${stats.avg_calories || 0} kcal`;
+                    document.getElementById('stat-fc-max').textContent = `${stats.max_hr || 0} bpm`;
+                    document.getElementById('stat-vo2').textContent = `${stats.total_vo2_time || 0} min`;
 
-                document.getElementById('stat-aulas').textContent = totalAulas;
-                document.getElementById('stat-calorias').textContent = `${totalCalorias} kcal`;
-                document.getElementById('stat-media').textContent = `${mediaCalorias} kcal`;
-                document.getElementById('stat-fc-max').textContent = `${fcMax} bpm`;
-                document.getElementById('stat-vo2').textContent = `${totalVo2} min`;
-
-                document.getElementById('motivational-msg').textContent = `🔥 Você já fez ${totalAulas} aulas e queimou ${totalCalorias} calorias no total!`;
+                    document.getElementById('motivational-msg').textContent = `🔥 Você já fez ${stats.total_sessions || 0} aulas e queimou ${stats.total_calories || 0} calorias no total!`;
+                }
             } catch (err) {
                 console.error('Erro ao carregar estatísticas:', err);
             }
@@ -842,7 +841,6 @@
                                     <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
-                            ${post.user_id === userData.id ? `<button class="delete-btn" onclick="deletePost(${post.id})"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
                         <div class="feed-content">${post.content}</div>
                         ${post.photo_data ? `<img src="${post.photo_data}" class="feed-image">` : ''}
@@ -854,6 +852,10 @@
                                 <button class="reaction-btn ${post.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'dislike')">
                                     <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${post.dislikes_count || 0})
                                 </button>
+                                ${post.user_id === userData.id ? `
+                                <button class="delete-btn" onclick="deletePost(${post.id})">
+                                    <i class="fas fa-trash"></i> EXCLUIR
+                                </button>` : ''}
                             </div>
                         </div>
                     </div>
