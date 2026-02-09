@@ -776,27 +776,35 @@
         }
 
         async function loadStats() {
-            try {
-                // Rota correta baseada no meu-progresso.html
-                const res = await fetch(`${API_BASE_URL}/api/stats/my-progress`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                
-                if (data.success && data.data) {
-                    const stats = data.data;
-                    document.getElementById('stat-aulas').textContent = stats.total_sessions || 0;
-                    document.getElementById('stat-calorias').textContent = `${stats.total_calories || 0} kcal`;
-                    document.getElementById('stat-media').textContent = `${stats.avg_calories || 0} kcal`;
-                    document.getElementById('stat-fc-max').textContent = `${stats.max_hr || 0} bpm`;
-                    document.getElementById('stat-vo2').textContent = `${stats.total_vo2_time || 0} min`;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const historicoData = await response.json();
 
-                    document.getElementById('motivational-msg').textContent = `🔥 Você já fez ${stats.total_sessions || 0} aulas e queimou ${stats.total_calories || 0} calorias no total!`;
-                }
-            } catch (err) {
-                console.error('Erro ao carregar estatísticas:', err);
-            }
+        if (Array.isArray(historicoData)) {
+            const totalAulas = historicoData.length;
+            const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+            const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
+            const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), 0);
+            const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+
+            // Atualiza os elementos na tela
+            document.getElementById('stat-aulas').textContent = totalAulas;
+            document.getElementById('stat-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+            document.getElementById('stat-media').textContent = Math.round(avgCalorias) + ' kcal';
+            document.getElementById('stat-fc').textContent = Math.round(maxHrHistorica) + ' bpm';
+            document.getElementById('stat-vo2').textContent = Math.round(totalVO2) + ' min';
+            
+            document.getElementById('frase-motivacional').textContent = 
+                `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
         }
+    } catch (err) {
+        console.error('Erro ao carregar estatísticas:', err);
+        document.getElementById('frase-motivacional').textContent = '❌ Erro ao carregar seus dados de treino.';
+    }
+}
+
 
         async function loadContent() {
             const container = document.getElementById('dynamic-list');
