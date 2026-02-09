@@ -347,7 +347,7 @@
             border: none;
             color: #999;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 11px;
             padding: 3px 8px;
             transition: color 0.2s;
             display: flex;
@@ -917,44 +917,56 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const posts = await res.json();
-                const container = document.getElementById('dynamic-list');
-                
-                if (posts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; padding: 20px;">Nenhuma atualização no momento.</p>';
-                    return;
-                }
+                renderPosts(posts);
+            } catch (err) { console.error(err); }
+        }
 
-                container.innerHTML = posts.map(post => `
-                    <div class="feed-item" id="post-${post.id}">
-                        <div class="feed-header">
-                            <div class="feed-header-left">
-                                <img src="${formatPhoto(post.user_photo)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
-                                <div class="feed-info">
-                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${post.user_name}</div>
-                                    <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
-                                </div>
+        async function loadScraps() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/scraps`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const scraps = await res.json();
+                renderPosts(scraps);
+            } catch (err) {
+                console.error('Erro ao carregar scraps:', err);
+            }
+        }
+
+        function renderPosts(posts) {
+            const list = document.getElementById('dynamic-list');
+            if (posts.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem ainda.</p>';
+                return;
+            }
+
+            list.innerHTML = posts.map(item => `
+                <div class="feed-item">
+                    <div class="feed-header">
+                        <div class="feed-header-left">
+                            <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small" onclick="openProfile(${item.user_id})">
+                            <div class="feed-info">
+                                <div class="feed-author" onclick="openProfile(${item.user_id})">${item.user_name}</div>
+                                <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
                             </div>
-                            ${post.user_id === userData.id ? `
-                                <button class="delete-btn" onclick="deletePost(${post.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            ` : ''}
                         </div>
-                        <div class="feed-content">${post.content}</div>
-                        ${post.photo_data ? `<img src="${post.photo_data}" class="feed-image">` : ''}
-                        <div class="feed-reactions">
-                            <div class="reaction-buttons">
-                                <button class="reaction-btn ${post.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'like')">
-                                    <i class="fas fa-thumbs-up"></i> <span>${post.likes_count || 0}</span>
-                                </button>
-                                <button class="reaction-btn ${post.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'dislike')">
-                                    <i class="fas fa-thumbs-down"></i> <span>${post.dislikes_count || 0}</span>
-                                </button>
-                            </div>
+                        ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
+                    </div>
+                    <div class="feed-content">${item.content}</div>
+                    ${item.photo_data ? `<div class="feed-image-container"><img src="${item.photo_data}" class="feed-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;"></div>` : ''}
+                    <div class="feed-reactions">
+                        <div class="reaction-buttons">
+                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
+                                <i class="fas fa-thumbs-up"></i> CURTI (${item.likes_count || 0})
+                            </button>
+                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
+                                <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
+                            </button>
+                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" style="margin-left: 10px; color: #999; background: none; border: none; cursor: pointer; font-size: 11px;" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                         </div>
                     </div>
-                `).join('');
-            } catch (err) { console.error(err); }
+                </div>
+            `).join('');
         }
 
         async function createPost() {
