@@ -782,10 +782,13 @@
                 const historicoData = await response.json();
 
                 if (Array.isArray(historicoData)) {
-                    const totalAulas = historicoData.length;
-                    const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
-                    const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
-                    const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), 0);
+                    // Filtra apenas os treinos do usuário logado (userData.id)
+                    const meusTreinos = historicoData.filter(h => h.participant_id === userData.id);
+                    
+                    const totalAulas = meusTreinos.length;
+                    const totalCalorias = meusTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+                    const totalVO2 = meusTreinos.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
+                    const maxHrHistorica = Math.max(...meusTreinos.map(h => h.max_hr_reached || 0), 0);
                     const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
 
                     document.getElementById('stat-aulas').textContent = totalAulas;
