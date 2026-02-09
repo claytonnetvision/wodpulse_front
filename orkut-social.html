@@ -106,6 +106,48 @@
 
         .menu-list a:hover { text-decoration: underline; }
 
+        /* TRAINING STATS WIDGET */
+        .stats-widget {
+            background: #fff;
+            border: 1px solid var(--orkut-border);
+            padding: 10px;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .stats-widget-header {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+
+        .stat-label { color: #666; }
+        .stat-value { font-weight: bold; color: var(--orkut-pink); }
+
+        .motivational-box {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 8px;
+            margin-top: 10px;
+            font-size: 10px;
+            color: #795548;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+
         .content-center {
             display: flex;
             flex-direction: column;
@@ -180,7 +222,6 @@
             gap: 15px;
         }
 
-        /* WOD MATCH SIDEBAR */
         .match-sidebar-card {
             text-align: center;
             padding: 10px;
@@ -309,8 +350,36 @@
                 </ul>
             </div>
 
+            <!-- TRAINING STATS WIDGET -->
+            <div class="stats-widget">
+                <div class="stats-widget-header"><i class="fas fa-bolt"></i> Meu Progresso</div>
+                <div class="stat-row">
+                    <span class="stat-label">Aulas:</span>
+                    <span id="stat-aulas" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Calorias:</span>
+                    <span id="stat-calorias" class="stat-value">0 kcal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Média/Aula:</span>
+                    <span id="stat-media" class="stat-value">0 kcal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FC Máxima:</span>
+                    <span id="stat-fc-max" class="stat-value">0 bpm</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Tempo VO2:</span>
+                    <span id="stat-vo2" class="stat-value">0 min</span>
+                </div>
+                <div id="motivational-msg" class="motivational-box">
+                    🔥 Carregando sua motivação...
+                </div>
+            </div>
+
             <div class="box">
-                <div class="box-header">Estatísticas</div>
+                <div class="box-header">Estatísticas Sociais</div>
                 <p>Desafios: <strong id="stat-challenges" class="pink">0</strong></p>
                 <p>Likes: <strong id="stat-likes" class="pink">0</strong></p>
                 <p>Matches: <strong id="stat-matches" class="pink">0</strong></p>
@@ -347,7 +416,6 @@
         </main>
 
         <aside class="sidebar-right">
-            <!-- WOD MATCH SIDEBAR -->
             <div class="box">
                 <div class="box-header">WOD Match 🔥</div>
                 <div id="matchCandidate" class="match-sidebar-card">
@@ -419,6 +487,7 @@
                 document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
                 document.getElementById('stat-matches').textContent = userData.stats?.matches || 0;
 
+                loadTrainingStats();
                 loadFriends();
                 loadContent();
                 loadCandidates();
@@ -427,7 +496,36 @@
             }
         }
 
-        // --- WOD MATCH LOGIC ---
+        async function loadTrainingStats() {
+            try {
+                // Buscando histórico para calcular estatísticas
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${userData.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historicoData = await res.json();
+                
+                if (historicoData && Array.isArray(historicoData)) {
+                    const totalAulas = historicoData.length;
+                    const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+                    const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
+                    const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), userData.historical_max_hr || 0);
+                    const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+
+                    document.getElementById('stat-aulas').textContent = totalAulas;
+                    document.getElementById('stat-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+                    document.getElementById('stat-media').textContent = Math.round(avgCalorias) + ' kcal';
+                    document.getElementById('stat-fc-max').textContent = Math.round(maxHrHistorica) + ' bpm';
+                    document.getElementById('stat-vo2').textContent = Math.round(totalVO2) + ' min';
+                    
+                    document.getElementById('motivational-msg').textContent = 
+                        `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar estatísticas de treino:', err);
+                document.getElementById('motivational-msg').textContent = '❌ Erro ao carregar progresso.';
+            }
+        }
+
         async function loadCandidates() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
