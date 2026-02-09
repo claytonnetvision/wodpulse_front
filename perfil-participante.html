@@ -153,46 +153,32 @@
             color: var(--orkut-dark-blue);
         }
 
-        .ai-evaluation-box {
+        /* Feedback do Treinador (Estilo meu-progresso.html) */
+        .feedback-box {
             background: #fff9e6;
             border: 1px solid #ffeeba;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            position: relative;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border-left: 5px solid #FF9800;
         }
 
-        .ai-evaluation-box::before {
-            content: '\f0eb';
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: #FF9800;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+        .feedback-title {
+            color: #856404;
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .ai-title {
-            font-weight: bold;
-            color: #856404;
-            margin-bottom: 8px;
-            display: block;
-            font-size: 11px;
+            gap: 8px;
             text-transform: uppercase;
         }
 
-        .ai-content {
+        .feedback-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
             font-style: italic;
-            color: #665c33;
-            line-height: 1.5;
         }
 
         .feed-item {
@@ -287,9 +273,14 @@
                 </div>
             </div>
 
-            <div id="aiEvaluationSection" class="ai-evaluation-box" style="display:none;">
-                <span class="ai-title">Avaliação da IA WODPulse</span>
-                <div id="aiContent" class="ai-content">Analisando desempenho...</div>
+            <!-- Feedback do Treinador (IA) -->
+            <div id="feedbackSection" class="feedback-box" style="display:none;">
+                <div class="feedback-title">
+                    <i class="fas fa-robot"></i> Feedback do Treinador (IA)
+                </div>
+                <div id="feedbackContent" class="feedback-content">
+                    Analisando os últimos treinos deste atleta...
+                </div>
             </div>
 
             <div id="targetFeedSection" style="margin-top: 30px;">
@@ -318,7 +309,7 @@
 
         async function loadProfile() {
             try {
-                // 1. Carregar dados básicos
+                // 1. Carregar dados básicos do participante
                 const resPart = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -328,9 +319,11 @@
                 if (participant) {
                     document.getElementById('targetName').textContent = participant.name;
                     document.getElementById('targetPhoto').src = formatPhoto(participant.photo);
+                    document.getElementById('targetBox').textContent = 'WODPulse';
+                    document.getElementById('targetBio').textContent = 'Atleta WODPulse';
                 }
 
-                // 2. Carregar perfil completo e estatísticas sociais
+                // 2. Carregar perfil completo (Bio, Box e Stats Sociais)
                 fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => {
@@ -345,8 +338,8 @@
                     }
                 }).catch(e => console.log("Perfil completo restrito."));
 
-                // 3. Carregar estatísticas técnicas e Avaliação da IA
-                loadTechnicalStatsAndAI();
+                // 3. Carregar estatísticas técnicas e Feedback da IA (Lógica do meu-progresso.html)
+                loadTechnicalData();
                 
                 // 4. Carregar feed
                 loadFeed();
@@ -355,22 +348,23 @@
             }
         }
 
-        async function loadTechnicalStatsAndAI() {
+        async function loadTechnicalData() {
             try {
-                // Buscamos o histórico completo
+                // Usamos a mesma rota de histórico que o meu-progresso.html usa
                 const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const historicoData = await response.json();
 
                 if (Array.isArray(historicoData)) {
-                    // Filtramos os treinos do atleta visitado
+                    // FILTRO CRUCIAL: Filtramos apenas os dados do atleta visitado (targetId)
                     const atletaTreinos = historicoData.filter(h => h.participant_id == targetId);
                     
                     if (atletaTreinos.length > 0) {
+                        // Cálculo de Aulas e Calorias (Igual ao meu-progresso.html)
                         const totalAulas = atletaTreinos.length;
-                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
-                        const maxHrHistorica = Math.max(...atletaTreinos.map(h => h.max_hr_reached || 0), 0);
+                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.calories_total) || 0), 0);
+                        const maxHrHistorica = Math.max(...atletaTreinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
                         const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
 
                         document.getElementById('tech-aulas').textContent = totalAulas;
@@ -378,21 +372,25 @@
                         document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
                         document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
 
-                        // Buscar a última avaliação da IA (se existir no histórico)
-                        // Procuramos o treino mais recente que tenha um comentário da IA
-                        const treinosComIA = atletaTreinos
-                            .filter(h => h.ia_evaluation || h.coach_observations)
-                            .sort((a, b) => new Date(b.session_date) - new Date(a.session_date));
+                        // Lógica de Feedback da IA (Busca o treino mais recente com avaliação)
+                        const treinosOrdenados = atletaTreinos.sort((a, b) => new Date(b.session_date) - new Date(a.session_date));
+                        const treinoComIA = treinosOrdenados.find(h => h.ia_evaluation || h.coach_observations);
 
-                        if (treinosComIA.length > 0) {
-                            const ultimaIA = treinosComIA[0].ia_evaluation || treinosComIA[0].coach_observations;
-                            document.getElementById('aiEvaluationSection').style.display = 'block';
-                            document.getElementById('aiContent').textContent = ultimaIA;
+                        if (treinoComIA) {
+                            const feedback = treinoComIA.ia_evaluation || treinoComIA.coach_observations;
+                            document.getElementById('feedbackSection').style.display = 'block';
+                            document.getElementById('feedbackContent').textContent = feedback;
                         }
+                    } else {
+                        // Se não tiver treinos, garantimos que os campos mostrem 0
+                        document.getElementById('tech-aulas').textContent = '0';
+                        document.getElementById('tech-calorias').textContent = '0 kcal';
+                        document.getElementById('tech-media').textContent = '0 kcal';
+                        document.getElementById('tech-fc').textContent = '0 bpm';
                     }
                 }
             } catch (err) {
-                console.error('Erro ao carregar estatísticas técnicas/IA:', err);
+                console.error('Erro ao carregar dados técnicos:', err);
             }
         }
 
@@ -409,6 +407,7 @@
                     return;
                 }
 
+                // Filtramos as postagens do usuário específico
                 const userPosts = posts.filter(p => p.user_id == targetId);
 
                 if (userPosts.length === 0) {
