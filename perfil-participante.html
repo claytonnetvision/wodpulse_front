@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAGNÓSTICO - Perfil do Atleta</title>
+    <title>Perfil do Atleta - WODPulse</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
         :root {
@@ -52,6 +52,7 @@
             object-fit: cover;
             border: 1px solid #ccc;
             margin-bottom: 10px;
+            background: #eee;
         }
 
         .main-content {
@@ -180,18 +181,27 @@
             font-style: italic;
         }
 
-        /* Debug Console */
-        #debug-console {
-            background: #000;
-            color: #0f0;
-            padding: 15px;
-            font-family: monospace;
+        .feed-item {
+            border-bottom: 1px dotted #ccc;
+            padding: 15px 0;
+        }
+
+        .feed-time {
             font-size: 10px;
-            margin-top: 20px;
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 2px solid #333;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .feed-content {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .feed-img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #eee;
         }
     </style>
 </head>
@@ -199,7 +209,7 @@
 
     <header>
         <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut <span style="font-size: 10px; color: #666;">(MODO DIAGNÓSTICO)</span></a>
+            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut</a>
             <a href="orkut-social.html" class="btn">Voltar para o Início</a>
         </div>
     </header>
@@ -209,7 +219,8 @@
             <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
             <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
             <div id="actionButtons">
-                <button class="btn btn-pink" onclick="location.reload()">Recarregar Página</button>
+                <button id="btnChallenge" class="btn btn-pink" onclick="alert('Funcionalidade de desafio em breve!')">Desafiar Atleta</button>
+                <button id="btnAddFriend" class="btn" onclick="addFriend()">Adicionar Amigo</button>
             </div>
         </aside>
 
@@ -262,17 +273,22 @@
                 </div>
             </div>
 
+            <!-- Feedback do Treinador (IA) -->
             <div id="feedbackSection" class="feedback-box" style="display:none;">
                 <div class="feedback-title">
                     <i class="fas fa-robot"></i> Feedback do Treinador (IA)
                 </div>
                 <div id="feedbackContent" class="feedback-content">
-                    ...
+                    Analisando os últimos treinos deste atleta...
                 </div>
             </div>
 
-            <div class="box-header" style="margin-top: 30px; background: #333; color: #fff;">Console de Diagnóstico</div>
-            <div id="debug-console">Iniciando diagnóstico...<br></div>
+            <div id="targetFeedSection" style="margin-top: 30px;">
+                <div class="box-header">Últimas Postagens</div>
+                <div id="feedList">
+                    <p style="color: #888; text-align: center; padding: 20px;">Carregando postagens...</p>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -282,100 +298,136 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
 
-        function log(msg, color = '#0f0') {
-            const console = document.getElementById('debug-console');
-            console.innerHTML += `<span style="color: ${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
-            console.scrollTop = console.scrollHeight;
+        if (!targetId) window.location.href = 'orkut-social.html';
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('http')) return photo;
+            // O banco retorna o binário puro, precisamos converter para base64 se não for URL
+            if (photo.length > 1000) return `data:image/jpeg;base64,${photo}`;
+            return photo;
         }
 
-        if (!targetId) {
-            log('ERRO: ID não encontrado na URL!', 'red');
-        } else {
-            log(`Iniciando carga para o Atleta ID: ${targetId}`);
-        }
-
-        async function startDiagnostic() {
-            if (!token) {
-                log('ERRO: Token de autenticação não encontrado no localStorage!', 'red');
-                return;
-            }
-
-            // 1. Testar Perfil Público
+        async function loadProfile() {
             try {
-                log('Chamando /api/social/public-profile/' + targetId + '...');
-                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
+                // 1. Carregar perfil público
+                const resProfile = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                log(`Status Perfil: ${res.status} ${res.statusText}`);
                 
-                if (res.ok) {
-                    const data = await res.json();
-                    log('Dados do perfil recebidos com sucesso!');
-                    document.getElementById('targetName').textContent = data.name || 'Sem Nome';
-                    document.getElementById('targetBio').textContent = data.bio || 'Sem Bio';
-                    document.getElementById('targetBox').textContent = data.box_name || 'Sem Box';
+                if (resProfile.ok) {
+                    const data = await resProfile.json();
+                    document.getElementById('targetName').textContent = data.name;
+                    document.getElementById('targetPhoto').src = formatPhoto(data.photo);
+                    document.getElementById('targetBio').textContent = data.bio || 'Atleta WODPulse';
+                    document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
                     if (data.stats) {
                         document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
                         document.getElementById('stat-likes').textContent = data.stats.likes || 0;
                         document.getElementById('stat-matches').textContent = data.stats.matches || 0;
                     }
-                } else {
-                    const err = await res.json();
-                    log(`ERRO NO PERFIL: ${err.error || 'Erro desconhecido'}`, 'red');
                 }
-            } catch (e) {
-                log(`FALHA NA REQUISIÇÃO DE PERFIL: ${e.message}`, 'red');
-            }
 
-            // 2. Testar Histórico Técnico
-            try {
-                log('Chamando /api/sessions/historico...');
-                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                log(`Status Histórico: ${res.status}`);
-
-                if (res.ok) {
-                    const historico = await res.json();
-                    log(`Histórico recebido: ${historico.length} registros totais.`);
-                    
-                    const atletaTreinos = historico.filter(h => h.participant_id == targetId);
-                    log(`Treinos encontrados para o ID ${targetId}: ${atletaTreinos.length}`);
-
-                    if (atletaTreinos.length > 0) {
-                        const totalAulas = atletaTreinos.length;
-                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.calories_total) || 0), 0);
-                        const maxHr = Math.max(...atletaTreinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
-                        
-                        log(`Cálculos: Aulas=${totalAulas}, Calorias=${totalCalorias.toFixed(0)}, FC Max=${maxHr}`);
-                        
-                        document.getElementById('tech-aulas').textContent = totalAulas;
-                        document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
-                        document.getElementById('tech-media').textContent = Math.round(totalCalorias / totalAulas) + ' kcal';
-                        document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
-
-                        const treinoComIA = atletaTreinos.sort((a, b) => new Date(b.session_date) - new Date(a.session_date))
-                                                        .find(h => h.ia_evaluation || h.coach_observations);
-                        
-                        if (treinoComIA) {
-                            log('Feedback da IA encontrado!');
-                            document.getElementById('feedbackSection').style.display = 'block';
-                            document.getElementById('feedbackContent').textContent = treinoComIA.ia_evaluation || treinoComIA.coach_observations;
-                        } else {
-                            log('Nenhum feedback de IA encontrado nos treinos deste atleta.', 'yellow');
-                        }
-                    } else {
-                        log('AVISO: Este atleta não possui treinos registrados no histórico.', 'yellow');
-                    }
-                } else {
-                    log('ERRO AO CARREGAR HISTÓRICO', 'red');
-                }
-            } catch (e) {
-                log(`FALHA NA REQUISIÇÃO DE HISTÓRICO: ${e.message}`, 'red');
+                // 2. Carregar estatísticas técnicas e Feedback da IA
+                await loadTechnicalData();
+                
+                // 3. Carregar feed
+                await loadFeed();
+            } catch (err) {
+                console.error('Erro ao carregar perfil:', err);
             }
         }
 
-        startDiagnostic();
+        async function loadTechnicalData() {
+            try {
+                // Usamos a rota de histórico que retorna os dados da tabela session_participants
+                const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historicoData = await response.json();
+
+                if (Array.isArray(historicoData)) {
+                    // FILTRO: Usando participant_id conforme logs do banco
+                    const atletaTreinos = historicoData.filter(h => h.participant_id == targetId);
+                    
+                    if (atletaTreinos.length > 0) {
+                        const totalAulas = atletaTreinos.length;
+                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.calories_total) || 0), 0);
+                        const maxHrHistorica = Math.max(...atletaTreinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                        const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+
+                        document.getElementById('tech-aulas').textContent = totalAulas;
+                        document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+                        document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
+                        document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
+
+                        // Feedback da IA: Usando o campo 'ia_comment' da tabela session_participants (conforme logs)
+                        // Ordenamos por date_start (campo da tabela sessions)
+                        const treinosOrdenados = atletaTreinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
+                        const treinoComIA = treinosOrdenados.find(h => h.ia_comment);
+
+                        if (treinoComIA) {
+                            document.getElementById('feedbackSection').style.display = 'block';
+                            document.getElementById('feedbackContent').textContent = treinoComIA.ia_comment;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao carregar dados técnicos:', err);
+            }
+        }
+
+        async function loadFeed() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const posts = await res.json();
+                const container = document.getElementById('feedList');
+
+                if (!Array.isArray(posts) || posts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
+                    return;
+                }
+
+                const userPosts = posts.filter(p => p.user_id == targetId);
+
+                if (userPosts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
+                    return;
+                }
+
+                container.innerHTML = userPosts.map(post => `
+                    <div class="feed-item">
+                        <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
+                        <div class="feed-content">${post.content}</div>
+                        ${post.photo_data ? `<img src="${post.photo_data}" class="feed-img">` : ''}
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Erro ao carregar feed:', err);
+                document.getElementById('feedList').innerHTML = '<p style="color: red; text-align: center;">Erro ao carregar postagens.</p>';
+            }
+        }
+
+        async function addFriend() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido.');
+            }
+        }
+
+        loadProfile();
     </script>
 </body>
 </html>
