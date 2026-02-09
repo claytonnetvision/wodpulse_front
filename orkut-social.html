@@ -960,42 +960,57 @@
         async function createPost() {
             const content = document.getElementById('postInput').value.trim();
             const privacy = document.getElementById('postPrivacy').value;
-            
-            if (!content && !selectedPhotoData) return;
+            if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/post`, {
+                const postData = { 
+                    content, 
+                    type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                    privacy,
+                    photoData: selectedPhotoData,
+                    targetUserId: currentSection === 'scraps' ? userData.id : null
+                };
+
+                const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json' 
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ content, privacy, photoData: selectedPhotoData })
+                    body: JSON.stringify(postData),
+                    credentials: 'include'
                 });
 
-                if (res.ok) {
-                    document.getElementById('postInput').value = '';
-                    document.getElementById('photoPreview').innerHTML = '';
-                    selectedPhotoData = null;
-                    loadFeed();
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    throw new Error(errorData.error || `Erro ${res.status}`);
                 }
-            } catch (err) { alert('Erro ao postar'); }
+
+                document.getElementById('postInput').value = '';
+                document.getElementById('photoPreview').innerHTML = '';
+                selectedPhotoData = null;
+                alert('Postagem criada com sucesso!');
+                loadContent();
+            } catch (err) {
+                console.error('Erro ao postar:', err);
+                alert('Erro ao postar: ' + err.message);
+            }
         }
 
         async function deletePost(postId) {
             if (!confirm('Deseja excluir esta postagem?')) return;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/post/${postId}`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) loadFeed();
+                if (res.ok) loadContent();
             } catch (err) { alert('Erro ao excluir'); }
         }
 
         async function reactToPost(postId, type) {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/post/${postId}/react`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
@@ -1003,8 +1018,8 @@
                     },
                     body: JSON.stringify({ type })
                 });
-                if (res.ok) loadFeed();
-            } catch (err) { console.error(err); }
+                if (res.ok) loadContent();
+            } catch (err) {}
         }
 
         async function loadScraps() {
@@ -1019,9 +1034,12 @@
         }
 
         async function saveAlbumPhoto() {
-            if (!selectedAlbumPhotoData) return;
-            const description = document.getElementById('photoDescription').value;
-            const privacy = document.getElementById('photoPrivacy').value;
+            if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
+            const body = {
+                photo: selectedAlbumPhotoData,
+                description: document.getElementById('photoDescription').value || '',
+                privacy: document.getElementById('photoPrivacy').value
+            };
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/photos/upload`, {
@@ -1030,7 +1048,7 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ photoData: selectedAlbumPhotoData, description, privacy })
+                    body: JSON.stringify(body)
                 });
 
                 if (res.ok) {
