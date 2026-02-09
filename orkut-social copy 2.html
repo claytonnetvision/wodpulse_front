@@ -866,7 +866,7 @@
                         ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                     </div>
                     <div class="feed-content">${item.content}</div>
-                    ${item.photo_data ? `<div class="feed-image-container"><img src="${item.photo_data}" class="feed-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;"></div>` : ''}
+                    ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
                     <div class="feed-reactions">
                         <div class="reaction-buttons">
                             <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
