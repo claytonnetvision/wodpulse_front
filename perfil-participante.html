@@ -153,6 +153,48 @@
             color: var(--orkut-dark-blue);
         }
 
+        .ai-evaluation-box {
+            background: #fff9e6;
+            border: 1px solid #ffeeba;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .ai-evaluation-box::before {
+            content: '\f0eb';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #FF9800;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .ai-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .ai-content {
+            font-style: italic;
+            color: #665c33;
+            line-height: 1.5;
+        }
+
         .feed-item {
             border-bottom: 1px dotted #ccc;
             padding: 15px 0;
@@ -245,6 +287,11 @@
                 </div>
             </div>
 
+            <div id="aiEvaluationSection" class="ai-evaluation-box" style="display:none;">
+                <span class="ai-title">Avaliação da IA WODPulse</span>
+                <div id="aiContent" class="ai-content">Analisando desempenho...</div>
+            </div>
+
             <div id="targetFeedSection" style="margin-top: 30px;">
                 <div class="box-header">Últimas Postagens</div>
                 <div id="feedList">
@@ -271,7 +318,7 @@
 
         async function loadProfile() {
             try {
-                // Buscamos os dados básicos primeiro (que não têm restrição de match)
+                // 1. Carregar dados básicos
                 const resPart = await fetch(`${API_BASE_URL}/api/social/participants-for-challenges`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -281,11 +328,9 @@
                 if (participant) {
                     document.getElementById('targetName').textContent = participant.name;
                     document.getElementById('targetPhoto').src = formatPhoto(participant.photo);
-                    document.getElementById('targetBox').textContent = 'WODPulse';
-                    document.getElementById('targetBio').textContent = 'Atleta WODPulse';
                 }
 
-                // Tentamos carregar o perfil completo (se der 403, apenas ignoramos o erro e mantemos os dados básicos)
+                // 2. Carregar perfil completo e estatísticas sociais
                 fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => {
@@ -298,39 +343,56 @@
                             document.getElementById('stat-matches').textContent = data.stats.matches || 0;
                         }
                     }
-                }).catch(e => console.log("Perfil completo restrito, usando dados básicos."));
+                }).catch(e => console.log("Perfil completo restrito."));
 
-                // Carregamos as estatísticas técnicas (sempre visíveis)
-                loadTechnicalStats();
-                // Carregamos o feed (sempre visível)
+                // 3. Carregar estatísticas técnicas e Avaliação da IA
+                loadTechnicalStatsAndAI();
+                
+                // 4. Carregar feed
                 loadFeed();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
         }
 
-        async function loadTechnicalStats() {
+        async function loadTechnicalStatsAndAI() {
             try {
+                // Buscamos o histórico completo
                 const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const historicoData = await response.json();
 
                 if (Array.isArray(historicoData)) {
+                    // Filtramos os treinos do atleta visitado
                     const atletaTreinos = historicoData.filter(h => h.participant_id == targetId);
                     
-                    const totalAulas = atletaTreinos.length;
-                    const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
-                    const maxHrHistorica = Math.max(...atletaTreinos.map(h => h.max_hr_reached || 0), 0);
-                    const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+                    if (atletaTreinos.length > 0) {
+                        const totalAulas = atletaTreinos.length;
+                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+                        const maxHrHistorica = Math.max(...atletaTreinos.map(h => h.max_hr_reached || 0), 0);
+                        const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
 
-                    document.getElementById('tech-aulas').textContent = totalAulas;
-                    document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
-                    document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
-                    document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
+                        document.getElementById('tech-aulas').textContent = totalAulas;
+                        document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+                        document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
+                        document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
+
+                        // Buscar a última avaliação da IA (se existir no histórico)
+                        // Procuramos o treino mais recente que tenha um comentário da IA
+                        const treinosComIA = atletaTreinos
+                            .filter(h => h.ia_evaluation || h.coach_observations)
+                            .sort((a, b) => new Date(b.session_date) - new Date(a.session_date));
+
+                        if (treinosComIA.length > 0) {
+                            const ultimaIA = treinosComIA[0].ia_evaluation || treinosComIA[0].coach_observations;
+                            document.getElementById('aiEvaluationSection').style.display = 'block';
+                            document.getElementById('aiContent').textContent = ultimaIA;
+                        }
+                    }
                 }
             } catch (err) {
-                console.error('Erro ao carregar estatísticas técnicas:', err);
+                console.error('Erro ao carregar estatísticas técnicas/IA:', err);
             }
         }
 
