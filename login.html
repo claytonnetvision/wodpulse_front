@@ -194,7 +194,6 @@
 
     <div class="login-container">
         <div class="logo-section">
-            <!-- Substitua pelo caminho real da sua logo -->
             <img src="logo-v6.png" alt="WODPulse Logo" onerror="this.style.display='none'">
             <h1>WODPulse</h1>
             <p>Acesse sua evolução e rede social</p>
@@ -233,17 +232,12 @@
             const btn = document.getElementById('loginBtn');
             const msgDiv = document.getElementById('responseMessage');
             
-            // UI Loading state
             btn.classList.add('loading');
             btn.disabled = true;
             msgDiv.className = 'message';
             msgDiv.style.display = 'none';
 
             try {
-                // Aqui chamaremos seu backend
-                // Como você quer algo sem senha inicial, vamos simular o sucesso
-                // e redirecionar para o perfil. No backend real, você verificará o email.
-                
                 const response = await fetch(`${API_BASE_URL}/api/social/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -256,12 +250,12 @@
                     msgDiv.textContent = 'Login realizado com sucesso! Redirecionando...';
                     msgDiv.classList.add('success');
                     
-                    // Salva o token e dados do aluno
                     localStorage.setItem('wodpulse_social_token', data.token);
                     localStorage.setItem('wodpulse_student_id', data.studentId);
                     
                     setTimeout(() => {
-                        window.location.href = 'perfil-social.html';
+                        // REDIRECIONAMENTO PARA A NOVA PÁGINA ORKUT
+                        window.location.href = 'orkut-social.html';
                     }, 1500);
                 } else {
                     throw new Error(data.error || 'E-mail não encontrado. Verifique com seu Box.');
