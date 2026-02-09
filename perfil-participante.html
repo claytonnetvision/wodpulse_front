@@ -21,6 +21,7 @@
             margin: 0;
             padding: 0;
             font-size: 12px;
+            color: var(--orkut-text);
         }
 
         header {
@@ -90,6 +91,8 @@
             text-decoration: none;
             display: inline-block;
             margin-top: 10px;
+            font-size: 11px;
+            border-radius: 4px;
         }
 
         .btn-pink { background: var(--orkut-pink); }
@@ -119,6 +122,59 @@
             font-size: 10px;
             color: #666;
         }
+
+        .tech-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tech-stat-item {
+            background: #f0f4ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #d0d7ff;
+        }
+
+        .tech-stat-label {
+            display: block;
+            font-size: 9px;
+            color: #555;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .tech-stat-value {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+        }
+
+        .feed-item {
+            border-bottom: 1px dotted #ccc;
+            padding: 15px 0;
+        }
+
+        .feed-time {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .feed-content {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .feed-img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -133,8 +189,10 @@
     <div class="container">
         <aside class="sidebar">
             <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
-            <h3 id="targetName" style="color: var(--orkut-dark-blue);">Carregando...</h3>
-            <div id="actionButtons"></div>
+            <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
+            <div id="actionButtons">
+                <button class="btn btn-pink" onclick="alert('Funcionalidade de desafio em breve!')">Desafiar Atleta</button>
+            </div>
         </aside>
 
         <main class="main-content">
@@ -150,7 +208,7 @@
                 <span id="targetBox">...</span>
             </div>
 
-            <div class="box-header" style="margin-top: 30px;">Estatísticas de Treino</div>
+            <div class="box-header" style="margin-top: 30px;">Estatísticas Sociais</div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <span id="stat-challenges" class="stat-value">0</span>
@@ -166,7 +224,27 @@
                 </div>
             </div>
 
-            <div id="targetFeed" style="margin-top: 30px;">
+            <div class="box-header" style="margin-top: 30px;">Progresso Técnico (WODPulse)</div>
+            <div class="tech-stats-grid">
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Aulas</span>
+                    <span id="tech-aulas" class="tech-stat-value">0</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Calorias</span>
+                    <span id="tech-calorias" class="tech-stat-value">0 kcal</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Média/Aula</span>
+                    <span id="tech-media" class="tech-stat-value">0 kcal</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">FC Máxima</span>
+                    <span id="tech-fc" class="tech-stat-value">0 bpm</span>
+                </div>
+            </div>
+
+            <div id="targetFeedSection" style="margin-top: 30px;">
                 <div class="box-header">Últimas Postagens</div>
                 <div id="feedList">
                     <p style="color: #888; text-align: center; padding: 20px;">Carregando postagens...</p>
@@ -183,9 +261,15 @@
 
         if (!targetId) window.location.href = 'orkut-social.html';
 
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('http')) return photo;
+            if (photo.length > 1000) return `data:image/jpeg;base64,${photo}`;
+            return photo;
+        }
+
         async function loadProfile() {
             try {
-                // Rota correta para perfil público
                 const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -197,16 +281,42 @@
                 document.getElementById('targetName').textContent = data.name;
                 document.getElementById('targetBio').textContent = data.bio || 'Sem bio definida.';
                 document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
-                document.getElementById('targetPhoto').src = data.photo ? (data.photo.startsWith('http') ? data.photo : `data:image/jpeg;base64,${data.photo}`) : 'https://www.infrapower.com.br/logo-v6.png';
+                document.getElementById('targetPhoto').src = formatPhoto(data.photo);
 
                 document.getElementById('stat-challenges').textContent = data.stats?.challenges || 0;
                 document.getElementById('stat-likes').textContent = data.stats?.likes || 0;
                 document.getElementById('stat-matches').textContent = data.stats?.matches || 0;
 
+                loadTechnicalStats();
                 loadFeed();
             } catch (err) {
                 console.error(err);
                 alert('Erro ao carregar perfil do atleta.');
+            }
+        }
+
+        async function loadTechnicalStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historicoData = await response.json();
+
+                if (Array.isArray(historicoData)) {
+                    const atletaTreinos = historicoData.filter(h => h.participant_id == targetId);
+                    
+                    const totalAulas = atletaTreinos.length;
+                    const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
+                    const maxHrHistorica = Math.max(...atletaTreinos.map(h => h.max_hr_reached || 0), 0);
+                    const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+
+                    document.getElementById('tech-aulas').textContent = totalAulas;
+                    document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
+                    document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
+                    document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
+                }
+            } catch (err) {
+                console.error('Erro ao carregar estatísticas técnicas:', err);
             }
         }
 
@@ -218,20 +328,28 @@
                 const posts = await res.json();
                 const container = document.getElementById('feedList');
 
-                if (posts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública.</p>';
+                if (!Array.isArray(posts) || posts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
                     return;
                 }
 
-                container.innerHTML = posts.map(post => `
-                    <div style="border-bottom: 1px dotted #ccc; padding: 10px 0;">
-                        <div style="font-size: 10px; color: #999;">${new Date(post.created_at).toLocaleString()}</div>
-                        <div style="margin: 5px 0;">${post.content}</div>
-                        ${post.photo_data ? `<img src="${post.photo_data}" style="max-width: 100%; border: 1px solid #eee;">` : ''}
+                const userPosts = posts.filter(p => p.user_id == targetId);
+
+                if (userPosts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
+                    return;
+                }
+
+                container.innerHTML = userPosts.map(post => `
+                    <div class="feed-item">
+                        <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
+                        <div class="feed-content">${post.content}</div>
+                        ${post.photo_data ? `<img src="${post.photo_data}" class="feed-img">` : ''}
                     </div>
                 `).join('');
             } catch (err) {
-                console.error(err);
+                console.error('Erro ao carregar feed:', err);
+                document.getElementById('feedList').innerHTML = '<p style="color: red; text-align: center;">Erro ao carregar postagens.</p>';
             }
         }
 
