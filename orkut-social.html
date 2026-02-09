@@ -249,6 +249,7 @@
         .feed-item {
             border-bottom: 1px dotted #ccc;
             padding: 10px 0;
+            position: relative;
         }
 
         .feed-item:last-child { border-bottom: none; }
@@ -322,6 +323,7 @@
         .reaction-buttons {
             display: flex;
             gap: 15px;
+            align-items: center;
         }
 
         .reaction-btn {
@@ -346,11 +348,14 @@
             color: #999;
             cursor: pointer;
             font-size: 14px;
-            padding: 0 5px;
+            padding: 3px 8px;
             transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
 
-        .delete-btn:hover { color: #ff6b6b; }
+        .delete-btn:hover { color: #ff6b6b; background: #fff5f5; border-radius: 3px; }
 
         .sidebar-right {
             display: flex;
@@ -392,8 +397,8 @@
         }
 
         .btn-match-mini:hover { transform: scale(1.1); }
+        .btn-pass { background: #f0f0f0; color: #999; }
         .btn-like { background: var(--orkut-pink); color: white; }
-        .btn-pass { background: #ccc; color: #666; }
 
         .friends-grid {
             display: grid;
@@ -421,16 +426,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--orkut-dark-blue);
-        }
-
-        .search-box {
-            margin-bottom: 15px;
+            margin-top: 2px;
         }
 
         .search-input {
             width: 100%;
             padding: 5px;
             border: 1px solid var(--orkut-border);
+            font-size: 11px;
         }
 
         .modal {
@@ -441,42 +444,38 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            overflow-y: auto;
         }
 
         .modal-content {
             background: white;
             padding: 20px;
-            border: 5px solid var(--orkut-header);
             width: 400px;
-            margin: 20px auto;
+            border-radius: 5px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; }
 
-        .form-group label {
-            display: block;
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: var(--orkut-pink);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
             font-weight: bold;
-            margin-bottom: 5px;
-            color: var(--orkut-dark-blue);
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--orkut-border);
-            border-radius: 3px;
-            font-family: Arial, sans-serif;
+            display: none;
         }
 
         .pink { color: var(--orkut-pink); }
         .blue { color: var(--orkut-dark-blue); }
-        .hidden { display: none; }
-
     </style>
 </head>
 <body>
@@ -485,8 +484,12 @@
         <div class="header-container">
             <a href="#" class="logo">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">WODPulse</span></a>
             <nav class="nav-top">
-                <a href="orkut-social-final.html">Início</a>
+                <a href="orkut-social.html">Início</a>
                 <a href="matches-list.html"><i class="fas fa-heart"></i> Matches</a>
+                <a href="#" onclick="toggleNotifications()" style="position: relative;">
+                    <i class="fas fa-bell"></i> Notificações
+                    <span id="notificationBadge" class="notification-badge">0</span>
+                </a>
                 <a href="#" onclick="logout()">Sair</a>
             </nav>
         </div>
@@ -505,7 +508,7 @@
                     <li><a href="#" onclick="showSection('feed')"><i class="fas fa-rss"></i> Feed</a></li>
                     <li><a href="#" onclick="showSection('scraps')"><i class="fas fa-envelope"></i> Mural (Scraps)</a></li>
                     <li><a href="#" onclick="showSection('photos')"><i class="fas fa-camera"></i> Fotos</a></li>
-                    <li><a href="perfil-social.html"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
+                    <li><a href="#" id="progressLink"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
                     <li><a href="desafios.html"><i class="fas fa-trophy"></i> Desafios</a></li>
                 </ul>
             </div>
@@ -625,6 +628,19 @@
         </div>
     </div>
 
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <h3 class="blue">Notificações</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div id="notificationsList" style="max-height: 400px; overflow-y: auto;">
+                <p style="text-align: center; color: #888;">Carregando notificações...</p>
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button onclick="closeNotificationsModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="photosModal" class="modal">
         <div class="modal-content">
             <h3 class="blue">Meu Álbum de Fotos</h3>
@@ -666,6 +682,9 @@
 
         if (!token) window.location.href = 'login.html';
 
+        let notificationsCount = 0;
+        let allNotifications = [];
+
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
@@ -696,61 +715,37 @@
 
         async function handleMentionInput(event) {
             const text = event.target.value;
-            const lastAtIndex = text.lastIndexOf('@');
+            const cursorPosition = event.target.selectionStart;
+            const lastAtIndex = text.lastIndexOf('@', cursorPosition - 1);
             const suggestionsDiv = document.getElementById('mentionSuggestions');
             
-            if (lastAtIndex === -1) {
-                suggestionsDiv.style.display = 'none';
-                return;
-            }
-
-            const afterAt = text.substring(lastAtIndex + 1);
-            
-            if (afterAt.length === 0) {
-                showMentionSuggestions('');
-            } else if (/^[a-zA-Z\s]*$/.test(afterAt)) {
-                showMentionSuggestions(afterAt);
+            if (lastAtIndex !== -1) {
+                const query = text.substring(lastAtIndex + 1, cursorPosition).toLowerCase();
+                const filteredFriends = allFriends.filter(f => f.name.toLowerCase().includes(query));
+                
+                if (filteredFriends.length > 0) {
+                    suggestionsDiv.innerHTML = filteredFriends.map(f => `
+                        <div class="mention-item" onclick="insertMention('${f.name}', ${lastAtIndex}, ${cursorPosition})">
+                            <img src="${formatPhoto(f.photo)}" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px;">
+                            <strong>${f.name}</strong>
+                        </div>
+                    `).join('');
+                    suggestionsDiv.style.display = 'block';
+                } else {
+                    suggestionsDiv.style.display = 'none';
+                }
             } else {
                 suggestionsDiv.style.display = 'none';
             }
         }
 
-        function showMentionSuggestions(query) {
-            const container = document.getElementById('mentionSuggestions');
-            
-            let filtered = allFriends;
-            if (query.length > 0) {
-                filtered = allFriends.filter(f => 
-                    f.name.toLowerCase().includes(query.toLowerCase())
-                );
-            }
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="mention-item" style="cursor: default;">Nenhum amigo encontrado</div>';
-            } else {
-                container.innerHTML = filtered.slice(0, 5).map(friend => `
-                    <div class="mention-item" onclick="insertMention('${friend.name.replace(/'/g, "\\'")}')">
-                        <strong>${friend.name}</strong>
-                    </div>
-                `).join('');
-            }
-            
-            container.style.display = filtered.length > 0 || query.length > 0 ? 'block' : 'none';
-        }
-
-        function insertMention(friendName) {
-            const textarea = document.getElementById('postInput');
-            const text = textarea.value;
-            const lastAtIndex = text.lastIndexOf('@');
-            
-            const beforeAt = text.substring(0, lastAtIndex);
-            const newText = beforeAt + '@' + friendName + ' ';
-            
-            textarea.value = newText;
-            textarea.focus();
-            textarea.setSelectionRange(newText.length, newText.length);
-            
+        function insertMention(name, start, end) {
+            const input = document.getElementById('postInput');
+            const text = input.value;
+            const newText = text.substring(0, start) + '@' + name + ' ' + text.substring(end);
+            input.value = newText;
             document.getElementById('mentionSuggestions').style.display = 'none';
+            input.focus();
         }
 
         async function loadProfile() {
@@ -760,24 +755,26 @@
                 });
                 userData = await res.json();
                 
+                document.getElementById('userName').textContent = userData.name;
                 document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
-                document.getElementById('userName').textContent = userData.name || 'Atleta';
                 document.getElementById('userBio').textContent = userData.bio || 'Sem bio definida.';
+                document.getElementById('stat-challenges').textContent = userData.challenges_count || 0;
+                document.getElementById('stat-likes').textContent = userData.likes_count || 0;
+                document.getElementById('stat-matches').textContent = userData.matches_count || 0;
                 
-                document.getElementById('stat-challenges').textContent = userData.stats?.challenges || 0;
-                document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
-                document.getElementById('stat-matches').textContent = userData.stats?.matches || 0;
+                document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
 
-                loadTrainingStats();
-                loadFriends();
                 loadContent();
-                loadCandidates();
+                loadFriends();
+                loadPendingRequests();
+                loadMatchCandidates();
+                loadStats();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
         }
 
-        async function loadTrainingStats() {
+        async function loadStats() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${userData.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -805,179 +802,90 @@
             }
         }
 
-        async function loadCandidates() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                candidates = await res.json();
-                showNextCandidate();
-            } catch (err) {}
-        }
-
-        function showNextCandidate() {
-            const container = document.getElementById('matchCandidate');
-            if (candidates.length === 0 || currentCandidateIndex >= candidates.length) {
-                container.innerHTML = '<p style="color: #888; padding: 20px;">Sem mais atletas no momento.</p>';
-                return;
-            }
-
-            const c = candidates[currentCandidateIndex];
-            container.innerHTML = `
-                <img src="${formatPhoto(c.photo)}" class="match-photo-small">
-                <strong class="blue">${c.name}</strong>
-                <p style="color: #666; font-size: 10px;">${c.age ? c.age + ' anos' : ''} • Box: ${c.box_id || '--'}</p>
-                <div class="match-actions-mini">
-                    <button class="btn-match-mini btn-pass" onclick="handleMatch(${c.id}, 'dislike')"><i class="fas fa-times"></i></button>
-                    <button class="btn-match-mini btn-like" onclick="handleMatch(${c.id}, 'like')"><i class="fas fa-heart"></i></button>
-                </div>
-            `;
-        }
-
-        async function handleMatch(targetId, action) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/match`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify({ targetId, action })
-                });
-                const data = await res.json();
-                if (data.mutualMatch) alert('MATCH MÚTUO! 🔥');
-                
-                currentCandidateIndex++;
-                showNextCandidate();
-            } catch (err) {}
-        }
-
-        async function loadFriends() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                allFriends = data.confirmedFriends || [];
-
-                const grid = document.getElementById('friendsGrid');
-                document.getElementById('friendsCount').textContent = `(${allFriends.length})`;
-                if (allFriends.length > 0) {
-                    grid.innerHTML = allFriends.slice(0, 9).map(f => `
-                        <div class="friend-item" onclick="openProfile(${f.id})">
-                            <img src="${formatPhoto(f.photo)}">
-                            <span>${f.name.split(' ')[0]}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Nenhum amigo.</p>';
-                }
-
-                const pending = document.getElementById('pendingRequests');
-                if (data.pendingRequests?.length > 0) {
-                    pending.innerHTML = data.pendingRequests.map(req => `
-                        <div style="margin-bottom: 10px; font-size: 11px;">
-                            <strong>${req.name}</strong> quer ser seu amigo.
-                            <br>
-                            <a href="#" onclick="respondFriend(${req.id}, 'accept')" class="blue">Aceitar</a> | 
-                            <a href="#" onclick="respondFriend(${req.id}, 'reject')" class="pink">Recusar</a>
-                        </div>
-                    `).join('');
-                } else {
-                    pending.innerHTML = '<p style="font-size: 11px; color: #888;">Nenhum pedido.</p>';
-                }
-            } catch (err) {}
-        }
-
-        function showSection(section) {
-            currentSection = section;
-            const title = document.getElementById('content-title');
-            const postArea = document.getElementById('post-area');
-            
-            if (section === 'feed') {
-                title.textContent = 'Feed de Notícias';
-                postArea.classList.remove('hidden');
-                document.getElementById('postInput').placeholder = 'O que você está treinando hoje? (Digite @ para marcar amigos)';
-            } else if (section === 'scraps') {
-                title.textContent = 'Mural de Recados (Scraps)';
-                postArea.classList.remove('hidden');
-                document.getElementById('postInput').placeholder = 'Deixe um scrap...';
-            } else if (section === 'photos') {
-                title.textContent = 'Álbum de Fotos';
-                postArea.classList.add('hidden');
-                openPhotosModal();
-                return;
-            }
-            loadContent();
-        }
-
         async function loadContent() {
             const list = document.getElementById('dynamic-list');
-            list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Carregando...</p>';
-            
-            let url = `${API_BASE_URL}/api/social/feed`;
-            if (currentSection === 'scraps') {
-                url = `${API_BASE_URL}/api/social/scraps/${userData.id}`;
-            } else if (currentSection === 'photos') {
-                url = `${API_BASE_URL}/api/social/photos/${userData.id}`;
-            }
+            const title = document.getElementById('content-title');
+            const postArea = document.getElementById('post-area');
 
+            if (currentSection === 'feed') {
+                title.textContent = 'Feed de Notícias';
+                postArea.style.display = 'block';
+                loadFeed();
+            } else if (currentSection === 'scraps') {
+                title.textContent = 'Mural de Recados (Scraps)';
+                postArea.style.display = 'block';
+                loadScraps();
+            } else if (currentSection === 'photos') {
+                title.textContent = 'Minhas Fotos';
+                postArea.style.display = 'none';
+                openPhotosModal();
+            }
+        }
+
+        async function loadFeed() {
             try {
-                const res = await fetch(url, {
+                const res = await fetch(`${API_BASE_URL}/api/social/feed`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await res.json();
-                
-                if (!data || data.length === 0) {
-                    list.innerHTML = `<p style="text-align: center; color: #888; padding: 20px;">Nenhum ${currentSection} para mostrar.</p>`;
-                    return;
-                }
+                const posts = await res.json();
+                renderPosts(posts);
+            } catch (err) {
+                console.error('Erro ao carregar feed:', err);
+            }
+        }
 
-                list.innerHTML = data.map(item => `
-                    <div class="feed-item">
-                        <div class="feed-header">
-                            <div class="feed-header-left">
-                                <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small" onclick="openProfile(${item.user_id})">
-                                <div class="feed-info">
-                                    <div class="feed-author" onclick="openProfile(${item.user_id})">${item.user_name}</div>
-                                    <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
-                                </div>
+        async function loadScraps() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/scraps/${userData.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const scraps = await res.json();
+                renderPosts(scraps);
+            } catch (err) {
+                console.error('Erro ao carregar scraps:', err);
+            }
+        }
+
+        function renderPosts(posts) {
+            const list = document.getElementById('dynamic-list');
+            if (posts.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem ainda.</p>';
+                return;
+            }
+
+            list.innerHTML = posts.map(item => `
+                <div class="feed-item">
+                    <div class="feed-header">
+                        <div class="feed-header-left">
+                            <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small" onclick="openProfile(${item.user_id})">
+                            <div class="feed-info">
+                                <div class="feed-author" onclick="openProfile(${item.user_id})">${item.user_name}</div>
+                                <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
                             </div>
-                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
-                        <div class="feed-content">${item.content}</div>
-                        ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
-                        <div class="feed-reactions">
-                            <div class="reaction-buttons">
-                                <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
-                                    <i class="fas fa-thumbs-up"></i> CURTI (${item.likes_count || 0})
-                                </button>
-                                <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
-                                    <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
-                                </button>
-                            </div>
+                        ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
+                    </div>
+                    <div class="feed-content">${item.content}</div>
+                    ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
+                    <div class="feed-reactions">
+                        <div class="reaction-buttons">
+                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
+                                <i class="fas fa-thumbs-up"></i> CURTI (${item.likes_count || 0})
+                            </button>
+                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
+                                <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
+                            </button>
+                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" style="margin-left: 10px; color: #999; background: none; border: none; cursor: pointer; font-size: 11px;" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                         </div>
                     </div>
-                `).join('');
-            } catch (err) {
-                list.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">Erro ao carregar conteúdo.</p>';
-            }
+                </div>
+            `).join('');
         }
 
         async function createPost() {
-            const text = document.getElementById('postInput').value.trim();
-            if (!text && !selectedPhotoData) {
-                alert('Escreva algo ou adicione uma foto!');
-                return;
-            }
-
-            const body = {
-                content: text,
-                type: currentSection === 'scraps' ? 'scrap' : 'feed',
-                privacy: document.getElementById('postPrivacy').value,
-                targetUserId: currentSection === 'scraps' ? userData.id : null,
-                photoData: selectedPhotoData || null
-            };
+            const content = document.getElementById('postInput').value.trim();
+            const privacy = document.getElementById('postPrivacy').value;
+            if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
@@ -986,25 +894,45 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({ 
+                        content, 
+                        type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                        privacy,
+                        photo_data: selectedPhotoData,
+                        target_user_id: currentSection === 'scraps' ? userData.id : null
+                    })
                 });
 
                 if (res.ok) {
                     document.getElementById('postInput').value = '';
                     document.getElementById('photoPreview').innerHTML = '';
                     selectedPhotoData = null;
-                    document.getElementById('photoInput').value = '';
                     loadContent();
-                } else {
-                    const errData = await res.json();
-                    alert('Erro ao postar: ' + (errData.error || 'Erro desconhecido'));
                 }
             } catch (err) {
-                alert('Erro de conexão');
+                alert('Erro ao postar');
             }
         }
 
-        async function reactToPost(postId, reactionType) {
+        async function deletePost(postId) {
+            if (!confirm('Tem certeza que deseja excluir esta postagem?')) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    loadContent();
+                } else {
+                    const data = await res.json();
+                    alert(data.error || 'Erro ao excluir postagem');
+                }
+            } catch (err) {
+                alert('Erro ao excluir postagem');
+            }
+        }
+
+        async function reactToPost(postId, type) {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
                     method: 'POST',
@@ -1012,38 +940,10 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ reactionType })
+                    body: JSON.stringify({ type })
                 });
-
-                if (res.ok) {
-                    loadContent();
-                }
-            } catch (err) {
-                console.error('Erro ao reagir:', err);
-            }
-        }
-
-        async function deletePost(postId) {
-            if (!confirm('Tem certeza que deseja excluir esta postagem?')) {
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (res.ok) {
-                    loadContent();
-                } else {
-                    const errData = await res.json();
-                    alert('Erro ao excluir: ' + (errData.error || 'Erro desconhecido'));
-                }
-            } catch (err) {
-                console.error('Erro ao excluir postagem:', err);
-                alert('Erro de conexão ao excluir postagem');
-            }
+                if (res.ok) loadContent();
+            } catch (err) {}
         }
 
         async function uploadAlbumPhoto(event) {
@@ -1053,13 +953,9 @@
         }
 
         async function saveAlbumPhoto() {
-            if (!selectedAlbumPhotoData) {
-                alert('Selecione uma foto!');
-                return;
-            }
-
+            if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
             const body = {
-                photoData: selectedAlbumPhotoData,
+                photo_data: selectedAlbumPhotoData,
                 description: document.getElementById('photoDescription').value,
                 privacy: document.getElementById('photoPrivacy').value
             };
@@ -1182,6 +1078,48 @@
             } catch (err) { alert('Erro ao enviar pedido'); }
         }
 
+        async function loadFriends() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                allFriends = data.confirmedFriends || [];
+                
+                document.getElementById('friendsCount').textContent = `(${allFriends.length})`;
+                const grid = document.getElementById('friendsGrid');
+                grid.innerHTML = allFriends.slice(0, 9).map(f => `
+                    <div class="friend-item" onclick="openProfile(${f.id})">
+                        <img src="${formatPhoto(f.photo)}">
+                        <span>${f.name.split(' ')[0]}</span>
+                    </div>
+                `).join('');
+            } catch (err) { console.error('Erro ao carregar amigos:', err); }
+        }
+
+        async function loadPendingRequests() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('pendingRequests');
+                
+                if (data.pendingRequests.length === 0) {
+                    container.innerHTML = '<p style="font-size: 11px; color: #888;">Nenhum pedido.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.pendingRequests.map(req => `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px;">
+                        <img src="${formatPhoto(req.photo)}" style="width: 25px; height: 25px; border-radius: 50%;">
+                        <span style="flex: 1;">${req.name}</span>
+                        <button onclick="respondFriend(${req.id}, 'accept')" style="background: var(--orkut-pink); color: white; border: none; padding: 2px 5px; cursor: pointer;">Aceitar</button>
+                    </div>
+                `).join('');
+            } catch (err) {}
+        }
+
         async function respondFriend(requesterId, action) {
             try {
                 await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
@@ -1190,11 +1128,53 @@
                     body: JSON.stringify({ requesterId, action })
                 });
                 loadFriends();
+                loadPendingRequests();
+            } catch (err) {}
+        }
+
+        async function loadMatchCandidates() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                candidates = await res.json();
+                displayCandidate();
+            } catch (err) {}
+        }
+
+        function displayCandidate() {
+            const container = document.getElementById('matchCandidate');
+            if (candidates.length === 0 || currentCandidateIndex >= candidates.length) {
+                container.innerHTML = '<p style="color: #888; padding: 20px;">Nenhum atleta novo por perto.</p>';
+                return;
+            }
+
+            const c = candidates[currentCandidateIndex];
+            container.innerHTML = `
+                <img src="${formatPhoto(c.photo)}" class="match-photo-small">
+                <div class="blue" style="font-weight: bold;">${c.name}</div>
+                <div style="font-size: 10px; color: #666;">${c.box_name || 'WODPulse'}</div>
+                <div class="match-actions-mini">
+                    <button class="btn-match-mini btn-pass" onclick="matchAction(${c.id}, 'rejected')"><i class="fas fa-times"></i></button>
+                    <button class="btn-match-mini btn-like" onclick="matchAction(${c.id}, 'matched')"><i class="fas fa-heart"></i></button>
+                </div>
+            `;
+        }
+
+        async function matchAction(targetId, status) {
+            try {
+                await fetch(`${API_BASE_URL}/api/social/match`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId, status })
+                });
+                currentCandidateIndex++;
+                displayCandidate();
             } catch (err) {}
         }
 
         function openProfile(userId) {
-            window.location.href = `perfil-participante-orkut.html?id=${userId}`;
+            window.location.href = `perfil-participante.html?id=${userId}`;
         }
 
         function openEditModal() {
@@ -1234,6 +1214,11 @@
             } catch (err) { alert('Erro ao salvar'); }
         }
 
+        function showSection(section) {
+            currentSection = section;
+            loadContent();
+        }
+
         function logout() {
             if (confirm('Sair do Orkut WODPulse?')) {
                 localStorage.removeItem('wodpulse_social_token');
@@ -1241,7 +1226,112 @@
             }
         }
 
+        async function loadNotifications() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/notifications`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                allNotifications = await res.json();
+                notificationsCount = allNotifications.filter(n => !n.is_read).length;
+                updateNotificationBadge();
+            } catch (err) {
+                console.error('Erro ao carregar notificacoes:', err);
+            }
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (notificationsCount > 0) {
+                badge.textContent = notificationsCount;
+                badge.style.display = 'flex';
+                badge.style.alignItems = 'center';
+                badge.style.justifyContent = 'center';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notificationsModal').style.display = 'flex';
+            displayNotifications();
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').style.display = 'none';
+        }
+
+        function displayNotifications() {
+            const container = document.getElementById('notificationsList');
+            if (allNotifications.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma notificacao.</p>';
+                return;
+            }
+
+            container.innerHTML = ''; 
+
+            allNotifications.forEach(notif => {
+                let icon = '📢';
+                let message = '';
+                
+                if (notif.type === 'mention') {
+                    icon = '🏷️';
+                    message = notif.from_user_name + ' te marcou em uma postagem';
+                } else if (notif.type === 'like') {
+                    icon = '👍';
+                    message = notif.from_user_name + ' curtiu sua postagem';
+                } else if (notif.type === 'dislike') {
+                    icon = '👎';
+                    message = notif.from_user_name + ' disse que pode melhorar sua postagem';
+                } else if (notif.type === 'match') {
+                    icon = '❤️';
+                    message = notif.from_user_name + ' deu match com voce!';
+                } else if (notif.type === 'friend_request') {
+                    icon = '👥';
+                    message = notif.from_user_name + ' enviou um pedido de amizade';
+                }
+
+                const itemDiv = document.createElement('div');
+                itemDiv.style.padding = '10px';
+                itemDiv.style.borderBottom = '1px solid #eee';
+                itemDiv.style.backgroundColor = notif.is_read ? '#ffffff' : '#f0f8ff';
+
+                const contentDiv = document.createElement('div');
+                contentDiv.style.display = 'flex';
+                contentDiv.style.alignItems = 'center';
+                contentDiv.style.gap = '10px';
+
+                const iconSpan = document.createElement('span');
+                iconSpan.style.fontSize = '20px';
+                iconSpan.textContent = icon;
+
+                const textDiv = document.createElement('div');
+                textDiv.style.flex = '1';
+
+                const strongMsg = document.createElement('strong');
+                strongMsg.textContent = message;
+
+                const timeDiv = document.createElement('div');
+                timeDiv.style.fontSize = '10px';
+                timeDiv.style.color = '#999';
+                timeDiv.style.marginTop = '3px';
+                timeDiv.textContent = new Date(notif.created_at).toLocaleString();
+
+                textDiv.appendChild(strongMsg);
+                textDiv.appendChild(timeDiv);
+                contentDiv.appendChild(iconSpan);
+                contentDiv.appendChild(textDiv);
+                itemDiv.appendChild(contentDiv);
+                
+                container.appendChild(itemDiv);
+            });
+        }
+
+        setInterval(() => {
+            loadNotifications();
+        }, 30000);
+
         loadProfile();
+        loadNotifications();
     </script>
 </body>
 </html>
