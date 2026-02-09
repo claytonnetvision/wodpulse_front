@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAGNÓSTICO ULTRA-DETALHADO - Perfil do Atleta</title>
+    <title>DIAGNÓSTICO - Perfil do Atleta</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -181,30 +181,6 @@
             font-style: italic;
         }
 
-        .feed-item {
-            border-bottom: 1px dotted #ccc;
-            padding: 15px 0;
-        }
-
-        .feed-time {
-            font-size: 10px;
-            color: #999;
-            margin-bottom: 5px;
-        }
-
-        .feed-content {
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .feed-img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 10px;
-            border: 1px solid #eee;
-        }
-
-        /* Debug Console */
         #debug-panel {
             background: #1a1a1a;
             color: #00ff00;
@@ -214,28 +190,20 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 11px;
             border: 3px solid #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
-        .debug-entry {
-            margin-bottom: 8px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 4px;
-        }
-
-        .debug-error { color: #ff4444; font-weight: bold; }
+        .debug-entry { margin-bottom: 5px; border-bottom: 1px solid #333; }
+        .debug-error { color: #ff4444; }
         .debug-success { color: #44ff44; }
-        .debug-info { color: #44ccff; }
-        .debug-warn { color: #ffff44; }
     </style>
 </head>
 <body>
 
     <header>
         <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut <span style="font-size: 10px; color: #666;">(MODO DEBUG ULTRA-DETALHADO)</span></a>
+            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut</a>
             <a href="orkut-social.html" class="btn">Voltar para o Início</a>
         </div>
     </header>
@@ -298,13 +266,18 @@
                 </div>
             </div>
 
-            <div id="feedbackSection" style="display:none; margin-top: 20px; padding: 15px; background: #fff9e6; border-left: 5px solid #FF9800; border-radius: 8px;">
-                <strong style="color: #856404;">Feedback do Treinador:</strong>
-                <p id="feedbackContent" style="margin-top: 5px; font-style: italic;"></p>
+            <div id="feedbackSection" class="feedback-box" style="display:none;">
+                <div class="feedback-title"><i class="fas fa-robot"></i> Feedback do Treinador (IA)</div>
+                <div id="feedbackContent" class="feedback-content"></div>
+            </div>
+
+            <div id="targetFeedSection" style="margin-top: 30px;">
+                <div class="box-header">Últimas Postagens</div>
+                <div id="feedList">Carregando postagens...</div>
             </div>
 
             <div id="debug-panel">
-                <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid #555;">CONSOLE DE DIAGNÓSTICO ULTRA-DETALHADO (Copie isto para o Manus)</h3>
+                <h3 style="color: #fff; border-bottom: 1px solid #555;">CONSOLE DE DIAGNÓSTICO</h3>
                 <div id="debug-content"></div>
             </div>
         </main>
@@ -323,170 +296,96 @@
             div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
             content.appendChild(div);
             content.scrollTop = content.scrollHeight;
-            console.log(`[DEBUG] ${msg}`);
         }
 
-        async function startDiagnostic() {
-            log(`Iniciando carga para o Atleta ID: ${targetId}`, 'info');
-            
-            if (!token) {
-                log('ERRO: Token não encontrado no localStorage!', 'error');
-                return;
-            }
+        async function loadAll() {
+            log(`Iniciando carga para o Atleta ID: ${targetId}`);
+            let athleteName = "";
 
-            // 1. Testar Rota de Participante (Nome e Bio - rota do meu-progresso.html)
+            // 1. Nome e Bio
             try {
-                log(`Chamando /api/participants/${targetId} para nome e bio...`, 'info');
                 const res = await fetch(`${API_BASE_URL}/api/participants/${targetId}`);
-                log(`Status /participants: ${res.status}`, res.ok ? 'success' : 'error');
-                
                 if (res.ok) {
                     const data = await res.json();
-                    log(`Dados /participants recebidos: ${JSON.stringify(data).substring(0, 200)}...`, 'success');
-                    document.getElementById('targetName').textContent = data.name || 'Sem Nome';
-                    document.getElementById('targetBio').textContent = data.bio || 'Atleta WODPulse';
-                    document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
-                } else {
-                    const err = await res.text();
-                    log(`ERRO EM /participants: ${err}`, 'error');
+                    athleteName = data.participant?.name || data.name;
+                    log(`Nome do atleta identificado: ${athleteName}`, 'success');
+                    document.getElementById('targetName').textContent = athleteName;
+                    document.getElementById('targetBio').textContent = data.participant?.bio || data.bio || 'Atleta WODPulse';
+                    document.getElementById('targetBox').textContent = data.participant?.box_name || data.box_name || 'WODPulse';
                 }
-            } catch (e) {
-                log(`FALHA NA REQUISIÇÃO DE /participants: ${e.message}`, 'error');
-            }
+            } catch (e) { log(`Erro /participants: ${e.message}`, 'error'); }
 
-            // 2. Testar Rota Social (Foto e Stats Sociais - rota do orkut-social.html)
+            // 2. Foto e Stats Sociais
             try {
-                log(`Chamando /api/social/public-profile/${targetId} para foto e stats sociais...`, 'info');
                 const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                log(`Status /public-profile: ${res.status}`, res.ok ? 'success' : 'error');
-                
                 if (res.ok) {
                     const data = await res.json();
-                    log(`Dados /public-profile recebidos: ${JSON.stringify(data).substring(0, 200)}...`, 'success');
-                    
                     if (data.photo) {
-                        log(`Foto encontrada em /public-profile (tamanho: ${data.photo.length})`, 'success');
+                        log(`Foto carregada com sucesso`, 'success');
                         document.getElementById('targetPhoto').src = `data:image/jpeg;base64,${data.photo}`;
-                    } else {
-                        log('AVISO: Campo photo veio vazio ou nulo em /public-profile', 'warn');
                     }
-
                     if (data.stats) {
                         document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
                         document.getElementById('stat-likes').textContent = data.stats.likes || 0;
                         document.getElementById('stat-matches').textContent = data.stats.matches || 0;
                     }
-                } else {
-                    const err = await res.text();
-                    log(`ERRO EM /public-profile: ${err}`, 'error');
                 }
-            } catch (e) {
-                log(`FALHA NA REQUISIÇÃO DE /public-profile: ${e.message}`, 'error');
-            }
+            } catch (e) { log(`Erro /public-profile: ${e.message}`, 'error'); }
 
-            // 3. Testar Histórico (Estatísticas Técnicas e Feedback da IA)
+            // 3. Histórico (FILTRO POR NOME CONFORME LOGS)
             try {
-                log('Chamando /api/sessions/historico...', 'info');
                 const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                log(`Status /historico: ${res.status}`, res.ok ? 'success' : 'error');
-
                 if (res.ok) {
                     const historico = await res.json();
-                    log(`Total de registros no histórico: ${historico.length}`, 'info');
+                    log(`Total histórico: ${historico.length} registros`);
                     
-                    if (historico.length > 0) {
-                        log(`Chaves do PRIMEIRO registro do histórico: ${Object.keys(historico[0]).join(', ')}`, 'info');
-                        log(`Valor de 'aluno' no primeiro registro: ${historico[0].aluno}`, 'info');
-                        log(`Valor de 'participant_id' no primeiro registro: ${historico[0].participant_id}`, 'info');
-                    }
+                    // Filtramos pelo NOME do atleta, pois o campo 'aluno' contém o nome
+                    const treinos = historico.filter(h => h.aluno === athleteName);
+                    log(`Treinos encontrados para '${athleteName}': ${treinos.length}`, 'success');
 
-                    // Tentar filtrar por 'aluno' primeiro, se não encontrar, tentar 'participant_id'
-                    let atletaTreinos = historico.filter(h => h.aluno == targetId);
-                    if (atletaTreinos.length === 0) {
-                        log(`Nenhum treino encontrado com 'aluno' == ${targetId}. Tentando 'participant_id'...`, 'warn');
-                        atletaTreinos = historico.filter(h => h.participant_id == targetId);
-                    }
-
-                    log(`Treinos filtrados para o ID ${targetId}: ${atletaTreinos.length}`, 'success');
-
-                    if (atletaTreinos.length > 0) {
-                        const totalAulas = atletaTreinos.length;
-                        const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.calories_total) || 0), 0);
-                        const maxHr = Math.max(...atletaTreinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
-                        const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+                    if (treinos.length > 0) {
+                        const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                        const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
                         
-                        log(`Cálculos: Aulas=${totalAulas}, Calorias=${totalCalorias}, FC Max=${maxHr}, Média=${avgCalorias}`, 'success');
-                        
-                        document.getElementById('tech-aulas').textContent = totalAulas;
-                        document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
-                        document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
+                        document.getElementById('tech-aulas').textContent = treinos.length;
+                        document.getElementById('tech-calorias').textContent = Math.round(totalCal) + ' kcal';
+                        document.getElementById('tech-media').textContent = Math.round(totalCal / treinos.length) + ' kcal';
                         document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
 
-                        const treinosOrdenados = atletaTreinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
-                        const treinoComIA = treinosOrdenados.find(h => h.ia_comment);
-                        
-                        if (treinoComIA) {
-                            log(`Feedback da IA encontrado: ${treinoComIA.ia_comment.substring(0, 50)}...`, 'success');
+                        const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                        if (comIA) {
                             document.getElementById('feedbackSection').style.display = 'block';
-                            document.getElementById('feedbackContent').textContent = treinoComIA.ia_comment;
-                        } else {
-                            log('Nenhum feedback de IA encontrado nos treinos deste atleta.', 'warn');
+                            document.getElementById('feedbackContent').textContent = comIA.ia_comment;
+                            log('Feedback da IA carregado', 'success');
                         }
-                    } else {
-                        log('AVISO: Este atleta não possui treinos registrados no histórico filtrado.', 'warn');
                     }
-                } else {
-                    const err = await res.text();
-                    log(`ERRO AO CARREGAR HISTÓRICO: ${err}`, 'error');
                 }
-            } catch (e) {
-                log(`FALHA NA REQUISIÇÃO DE /historico: ${e.message}`, 'error');
-            }
+            } catch (e) { log(`Erro /historico: ${e.message}`, 'error'); }
 
-            // 4. Carregar Feed
+            // 4. Feed
             try {
-                log(`Chamando /api/social/feed?userId=${targetId}...`, 'info');
                 const res = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                log(`Status /feed: ${res.status}`, res.ok ? 'success' : 'error');
-                const posts = await res.json();
-                log(`Posts recebidos: ${posts.length} posts`, 'info');
-                const container = document.getElementById('feedList');
-
-                if (!Array.isArray(posts) || posts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
-                    log('Nenhuma postagem para exibir.', 'warn');
-                    return;
+                if (res.ok) {
+                    const posts = await res.json();
+                    const userPosts = posts.filter(p => p.user_id == targetId);
+                    document.getElementById('feedList').innerHTML = userPosts.length ? userPosts.map(p => `
+                        <div class="feed-item">
+                            <div class="feed-time">${new Date(p.created_at).toLocaleString()}</div>
+                            <div class="feed-content">${p.content}</div>
+                        </div>
+                    `).join('') : 'Nenhuma postagem.';
+                    log(`Feed carregado: ${userPosts.length} posts`, 'success');
                 }
-
-                const userPosts = posts.filter(p => p.user_id == targetId);
-
-                if (userPosts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem pública deste atleta.</p>';
-                    log('Nenhuma postagem do usuário filtrado para exibir.', 'warn');
-                    return;
-                }
-
-                container.innerHTML = userPosts.map(post => `
-                    <div class="feed-item">
-                        <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
-                        <div class="feed-content">${post.content}</div>
-                        ${post.photo_data ? `<img src="${post.photo_data}" class="feed-img">` : ''}
-                    </div>
-                `).join('');
-                log(`Posts do usuário exibidos: ${userPosts.length}`, 'success');
-            } catch (err) {
-                log(`ERRO AO CARREGAR FEED: ${err.message}`, 'error');
-                document.getElementById('feedList').innerHTML = '<p style="color: red; text-align: center;">Erro ao carregar postagens.</p>';
-            }
+            } catch (e) { log(`Erro /feed: ${e.message}`, 'error'); }
         }
 
-        if (targetId) startDiagnostic();
+        if (targetId) loadAll();
     </script>
 </body>
 </html>
