@@ -487,6 +487,10 @@
             <nav class="nav-top">
                 <a href="orkut-social-final.html">Início</a>
                 <a href="matches-list.html"><i class="fas fa-heart"></i> Matches</a>
+                <a href="#" onclick="toggleNotifications()" style="position: relative;">
+                    <i class="fas fa-bell"></i> Notificações
+                    <span id="notificationBadge" style="position: absolute; top: -5px; right: -10px; background: #ff0084; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; display: none;">0</span>
+                </a>
                 <a href="#" onclick="logout()">Sair</a>
             </nav>
         </div>
@@ -505,7 +509,7 @@
                     <li><a href="#" onclick="showSection('feed')"><i class="fas fa-rss"></i> Feed</a></li>
                     <li><a href="#" onclick="showSection('scraps')"><i class="fas fa-envelope"></i> Mural (Scraps)</a></li>
                     <li><a href="#" onclick="showSection('photos')"><i class="fas fa-camera"></i> Fotos</a></li>
-                    <li><a href="perfil-social.html"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
+                    <li><a href="meu-progresso.html?id=" id="progressLink"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
                     <li><a href="desafios.html"><i class="fas fa-trophy"></i> Desafios</a></li>
                 </ul>
             </div>
@@ -625,6 +629,19 @@
         </div>
     </div>
 
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <h3 class="blue">Notificações</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div id="notificationsList" style="max-height: 400px; overflow-y: auto;">
+                <p style="text-align: center; color: #888;">Carregando notificações...</p>
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button onclick="closeNotificationsModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="photosModal" class="modal">
         <div class="modal-content">
             <h3 class="blue">Meu Álbum de Fotos</h3>
@@ -665,6 +682,9 @@
         let allFriends = [];
 
         if (!token) window.location.href = 'login.html';
+
+        let notificationsCount = 0;
+        let allNotifications = [];
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
@@ -763,6 +783,7 @@
                 document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
                 document.getElementById('userName').textContent = userData.name || 'Atleta';
                 document.getElementById('userBio').textContent = userData.bio || 'Sem bio definida.';
+                document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
                 
                 document.getElementById('stat-challenges').textContent = userData.stats?.challenges || 0;
                 document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
@@ -1245,3 +1266,112 @@
     </script>
 </body>
 </html>
+
+        async function loadNotifications() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/notifications`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                allNotifications = await res.json();
+                notificationsCount = allNotifications.filter(n => !n.is_read).length;
+                updateNotificationBadge();
+            } catch (err) {
+                console.error('Erro ao carregar notificacoes:', err);
+            }
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (notificationsCount > 0) {
+                badge.textContent = notificationsCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notificationsModal').style.display = 'flex';
+            displayNotifications();
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').style.display = 'none';
+        }
+
+                function displayNotifications() {
+            const container = document.getElementById('notificationsList');
+            if (allNotifications.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma notificacao.</p>';
+                return;
+            }
+
+            container.innerHTML = ''; // Limpa o container
+
+            allNotifications.forEach(notif => {
+                let icon = '📢';
+                let message = '';
+                
+                if (notif.type === 'mention') {
+                    icon = '🏷️';
+                    message = notif.from_user_name + ' te marcou em uma postagem';
+                } else if (notif.type === 'like') {
+                    icon = '👍';
+                    message = notif.from_user_name + ' curtiu sua postagem';
+                } else if (notif.type === 'dislike') {
+                    icon = '👎';
+                    message = notif.from_user_name + ' disse que pode melhorar sua postagem';
+                } else if (notif.type === 'match') {
+                    icon = '❤️';
+                    message = notif.from_user_name + ' deu match com voce!';
+                } else if (notif.type === 'friend_request') {
+                    icon = '👥';
+                    message = notif.from_user_name + ' enviou um pedido de amizade';
+                }
+
+                // Criando os elementos via DOM para evitar strings de CSS que bugam o editor
+                const itemDiv = document.createElement('div');
+                itemDiv.style.padding = '10px';
+                itemDiv.style.borderBottom = '1px solid #eee';
+                itemDiv.style.backgroundColor = notif.is_read ? '#ffffff' : '#f0f8ff';
+
+                const contentDiv = document.createElement('div');
+                contentDiv.style.display = 'flex';
+                contentDiv.style.alignItems = 'center';
+                contentDiv.style.gap = '10px';
+
+                const iconSpan = document.createElement('span');
+                iconSpan.style.fontSize = '20px';
+                iconSpan.textContent = icon;
+
+                const textDiv = document.createElement('div');
+                textDiv.style.flex = '1';
+
+                const strongMsg = document.createElement('strong');
+                strongMsg.textContent = message;
+
+                const timeDiv = document.createElement('div');
+                timeDiv.style.fontSize = '10px';
+                timeDiv.style.color = '#999';
+                timeDiv.style.marginTop = '3px';
+                timeDiv.textContent = new Date(notif.created_at).toLocaleString();
+
+                textDiv.appendChild(strongMsg);
+                textDiv.appendChild(timeDiv);
+                contentDiv.appendChild(iconSpan);
+                contentDiv.appendChild(textDiv);
+                itemDiv.appendChild(contentDiv);
+                
+                container.appendChild(itemDiv);
+            });
+        }
+
+
+
+
+        setInterval(() => {
+            loadNotifications();
+        }, 30000);
+
+        loadProfile();
+        loadNotifications();
