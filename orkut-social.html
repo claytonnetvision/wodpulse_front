@@ -106,7 +106,6 @@
 
         .menu-list a:hover { text-decoration: underline; }
 
-        /* TRAINING STATS WIDGET */
         .stats-widget {
             background: #fff;
             border: 1px solid var(--orkut-border);
@@ -188,6 +187,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn-post {
@@ -199,22 +200,86 @@
             font-weight: bold;
         }
 
+        .btn-icon {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .btn-icon:hover { background: #e0e0e0; }
+
         .feed-item {
             border-bottom: 1px dotted #ccc;
             padding: 10px 0;
-            display: flex;
-            gap: 10px;
         }
 
         .feed-item:last-child { border-bottom: none; }
 
-        .feed-photo {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
+        .feed-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
         }
 
-        .feed-content strong { color: var(--orkut-dark-blue); }
+        .feed-photo-small {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .feed-info {
+            flex: 1;
+        }
+
+        .feed-author {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+        }
+
+        .feed-time {
+            color: #999;
+            font-size: 10px;
+        }
+
+        .feed-content {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .feed-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+        }
+
+        .feed-reactions {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+        }
+
+        .reaction-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            transition: color 0.2s;
+        }
+
+        .reaction-btn:hover { color: var(--orkut-pink); }
+        .reaction-btn.active { color: var(--orkut-pink); font-weight: bold; }
 
         .sidebar-right {
             display: flex;
@@ -305,6 +370,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            overflow-y: auto;
         }
 
         .modal-content {
@@ -312,6 +378,27 @@
             padding: 20px;
             border: 5px solid var(--orkut-header);
             width: 400px;
+            margin: 20px auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--orkut-dark-blue);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--orkut-border);
+            border-radius: 3px;
+            font-family: Arial, sans-serif;
         }
 
         .pink { color: var(--orkut-pink); }
@@ -327,6 +414,7 @@
             <a href="#" class="logo">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">WODPulse</span></a>
             <nav class="nav-top">
                 <a href="orkut-social.html">Início</a>
+                <a href="matches-list.html"><i class="fas fa-heart"></i> Matches</a>
                 <a href="#" onclick="logout()">Sair</a>
             </nav>
         </div>
@@ -345,12 +433,10 @@
                     <li><a href="#" onclick="showSection('feed')"><i class="fas fa-rss"></i> Feed</a></li>
                     <li><a href="#" onclick="showSection('scraps')"><i class="fas fa-envelope"></i> Mural (Scraps)</a></li>
                     <li><a href="#" onclick="showSection('photos')"><i class="fas fa-camera"></i> Fotos</a></li>
-                    <li><a href="matches.html"><i class="fas fa-heart"></i> Matches</a></li>
                     <li><a href="desafios.html"><i class="fas fa-trophy"></i> Desafios</a></li>
                 </ul>
             </div>
 
-            <!-- TRAINING STATS WIDGET -->
             <div class="stats-widget">
                 <div class="stats-widget-header"><i class="fas fa-bolt"></i> Meu Progresso</div>
                 <div class="stat-row">
@@ -398,15 +484,18 @@
                 <div id="content-title" class="box-header">Feed de Notícias</div>
                 
                 <div id="post-area" class="post-input-area">
-                    <textarea id="postInput" placeholder="O que você está treinando hoje?"></textarea>
+                    <textarea id="postInput" placeholder="O que você está treinando hoje? (Use @nome para marcar amigos)"></textarea>
                     <div class="post-actions">
                         <select id="postPrivacy">
                             <option value="public">Público</option>
                             <option value="friends">Só Amigos</option>
                             <option value="private">Privado</option>
                         </select>
+                        <button class="btn-icon" onclick="triggerPhotoUpload()"><i class="fas fa-image"></i> Foto</button>
+                        <input type="file" id="photoInput" style="display:none;" accept="image/*" onchange="previewPhoto(event)">
                         <button class="btn-post" onclick="createPost()">Postar</button>
                     </div>
+                    <div id="photoPreview" style="margin-top: 10px;"></div>
                 </div>
 
                 <div id="dynamic-list">
@@ -445,14 +534,46 @@
         <div class="modal-content">
             <h3 class="blue">Editar Perfil</h3>
             <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
-            <p>Bio:</p>
-            <textarea id="bioInput" style="width: 100%; height: 80px; margin-bottom: 10px;"></textarea>
-            <p>Foto de Capa (URL):</p>
-            <input type="text" id="coverInput" style="width: 100%; margin-bottom: 15px;">
-            <div style="text-align: right;">
-                <button class="btn-post" onclick="saveProfile()">Salvar</button>
-                <button onclick="closeEditModal()" style="padding: 5px 10px;">Cancelar</button>
+            <div class="form-group">
+                <label>Bio:</label>
+                <textarea id="bioInput" style="height: 80px;"></textarea>
             </div>
+            <div class="form-group">
+                <label>Foto de Capa (URL):</label>
+                <input type="text" id="coverInput">
+            </div>
+            <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                <button class="btn-post" onclick="saveProfile()">Salvar</button>
+                <button onclick="closeEditModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="photosModal" class="modal">
+        <div class="modal-content">
+            <h3 class="blue">Meu Álbum de Fotos</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div class="form-group">
+                <label>Enviar Foto:</label>
+                <input type="file" id="albumPhotoInput" accept="image/*" onchange="uploadAlbumPhoto(event)">
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional):</label>
+                <textarea id="photoDescription" style="height: 60px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Privacidade:</label>
+                <select id="photoPrivacy">
+                    <option value="public">Público</option>
+                    <option value="friends">Só Amigos</option>
+                    <option value="private">Privado</option>
+                </select>
+            </div>
+            <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                <button class="btn-post" onclick="saveAlbumPhoto()">Salvar Foto</button>
+                <button onclick="closePhotosModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
+            </div>
+            <div id="albumPhotosGrid" style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
         </div>
     </div>
 
@@ -463,6 +584,8 @@
         let userData = null;
         let candidates = [];
         let currentCandidateIndex = 0;
+        let selectedPhotoData = null;
+        let selectedAlbumPhotoData = null;
 
         if (!token) window.location.href = 'login.html';
 
@@ -470,6 +593,28 @@
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
             return `data:image/jpeg;base64,${photo}`;
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function triggerPhotoUpload() {
+            document.getElementById('photoInput').click();
+        }
+
+        async function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            selectedPhotoData = await fileToBase64(file);
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = `<img src="${selectedPhotoData}" style="max-width: 200px; max-height: 200px; border: 1px solid #ccc; border-radius: 4px;">`;
         }
 
         async function loadProfile() {
@@ -498,7 +643,6 @@
 
         async function loadTrainingStats() {
             try {
-                // Buscando histórico para calcular estatísticas
                 const res = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${userData.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -522,7 +666,6 @@
                 }
             } catch (err) {
                 console.error('Erro ao carregar estatísticas de treino:', err);
-                document.getElementById('motivational-msg').textContent = '❌ Erro ao carregar progresso.';
             }
         }
 
@@ -617,7 +760,7 @@
             if (section === 'feed') {
                 title.textContent = 'Feed de Notícias';
                 postArea.classList.remove('hidden');
-                document.getElementById('postInput').placeholder = 'O que você está treinando hoje?';
+                document.getElementById('postInput').placeholder = 'O que você está treinando hoje? (Use @nome para marcar amigos)';
             } else if (section === 'scraps') {
                 title.textContent = 'Mural de Recados (Scraps)';
                 postArea.classList.remove('hidden');
@@ -625,6 +768,8 @@
             } else if (section === 'photos') {
                 title.textContent = 'Álbum de Fotos';
                 postArea.classList.add('hidden');
+                openPhotosModal();
+                return;
             }
             loadContent();
         }
@@ -653,10 +798,22 @@
 
                 list.innerHTML = data.map(item => `
                     <div class="feed-item">
-                        <img src="${formatPhoto(item.user_photo)}" class="feed-photo">
-                        <div class="feed-content">
-                            <strong>${item.user_name}</strong> <span style="color: #999; font-size: 10px;">${new Date(item.created_at).toLocaleString()}</span>
-                            <p style="margin-top: 5px;">${item.content}</p>
+                        <div class="feed-header">
+                            <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small">
+                            <div class="feed-info">
+                                <div class="feed-author">${item.user_name}</div>
+                                <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div class="feed-content">${item.content}</div>
+                        ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
+                        <div class="feed-reactions">
+                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
+                                <i class="fas fa-thumbs-up"></i> <span id="likes-${item.id}">${item.likes_count || 0}</span>
+                            </button>
+                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
+                                <i class="fas fa-thumbs-down"></i> <span id="dislikes-${item.id}">${item.dislikes_count || 0}</span>
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -667,13 +824,17 @@
 
         async function createPost() {
             const text = document.getElementById('postInput').value.trim();
-            if (!text) return;
+            if (!text && !selectedPhotoData) {
+                alert('Escreva algo ou adicione uma foto!');
+                return;
+            }
 
             const body = {
                 content: text,
                 type: currentSection === 'scraps' ? 'scrap' : 'feed',
                 privacy: document.getElementById('postPrivacy').value,
-                targetUserId: currentSection === 'scraps' ? userData.id : null
+                targetUserId: currentSection === 'scraps' ? userData.id : null,
+                photoData: selectedPhotoData || null
             };
 
             try {
@@ -688,12 +849,122 @@
 
                 if (res.ok) {
                     document.getElementById('postInput').value = '';
+                    document.getElementById('photoPreview').innerHTML = '';
+                    selectedPhotoData = null;
+                    document.getElementById('photoInput').value = '';
                     loadContent();
                 } else {
                     alert('Erro ao postar');
                 }
             } catch (err) {
                 alert('Erro de conexão');
+            }
+        }
+
+        async function reactToPost(postId, reactionType) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ reactionType })
+                });
+
+                if (res.ok) {
+                    loadContent();
+                }
+            } catch (err) {
+                console.error('Erro ao reagir:', err);
+            }
+        }
+
+        async function uploadAlbumPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedAlbumPhotoData = await fileToBase64(file);
+        }
+
+        async function saveAlbumPhoto() {
+            if (!selectedAlbumPhotoData) {
+                alert('Selecione uma foto!');
+                return;
+            }
+
+            const body = {
+                photoData: selectedAlbumPhotoData,
+                description: document.getElementById('photoDescription').value,
+                privacy: document.getElementById('photoPrivacy').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/upload`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.ok) {
+                    alert('Foto salva com sucesso!');
+                    document.getElementById('albumPhotoInput').value = '';
+                    document.getElementById('photoDescription').value = '';
+                    selectedAlbumPhotoData = null;
+                    loadAlbumPhotos();
+                }
+            } catch (err) {
+                alert('Erro ao salvar foto');
+            }
+        }
+
+        async function loadAlbumPhotos() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/${userData.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const photos = await res.json();
+
+                const grid = document.getElementById('albumPhotosGrid');
+                if (photos.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Nenhuma foto ainda.</p>';
+                    return;
+                }
+
+                grid.innerHTML = photos.map(photo => `
+                    <div style="text-align: center;">
+                        <img src="${photo.photo_data}" style="width: 100%; height: 150px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px;">
+                        <p style="font-size: 10px; margin-top: 5px; color: #666;">${photo.description || 'Sem descrição'}</p>
+                        <button class="btn-icon" onclick="postPhotoToFeed(${photo.id})" style="margin-top: 5px; font-size: 10px;">Postar no Feed</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Erro ao carregar fotos:', err);
+            }
+        }
+
+        async function postPhotoToFeed(photoId) {
+            const caption = prompt('Adicione uma legenda (opcional):');
+            const privacy = prompt('Privacidade (public/friends/private):', 'public');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}/post-to-feed`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ caption: caption || '', privacy })
+                });
+
+                if (res.ok) {
+                    alert('Foto postada no feed!');
+                    showSection('feed');
+                }
+            } catch (err) {
+                alert('Erro ao postar foto');
             }
         }
 
@@ -766,6 +1037,15 @@
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
+        }
+
+        function openPhotosModal() {
+            document.getElementById('photosModal').style.display = 'flex';
+            loadAlbumPhotos();
+        }
+
+        function closePhotosModal() {
+            document.getElementById('photosModal').style.display = 'none';
         }
 
         async function saveProfile() {
