@@ -25,7 +25,6 @@
             font-size: 12px;
         }
 
-        /* HEADER */
         header {
             background-color: white;
             border-bottom: 1px solid var(--orkut-border);
@@ -54,7 +53,6 @@
             font-weight: bold;
         }
 
-        /* MAIN LAYOUT */
         .main-container {
             max-width: 950px;
             margin: 15px auto;
@@ -63,7 +61,6 @@
             gap: 15px;
         }
 
-        /* SIDEBAR LEFT */
         .sidebar-left {
             display: flex;
             flex-direction: column;
@@ -109,7 +106,6 @@
 
         .menu-list a:hover { text-decoration: underline; }
 
-        /* CENTER CONTENT */
         .content-center {
             display: flex;
             flex-direction: column;
@@ -130,9 +126,9 @@
             margin: -15px -15px 15px -15px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
-        /* FEED / POSTS */
         .post-input-area {
             margin-bottom: 15px;
         }
@@ -178,12 +174,49 @@
 
         .feed-content strong { color: var(--orkut-dark-blue); }
 
-        /* SIDEBAR RIGHT */
         .sidebar-right {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
+
+        /* WOD MATCH SIDEBAR */
+        .match-sidebar-card {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .match-photo-small {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .match-actions-mini {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-match-mini {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .btn-match-mini:hover { transform: scale(1.1); }
+        .btn-like { background: var(--orkut-pink); color: white; }
+        .btn-pass { background: #ccc; color: #666; }
 
         .friends-grid {
             display: grid;
@@ -213,7 +246,6 @@
             color: var(--orkut-dark-blue);
         }
 
-        /* SEARCH SECTION */
         .search-box {
             margin-bottom: 15px;
         }
@@ -224,7 +256,6 @@
             border: 1px solid var(--orkut-border);
         }
 
-        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -242,7 +273,6 @@
             width: 400px;
         }
 
-        /* UTILS */
         .pink { color: var(--orkut-pink); }
         .blue { color: var(--orkut-dark-blue); }
         .hidden { display: none; }
@@ -263,7 +293,6 @@
 
     <div class="main-container">
         
-        <!-- COLUNA ESQUERDA -->
         <aside class="sidebar-left">
             <div class="profile-box">
                 <img id="userPhotoLarge" class="profile-pic-large" src="https://www.infrapower.com.br/logo-v6.png" alt="Foto">
@@ -288,21 +317,17 @@
             </div>
         </aside>
 
-        <!-- COLUNA CENTRAL -->
         <main class="content-center">
             
-            <!-- BUSCA -->
             <div class="box search-box">
                 <div class="box-header">Procurar Atletas</div>
                 <input type="text" id="searchUsersInput" class="search-input" placeholder="Digite o nome do atleta...">
                 <div id="searchResults" style="margin-top: 10px;"></div>
             </div>
 
-            <!-- FEED / MURAL / FOTOS (DINÂMICO) -->
             <div id="main-content-box" class="box">
                 <div id="content-title" class="box-header">Feed de Notícias</div>
                 
-                <!-- ÁREA DE POSTAGEM -->
                 <div id="post-area" class="post-input-area">
                     <textarea id="postInput" placeholder="O que você está treinando hoje?"></textarea>
                     <div class="post-actions">
@@ -316,21 +341,25 @@
                 </div>
 
                 <div id="dynamic-list">
-                    <!-- Conteúdo carregado via JS -->
                     <p style="text-align: center; color: #888;">Carregando conteúdo...</p>
                 </div>
             </div>
         </main>
 
-        <!-- COLUNA DIREITA -->
         <aside class="sidebar-right">
+            <!-- WOD MATCH SIDEBAR -->
+            <div class="box">
+                <div class="box-header">WOD Match 🔥</div>
+                <div id="matchCandidate" class="match-sidebar-card">
+                    <p style="color: #888; padding: 20px;">Buscando atletas...</p>
+                </div>
+            </div>
+
             <div class="box">
                 <div class="box-header">
                     Meus Amigos <span id="friendsCount">(0)</span>
                 </div>
-                <div id="friendsGrid" class="friends-grid">
-                    <!-- Amigos via JS -->
-                </div>
+                <div id="friendsGrid" class="friends-grid"></div>
                 <a href="#" style="display: block; margin-top: 10px; text-align: right; color: var(--orkut-dark-blue);">ver todos</a>
             </div>
 
@@ -344,7 +373,6 @@
 
     </div>
 
-    <!-- MODAL EDIÇÃO -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h3 class="blue">Editar Perfil</h3>
@@ -365,6 +393,8 @@
         const token = localStorage.getItem('wodpulse_social_token');
         let currentSection = 'feed';
         let userData = null;
+        let candidates = [];
+        let currentCandidateIndex = 0;
 
         if (!token) window.location.href = 'login.html';
 
@@ -391,9 +421,58 @@
 
                 loadFriends();
                 loadContent();
+                loadCandidates();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
+        }
+
+        // --- WOD MATCH LOGIC ---
+        async function loadCandidates() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                candidates = await res.json();
+                showNextCandidate();
+            } catch (err) {}
+        }
+
+        function showNextCandidate() {
+            const container = document.getElementById('matchCandidate');
+            if (candidates.length === 0 || currentCandidateIndex >= candidates.length) {
+                container.innerHTML = '<p style="color: #888; padding: 20px;">Sem mais atletas no momento.</p>';
+                return;
+            }
+
+            const c = candidates[currentCandidateIndex];
+            container.innerHTML = `
+                <img src="${formatPhoto(c.photo)}" class="match-photo-small">
+                <strong class="blue">${c.name}</strong>
+                <p style="color: #666; font-size: 10px;">${c.age ? c.age + ' anos' : ''} • Box: ${c.box_id || '--'}</p>
+                <div class="match-actions-mini">
+                    <button class="btn-match-mini btn-pass" onclick="handleMatch(${c.id}, 'dislike')"><i class="fas fa-times"></i></button>
+                    <button class="btn-match-mini btn-like" onclick="handleMatch(${c.id}, 'like')"><i class="fas fa-heart"></i></button>
+                </div>
+            `;
+        }
+
+        async function handleMatch(targetId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/match`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ targetId, action })
+                });
+                const data = await res.json();
+                if (data.mutualMatch) alert('MATCH MÚTUO! 🔥');
+                
+                currentCandidateIndex++;
+                showNextCandidate();
+            } catch (err) {}
         }
 
         async function loadFriends() {
@@ -403,7 +482,6 @@
                 });
                 const data = await res.json();
 
-                // Amigos
                 const grid = document.getElementById('friendsGrid');
                 document.getElementById('friendsCount').textContent = `(${data.confirmedFriends?.length || 0})`;
                 if (data.confirmedFriends?.length > 0) {
@@ -417,7 +495,6 @@
                     grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Nenhum amigo.</p>';
                 }
 
-                // Pedidos
                 const pending = document.getElementById('pendingRequests');
                 if (data.pendingRequests?.length > 0) {
                     pending.innerHTML = data.pendingRequests.map(req => `
@@ -428,6 +505,8 @@
                             <a href="#" onclick="respondFriend(${req.id}, 'reject')" class="pink">Recusar</a>
                         </div>
                     `).join('');
+                } else {
+                    pending.innerHTML = '<p style="font-size: 11px; color: #888;">Nenhum pedido.</p>';
                 }
             } catch (err) {}
         }
@@ -440,6 +519,7 @@
             if (section === 'feed') {
                 title.textContent = 'Feed de Notícias';
                 postArea.classList.remove('hidden');
+                document.getElementById('postInput').placeholder = 'O que você está treinando hoje?';
             } else if (section === 'scraps') {
                 title.textContent = 'Mural de Recados (Scraps)';
                 postArea.classList.remove('hidden');
@@ -451,49 +531,74 @@
             loadContent();
         }
 
-        // Simulação de Feed/Scraps já que não existem rotas específicas no back ainda
-        // Mas usaremos o localStorage para persistir localmente e demonstrar a funcionalidade
-        function loadContent() {
+        async function loadContent() {
             const list = document.getElementById('dynamic-list');
-            let content = JSON.parse(localStorage.getItem(`wodpulse_${currentSection}`) || '[]');
+            list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Carregando...</p>';
             
-            if (content.length === 0) {
-                list.innerHTML = `<p style="text-align: center; color: #888; padding: 20px;">Nenhum ${currentSection} para mostrar.</p>`;
-                return;
+            let url = `${API_BASE_URL}/api/social/feed`;
+            if (currentSection === 'scraps') {
+                url = `${API_BASE_URL}/api/social/scraps/${userData.id}`;
+            } else if (currentSection === 'photos') {
+                url = `${API_BASE_URL}/api/social/photos/${userData.id}`;
             }
 
-            list.innerHTML = content.map(item => `
-                <div class="feed-item">
-                    <img src="${item.userPhoto}" class="feed-photo">
-                    <div class="feed-content">
-                        <strong>${item.userName}</strong> <span style="color: #999; font-size: 10px;">${item.date}</span>
-                        <p style="margin-top: 5px;">${item.text}</p>
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (!data || data.length === 0) {
+                    list.innerHTML = `<p style="text-align: center; color: #888; padding: 20px;">Nenhum ${currentSection} para mostrar.</p>`;
+                    return;
+                }
+
+                list.innerHTML = data.map(item => `
+                    <div class="feed-item">
+                        <img src="${formatPhoto(item.user_photo)}" class="feed-photo">
+                        <div class="feed-content">
+                            <strong>${item.user_name}</strong> <span style="color: #999; font-size: 10px;">${new Date(item.created_at).toLocaleString()}</span>
+                            <p style="margin-top: 5px;">${item.content}</p>
+                        </div>
                     </div>
-                </div>
-            `).reverse().join('');
+                `).join('');
+            } catch (err) {
+                list.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">Erro ao carregar conteúdo.</p>';
+            }
         }
 
-        function createPost() {
+        async function createPost() {
             const text = document.getElementById('postInput').value.trim();
             if (!text) return;
 
-            const newPost = {
-                userName: userData.name,
-                userPhoto: formatPhoto(userData.photo),
-                text: text,
-                date: new Date().toLocaleString(),
-                privacy: document.getElementById('postPrivacy').value
+            const body = {
+                content: text,
+                type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                privacy: document.getElementById('postPrivacy').value,
+                targetUserId: currentSection === 'scraps' ? userData.id : null
             };
 
-            let content = JSON.parse(localStorage.getItem(`wodpulse_${currentSection}`) || '[]');
-            content.push(newPost);
-            localStorage.setItem(`wodpulse_${currentSection}`, JSON.stringify(content));
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(body)
+                });
 
-            document.getElementById('postInput').value = '';
-            loadContent();
+                if (res.ok) {
+                    document.getElementById('postInput').value = '';
+                    loadContent();
+                } else {
+                    alert('Erro ao postar');
+                }
+            } catch (err) {
+                alert('Erro de conexão');
+            }
         }
 
-        // BUSCA DE USUÁRIOS (Mantendo lógica original)
         let searchTimeout;
         document.getElementById('searchUsersInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -570,7 +675,10 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile/update`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify({ bio: bio })
                 });
                 if (res.ok) {
