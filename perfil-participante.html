@@ -344,6 +344,7 @@
 
         async function loadProfile() {
             try {
+                // CORREÇÃO: Usando a rota correta do backend
                 const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${userId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
