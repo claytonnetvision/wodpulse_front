@@ -863,16 +863,12 @@
             }
 
             list.innerHTML = posts.map(post => {
-                // Comparamos com == para evitar problemas de tipo (string vs number)
                 const isAuthor = post.user_id == userData.id;
                 const deleteBtn = isAuthor ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Excluir Postagem"><i class="fas fa-trash"></i> EXCLUIR</button>` : '';
                 
-                // Lógica robusta para nome e foto:
-                // 1. Tenta usar o que o backend enviou (author_name/author_photo)
-                // 2. Se for o próprio usuário e o backend não enviou, usa userData
-                // 3. Se for um amigo e o backend não enviou, usa o nome/foto que vier no objeto post (caso existam)
-                const authorName = post.author_name || post.name || (isAuthor ? userData.name : 'Atleta WODPulse');
-                const authorPhoto = post.author_photo || post.photo || (isAuthor ? userData.photo : null);
+                // Restaura a lógica que funcionava: prioriza os dados do autor enviados pelo backend
+                const authorName = post.author_name || (isAuthor ? userData.name : 'Atleta WODPulse');
+                const authorPhoto = post.author_photo || (isAuthor ? userData.photo : null);
 
                 return `
                     <div class="feed-item">
