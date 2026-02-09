@@ -775,6 +775,10 @@
         }
 
         async function loadStats() {
+            if (!userData || !userData.id) {
+                console.warn('userData ainda não carregado, aguardando...');
+                return;
+            }
             try {
                 const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -783,7 +787,8 @@
 
                 if (Array.isArray(historicoData)) {
                     // Filtra apenas os treinos do usuário logado (userData.id)
-                    const meusTreinos = historicoData.filter(h => h.participant_id === userData.id);
+                    // Usamos == para garantir que compare mesmo se um for string e outro número
+                    const meusTreinos = historicoData.filter(h => h.participant_id == userData.id);
                     
                     const totalAulas = meusTreinos.length;
                     const totalCalorias = meusTreinos.reduce((sum, h) => sum + (h.calories_total || 0), 0);
@@ -861,13 +866,17 @@
                 const isAuthor = post.user_id === userData.id;
                 const deleteBtn = isAuthor ? `<button class="delete-btn" onclick="deletePost(${post.id})" title="Excluir Postagem"><i class="fas fa-trash"></i> EXCLUIR</button>` : '';
                 
+                // Fallback para nome e foto caso o backend não envie (ex: postagem recém criada)
+                const authorName = post.author_name || (isAuthor ? userData.name : 'Atleta WODPulse');
+                const authorPhoto = post.author_photo || (isAuthor ? userData.photo : null);
+
                 return `
                     <div class="feed-item">
                         <div class="feed-header">
                             <div class="feed-header-left">
-                                <img src="${formatPhoto(post.author_photo)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
+                                <img src="${formatPhoto(authorPhoto)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
                                 <div class="feed-info">
-                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${post.author_name}</div>
+                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${authorName}</div>
                                     <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
