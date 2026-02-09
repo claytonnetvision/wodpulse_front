@@ -888,29 +888,37 @@
             if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
 
             try {
+                const postData = { 
+                    content, 
+                    type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                    privacy,
+                    photo_data: selectedPhotoData,
+                    target_user_id: currentSection === 'scraps' ? userData.id : null
+                };
+
                 const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json' 
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        content, 
-                        type: currentSection === 'scraps' ? 'scrap' : 'feed',
-                        privacy,
-                        photo_data: selectedPhotoData,
-                        target_user_id: currentSection === 'scraps' ? userData.id : null
-                    })
+                    body: JSON.stringify(postData),
+                    credentials: 'include'
                 });
 
-                if (res.ok) {
-                    document.getElementById('postInput').value = '';
-                    document.getElementById('photoPreview').innerHTML = '';
-                    selectedPhotoData = null;
-                    loadContent();
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    throw new Error(errorData.error || `Erro ${res.status}`);
                 }
+
+                document.getElementById('postInput').value = '';
+                document.getElementById('photoPreview').innerHTML = '';
+                selectedPhotoData = null;
+                alert('Postagem criada com sucesso!');
+                loadContent();
             } catch (err) {
-                alert('Erro ao postar');
+                console.error('Erro ao postar:', err);
+                alert(`Erro ao postar: ${err.message}`);
             }
         }
 
