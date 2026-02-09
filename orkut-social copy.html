@@ -866,7 +866,7 @@
                         ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                     </div>
                     <div class="feed-content">${item.content}</div>
-                    ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
+                    ${item.photo_data ? `<div class="feed-image-container"><img src="${item.photo_data}" class="feed-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;"></div>` : ''}
                     <div class="feed-reactions">
                         <div class="reaction-buttons">
                             <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
@@ -875,6 +875,7 @@
                             <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
                                 <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
                             </button>
+                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" style="margin-left: 10px; color: #999; background: none; border: none; cursor: pointer; font-size: 11px;" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                         </div>
                     </div>
                 </div>
@@ -887,29 +888,37 @@
             if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
 
             try {
+                const postData = { 
+                    content, 
+                    type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                    privacy,
+                    photoData: selectedPhotoData,
+                    targetUserId: currentSection === 'scraps' ? userData.id : null
+                };
+
                 const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json' 
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        content, 
-                        type: currentSection === 'scraps' ? 'scrap' : 'feed',
-                        privacy,
-                        photo_data: selectedPhotoData,
-                        target_user_id: currentSection === 'scraps' ? userData.id : null
-                    })
+                    body: JSON.stringify(postData),
+                    credentials: 'include'
                 });
 
-                if (res.ok) {
-                    document.getElementById('postInput').value = '';
-                    document.getElementById('photoPreview').innerHTML = '';
-                    selectedPhotoData = null;
-                    loadContent();
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    throw new Error(errorData.error || `Erro ${res.status}`);
                 }
+
+                document.getElementById('postInput').value = '';
+                document.getElementById('photoPreview').innerHTML = '';
+                selectedPhotoData = null;
+                alert('Postagem criada com sucesso!');
+                loadContent();
             } catch (err) {
-                alert('Erro ao postar');
+                console.error('Erro ao postar:', err);
+                alert(`Erro ao postar: ${err.message}`);
             }
         }
 
@@ -954,8 +963,8 @@
         async function saveAlbumPhoto() {
             if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
             const body = {
-                photo_data: selectedAlbumPhotoData,
-                description: document.getElementById('photoDescription').value,
+                photo: selectedAlbumPhotoData,
+                description: document.getElementById('photoDescription').value || '',
                 privacy: document.getElementById('photoPrivacy').value
             };
 

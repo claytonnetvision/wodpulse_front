@@ -397,8 +397,8 @@
         }
 
         .btn-match-mini:hover { transform: scale(1.1); }
-        .btn-pass { background: #f0f0f0; color: #999; }
         .btn-like { background: var(--orkut-pink); color: white; }
+        .btn-pass { background: #ccc; color: #666; }
 
         .friends-grid {
             display: grid;
@@ -426,14 +426,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--orkut-dark-blue);
-            margin-top: 2px;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
         }
 
         .search-input {
             width: 100%;
             padding: 5px;
             border: 1px solid var(--orkut-border);
-            font-size: 11px;
         }
 
         .modal {
@@ -449,33 +451,120 @@
         .modal-content {
             background: white;
             padding: 20px;
+            border: 5px solid var(--orkut-header);
             width: 400px;
-            border-radius: 5px;
         }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; }
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-        .notification-badge {
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--orkut-border);
+            border-radius: 4px;
+        }
+
+        .pink { color: var(--orkut-pink); }
+        .blue { color: var(--orkut-dark-blue); }
+        .hidden { display: none; }
+
+        #notificationBadge {
             position: absolute;
             top: -5px;
-            right: -10px;
+            right: -5px;
             background: var(--orkut-pink);
             color: white;
             border-radius: 50%;
             width: 18px;
             height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 10px;
-            font-weight: bold;
             display: none;
+            border: 2px solid white;
         }
 
-        .pink { color: var(--orkut-pink); }
-        .blue { color: var(--orkut-dark-blue); }
+        /* MEDIA QUERIES PARA RESPONSIVIDADE */
+        @media (max-width: 850px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 0 10px;
+            }
+
+            .sidebar-left, .sidebar-right {
+                order: 2;
+            }
+
+            .content-center {
+                order: 1;
+            }
+
+            .header-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .nav-top {
+                width: 100%;
+                justify-content: center;
+                overflow-x: auto;
+                padding-bottom: 5px;
+            }
+
+            .nav-top a {
+                margin: 0 10px;
+                white-space: nowrap;
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                gap: 15px;
+            }
+
+            .profile-pic-large {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 0;
+            }
+
+            .menu-list {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 90%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn-post {
+                width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -485,10 +574,8 @@
             <a href="#" class="logo">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">WODPulse</span></a>
             <nav class="nav-top">
                 <a href="orkut-social.html">Início</a>
-                <a href="matches-list.html"><i class="fas fa-heart"></i> Matches</a>
                 <a href="#" onclick="toggleNotifications()" style="position: relative;">
-                    <i class="fas fa-bell"></i> Notificações
-                    <span id="notificationBadge" class="notification-badge">0</span>
+                    Notificações <span id="notificationBadge">0</span>
                 </a>
                 <a href="#" onclick="logout()">Sair</a>
             </nav>
@@ -721,22 +808,20 @@
             
             if (lastAtIndex !== -1) {
                 const query = text.substring(lastAtIndex + 1, cursorPosition).toLowerCase();
-                const filteredFriends = allFriends.filter(f => f.name.toLowerCase().includes(query));
-                
-                if (filteredFriends.length > 0) {
-                    suggestionsDiv.innerHTML = filteredFriends.map(f => `
-                        <div class="mention-item" onclick="insertMention('${f.name}', ${lastAtIndex}, ${cursorPosition})">
-                            <img src="${formatPhoto(f.photo)}" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px;">
-                            <strong>${f.name}</strong>
-                        </div>
-                    `).join('');
-                    suggestionsDiv.style.display = 'block';
-                } else {
-                    suggestionsDiv.style.display = 'none';
+                if (query.length >= 1) {
+                    const filteredFriends = allFriends.filter(f => f.name.toLowerCase().includes(query));
+                    if (filteredFriends.length > 0) {
+                        suggestionsDiv.innerHTML = filteredFriends.map(f => `
+                            <div class="mention-item" onclick="insertMention('${f.name}', ${lastAtIndex}, ${cursorPosition})">
+                                <strong>${f.name}</strong>
+                            </div>
+                        `).join('');
+                        suggestionsDiv.style.display = 'block';
+                        return;
+                    }
                 }
-            } else {
-                suggestionsDiv.style.display = 'none';
             }
+            suggestionsDiv.style.display = 'none';
         }
 
         function insertMention(name, start, end) {
@@ -744,8 +829,8 @@
             const text = input.value;
             const newText = text.substring(0, start) + '@' + name + ' ' + text.substring(end);
             input.value = newText;
-            document.getElementById('mentionSuggestions').style.display = 'none';
             input.focus();
+            document.getElementById('mentionSuggestions').style.display = 'none';
         }
 
         async function loadProfile() {
@@ -755,57 +840,61 @@
                 });
                 userData = await res.json();
                 
-                document.getElementById('userName').textContent = userData.name;
                 document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
+                document.getElementById('userName').textContent = userData.name || 'Atleta';
                 document.getElementById('userBio').textContent = userData.bio || 'Sem bio definida.';
-                document.getElementById('stat-challenges').textContent = userData.challenges_count || 0;
-                document.getElementById('stat-likes').textContent = userData.likes_count || 0;
-                document.getElementById('stat-matches').textContent = userData.matches_count || 0;
                 
+                document.getElementById('stat-challenges').textContent = userData.stats?.challenges || 0;
+                document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
+                document.getElementById('stat-matches').textContent = userData.stats?.matches || 0;
+
                 document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
 
-                loadContent();
+                loadTrainingStats();
                 loadFriends();
                 loadPendingRequests();
+                loadContent();
                 loadMatchCandidates();
-                loadStats();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
             }
         }
 
-        async function loadStats() {
+        async function loadTrainingStats() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${userData.id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const historicoData = await res.json();
+                const historico = await res.json();
                 
-                if (historicoData && Array.isArray(historicoData)) {
-                    const totalAulas = historicoData.length;
-                    const totalCalorias = historicoData.reduce((sum, h) => sum + (h.calories_total || 0), 0);
-                    const totalVO2 = historicoData.reduce((sum, h) => sum + (h.vo2_time_seconds || 0), 0) / 60;
-                    const maxHrHistorica = Math.max(...historicoData.map(h => h.max_hr_reached || 0), userData.historical_max_hr || 0);
-                    const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
+                if (Array.isArray(historico)) {
+                    const treinos = historico.filter(h => h.aluno === userData.name);
+                    const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                    const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                    const totalVo2 = treinos.reduce((s, h) => s + (parseFloat(h.vo2_time_seconds) || 0), 0);
 
-                    document.getElementById('stat-aulas').textContent = totalAulas;
-                    document.getElementById('stat-calorias').textContent = Math.round(totalCalorias) + ' kcal';
-                    document.getElementById('stat-media').textContent = Math.round(avgCalorias) + ' kcal';
-                    document.getElementById('stat-fc-max').textContent = Math.round(maxHrHistorica) + ' bpm';
-                    document.getElementById('stat-vo2').textContent = Math.round(totalVO2) + ' min';
-                    
-                    document.getElementById('motivational-msg').textContent = 
-                        `🔥 Você já fez ${totalAulas} aulas e queimou ${Math.round(totalCalorias)} calorias no total!`;
+                    document.getElementById('stat-aulas').textContent = treinos.length;
+                    document.getElementById('stat-calorias').textContent = Math.round(totalCal) + ' kcal';
+                    document.getElementById('stat-media').textContent = Math.round(totalCal / (treinos.length || 1)) + ' kcal';
+                    document.getElementById('stat-fc-max').textContent = Math.round(maxHr) + ' bpm';
+                    document.getElementById('stat-vo2').textContent = Math.round(totalVo2 / 60) + ' min';
+
+                    const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                    if (comIA) {
+                        document.getElementById('motivational-msg').textContent = "💡 " + comIA.ia_comment.substring(0, 100) + "...";
+                    } else {
+                        document.getElementById('motivational-msg').textContent = "🔥 Continue treinando para receber feedbacks da IA!";
+                    }
                 }
-            } catch (err) {
-                console.error('Erro ao carregar estatísticas de treino:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function loadContent() {
             const list = document.getElementById('dynamic-list');
             const title = document.getElementById('content-title');
             const postArea = document.getElementById('post-area');
+            
+            list.innerHTML = '<p style="text-align: center; color: #888;">Carregando...</p>';
 
             if (currentSection === 'feed') {
                 title.textContent = 'Feed de Notícias';
@@ -828,121 +917,85 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const posts = await res.json();
-                renderPosts(posts);
-            } catch (err) {
-                console.error('Erro ao carregar feed:', err);
-            }
-        }
+                const container = document.getElementById('dynamic-list');
+                
+                if (posts.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 20px;">Nenhuma atualização no momento.</p>';
+                    return;
+                }
 
-        async function loadScraps() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/scraps/${userData.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const scraps = await res.json();
-                renderPosts(scraps);
-            } catch (err) {
-                console.error('Erro ao carregar scraps:', err);
-            }
-        }
-
-        function renderPosts(posts) {
-            const list = document.getElementById('dynamic-list');
-            if (posts.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem ainda.</p>';
-                return;
-            }
-
-            list.innerHTML = posts.map(item => `
-                <div class="feed-item">
-                    <div class="feed-header">
-                        <div class="feed-header-left">
-                            <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small" onclick="openProfile(${item.user_id})">
-                            <div class="feed-info">
-                                <div class="feed-author" onclick="openProfile(${item.user_id})">${item.user_name}</div>
-                                <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
+                container.innerHTML = posts.map(post => `
+                    <div class="feed-item" id="post-${post.id}">
+                        <div class="feed-header">
+                            <div class="feed-header-left">
+                                <img src="${formatPhoto(post.user_photo)}" class="feed-photo-small" onclick="openProfile(${post.user_id})">
+                                <div class="feed-info">
+                                    <div class="feed-author" onclick="openProfile(${post.user_id})">${post.user_name}</div>
+                                    <div class="feed-time">${new Date(post.created_at).toLocaleString()}</div>
+                                </div>
+                            </div>
+                            ${post.user_id === userData.id ? `
+                                <button class="delete-btn" onclick="deletePost(${post.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div class="feed-content">${post.content}</div>
+                        ${post.photo_data ? `<img src="${post.photo_data}" class="feed-image">` : ''}
+                        <div class="feed-reactions">
+                            <div class="reaction-buttons">
+                                <button class="reaction-btn ${post.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'like')">
+                                    <i class="fas fa-thumbs-up"></i> <span>${post.likes_count || 0}</span>
+                                </button>
+                                <button class="reaction-btn ${post.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${post.id}, 'dislike')">
+                                    <i class="fas fa-thumbs-down"></i> <span>${post.dislikes_count || 0}</span>
+                                </button>
                             </div>
                         </div>
-                        ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
                     </div>
-                    <div class="feed-content">${item.content}</div>
-                    ${item.photo_data ? `<div class="feed-image-container"><img src="${item.photo_data}" class="feed-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;"></div>` : ''}
-                    <div class="feed-reactions">
-                        <div class="reaction-buttons">
-                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
-                                <i class="fas fa-thumbs-up"></i> CURTI (${item.likes_count || 0})
-                            </button>
-                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
-                                <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
-                            </button>
-                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" style="margin-left: 10px; color: #999; background: none; border: none; cursor: pointer; font-size: 11px;" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (err) { console.error(err); }
         }
 
         async function createPost() {
             const content = document.getElementById('postInput').value.trim();
             const privacy = document.getElementById('postPrivacy').value;
-            if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
+            
+            if (!content && !selectedPhotoData) return;
 
             try {
-                const postData = { 
-                    content, 
-                    type: currentSection === 'scraps' ? 'scrap' : 'feed',
-                    privacy,
-                    photoData: selectedPhotoData,
-                    targetUserId: currentSection === 'scraps' ? userData.id : null
-                };
-
-                const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/post`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify(postData),
-                    credentials: 'include'
+                    body: JSON.stringify({ content, privacy, photoData: selectedPhotoData })
                 });
 
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
-                    throw new Error(errorData.error || `Erro ${res.status}`);
+                if (res.ok) {
+                    document.getElementById('postInput').value = '';
+                    document.getElementById('photoPreview').innerHTML = '';
+                    selectedPhotoData = null;
+                    loadFeed();
                 }
-
-                document.getElementById('postInput').value = '';
-                document.getElementById('photoPreview').innerHTML = '';
-                selectedPhotoData = null;
-                alert('Postagem criada com sucesso!');
-                loadContent();
-            } catch (err) {
-                console.error('Erro ao postar:', err);
-                alert(`Erro ao postar: ${err.message}`);
-            }
+            } catch (err) { alert('Erro ao postar'); }
         }
 
         async function deletePost(postId) {
-            if (!confirm('Tem certeza que deseja excluir esta postagem?')) return;
+            if (!confirm('Deseja excluir esta postagem?')) return;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/post/${postId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) {
-                    loadContent();
-                } else {
-                    const data = await res.json();
-                    alert(data.error || 'Erro ao excluir postagem');
-                }
-            } catch (err) {
-                alert('Erro ao excluir postagem');
-            }
+                if (res.ok) loadFeed();
+            } catch (err) { alert('Erro ao excluir'); }
         }
 
         async function reactToPost(postId, type) {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/post/${postId}/react`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
@@ -950,8 +1003,13 @@
                     },
                     body: JSON.stringify({ type })
                 });
-                if (res.ok) loadContent();
-            } catch (err) {}
+                if (res.ok) loadFeed();
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadScraps() {
+            const container = document.getElementById('dynamic-list');
+            container.innerHTML = '<p style="text-align: center; padding: 20px;">Mural de recados em desenvolvimento...</p>';
         }
 
         async function uploadAlbumPhoto(event) {
@@ -961,12 +1019,9 @@
         }
 
         async function saveAlbumPhoto() {
-            if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
-            const body = {
-                photo: selectedAlbumPhotoData,
-                description: document.getElementById('photoDescription').value || '',
-                privacy: document.getElementById('photoPrivacy').value
-            };
+            if (!selectedAlbumPhotoData) return;
+            const description = document.getElementById('photoDescription').value;
+            const privacy = document.getElementById('photoPrivacy').value;
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/photos/upload`, {
@@ -975,29 +1030,25 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({ photoData: selectedAlbumPhotoData, description, privacy })
                 });
 
                 if (res.ok) {
-                    alert('Foto salva com sucesso!');
-                    document.getElementById('albumPhotoInput').value = '';
+                    alert('Foto salva no álbum!');
                     document.getElementById('photoDescription').value = '';
-                    selectedAlbumPhotoData = null;
                     loadAlbumPhotos();
                 }
-            } catch (err) {
-                alert('Erro ao salvar foto');
-            }
+            } catch (err) { alert('Erro ao salvar foto'); }
         }
 
         async function loadAlbumPhotos() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/photos/${userData.id}`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const photos = await res.json();
-
                 const grid = document.getElementById('albumPhotosGrid');
+                
                 if (photos.length === 0) {
                     grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Nenhuma foto ainda.</p>';
                     return;
@@ -1153,7 +1204,7 @@
         function displayCandidate() {
             const container = document.getElementById('matchCandidate');
             if (candidates.length === 0 || currentCandidateIndex >= candidates.length) {
-                container.innerHTML = '<p style="color: #888; padding: 20px;">Nenhum atleta novo por perto.</p>';
+                container.innerHTML = '<p style="color: #888; padding: 20px;">Buscando atletas...</p>';
                 return;
             }
 
@@ -1262,6 +1313,18 @@
         function toggleNotifications() {
             document.getElementById('notificationsModal').style.display = 'flex';
             displayNotifications();
+            markNotificationsAsRead();
+        }
+
+        async function markNotificationsAsRead() {
+            try {
+                await fetch(`${API_BASE_URL}/api/social/notifications/read`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                notificationsCount = 0;
+                updateNotificationBadge();
+            } catch (err) {}
         }
 
         function closeNotificationsModal() {
