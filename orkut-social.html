@@ -809,10 +809,10 @@
                         ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
                         <div class="feed-reactions">
                             <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
-                                <i class="fas fa-thumbs-up"></i> <span id="likes-${item.id}">${item.likes_count || 0}</span>
+                                <i class="fas fa-thumbs-up"></i> <span style="margin-left: 5px;">CURTI (${item.likes_count || 0})</span>
                             </button>
                             <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
-                                <i class="fas fa-thumbs-down"></i> <span id="dislikes-${item.id}">${item.dislikes_count || 0}</span>
+                                <i class="fas fa-thumbs-down"></i> <span style="margin-left: 5px;">PODE MELHORAR (${item.dislikes_count || 0})</span>
                             </button>
                         </div>
                     </div>
@@ -1026,8 +1026,8 @@
             } catch (err) {}
         }
 
-        function openProfile(userId) {
-            window.location.href = `perfil-participante.html?id=${userId}`;
+            function openProfile(userId) {
+            window.location.href = `perfil-participante-orkut.html?id=${userId}`;
         }
 
         function openEditModal() {
