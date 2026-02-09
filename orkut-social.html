@@ -892,8 +892,8 @@
                     content, 
                     type: currentSection === 'scraps' ? 'scrap' : 'feed',
                     privacy,
-                    photo_data: selectedPhotoData,
-                    target_user_id: currentSection === 'scraps' ? userData.id : null
+                    photoData: selectedPhotoData,
+                    targetUserId: currentSection === 'scraps' ? userData.id : null
                 };
 
                 const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
@@ -963,8 +963,8 @@
         async function saveAlbumPhoto() {
             if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
             const body = {
-                photo_data: selectedAlbumPhotoData,
-                description: document.getElementById('photoDescription').value,
+                photo: selectedAlbumPhotoData,
+                description: document.getElementById('photoDescription').value || '',
                 privacy: document.getElementById('photoPrivacy').value
             };
 
