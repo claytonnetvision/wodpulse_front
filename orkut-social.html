@@ -433,6 +433,7 @@
                     <li><a href="#" onclick="showSection('feed')"><i class="fas fa-rss"></i> Feed</a></li>
                     <li><a href="#" onclick="showSection('scraps')"><i class="fas fa-envelope"></i> Mural (Scraps)</a></li>
                     <li><a href="#" onclick="showSection('photos')"><i class="fas fa-camera"></i> Fotos</a></li>
+                    <li><a href="perfil-social.html"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
                     <li><a href="desafios.html"><i class="fas fa-trophy"></i> Desafios</a></li>
                 </ul>
             </div>
@@ -484,7 +485,10 @@
                 <div id="content-title" class="box-header">Feed de Notícias</div>
                 
                 <div id="post-area" class="post-input-area">
-                    <textarea id="postInput" placeholder="O que você está treinando hoje? (Use @nome para marcar amigos)"></textarea>
+                    <div style="position: relative;">
+                        <textarea id="postInput" placeholder="O que você está treinando hoje? (Use @nome para marcar amigos)" oninput="handleMentionInput(event)"></textarea>
+                        <div id="mentionSuggestions" style="position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 150px; overflow-y: auto; width: 100%; display: none; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                    </div>
                     <div class="post-actions">
                         <select id="postPrivacy">
                             <option value="public">Público</option>
@@ -807,13 +811,16 @@
                         </div>
                         <div class="feed-content">${item.content}</div>
                         ${item.photo_data ? `<img src="${item.photo_data}" class="feed-image">` : ''}
-                        <div class="feed-reactions">
-                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
-                                <i class="fas fa-thumbs-up"></i> <span style="margin-left: 5px;">CURTI (${item.likes_count || 0})</span>
-                            </button>
-                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
-                                <i class="fas fa-thumbs-down"></i> <span style="margin-left: 5px;">PODE MELHORAR (${item.dislikes_count || 0})</span>
-                            </button>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="feed-reactions">
+                                <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
+                                    <i class="fas fa-thumbs-up"></i> <span style="margin-left: 5px;">CURTI (${item.likes_count || 0})</span>
+                                </button>
+                                <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
+                                    <i class="fas fa-thumbs-down"></i> <span style="margin-left: 5px;">PODE MELHORAR (${item.dislikes_count || 0})</span>
+                                </button>
+                            </div>
+                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
                     </div>
                 `).join('');
@@ -966,6 +973,81 @@
             } catch (err) {
                 alert('Erro ao postar foto');
             }
+        }
+
+        let currentFriends = [];
+        let mentionTimeout;
+
+        async function handleMentionInput(event) {
+            const text = event.target.value;
+            const lastAtIndex = text.lastIndexOf('@');
+            
+            if (lastAtIndex === -1) {
+                document.getElementById('mentionSuggestions').style.display = 'none';
+                return;
+            }
+
+            const afterAt = text.substring(lastAtIndex + 1);
+            
+            if (afterAt.length === 0) {
+                showMentionSuggestions('');
+            } else if (afterAt.length > 0 && /^[a-zA-Z\s]*$/.test(afterAt)) {
+                clearTimeout(mentionTimeout);
+                mentionTimeout = setTimeout(() => showMentionSuggestions(afterAt), 300);
+            } else {
+                document.getElementById('mentionSuggestions').style.display = 'none';
+            }
+        }
+
+        async function showMentionSuggestions(query) {
+            const container = document.getElementById('mentionSuggestions');
+            
+            if (currentFriends.length === 0) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    currentFriends = data.confirmedFriends || [];
+                } catch (err) {
+                    console.error('Erro ao carregar amigos:', err);
+                    return;
+                }
+            }
+
+            let filtered = currentFriends;
+            if (query.length > 0) {
+                filtered = currentFriends.filter(f => 
+                    f.name.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding: 10px; color: #999; font-size: 11px;">Nenhum amigo encontrado</div>';
+            } else {
+                container.innerHTML = filtered.slice(0, 5).map(friend => `
+                    <div onclick="insertMention('${friend.name}')" style="padding: 8px 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 11px;">
+                        <strong>${friend.name}</strong>
+                    </div>
+                `).join('');
+            }
+            
+            container.style.display = filtered.length > 0 || query.length > 0 ? 'block' : 'none';
+        }
+
+        function insertMention(friendName) {
+            const textarea = document.getElementById('postInput');
+            const text = textarea.value;
+            const lastAtIndex = text.lastIndexOf('@');
+            
+            const beforeAt = text.substring(0, lastAtIndex);
+            const newText = beforeAt + '@' + friendName + ' ';
+            
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(newText.length, newText.length);
+            
+            document.getElementById('mentionSuggestions').style.display = 'none';
         }
 
         let searchTimeout;
