@@ -303,35 +303,39 @@
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
             if (photo.startsWith('http')) return photo;
-            // O banco retorna o binário puro, precisamos converter para base64 se não for URL
-            if (photo.length > 1000) return `data:image/jpeg;base64,${photo}`;
-            return photo;
+            // No meu-progresso.html a foto vem como binário puro
+            return `data:image/jpeg;base64,${photo}`;
         }
 
         async function loadProfile() {
             try {
-                // 1. Carregar perfil público
-                const resProfile = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (resProfile.ok) {
-                    const data = await resProfile.json();
-                    document.getElementById('targetName').textContent = data.name;
+                // 1. Carregar dados do participante (Mesma rota do meu-progresso.html)
+                const resPart = await fetch(`${API_BASE_URL}/api/participants/${targetId}`);
+                if (resPart.ok) {
+                    const data = await resPart.json();
+                    document.getElementById('targetName').textContent = data.name || 'Atleta';
                     document.getElementById('targetPhoto').src = formatPhoto(data.photo);
                     document.getElementById('targetBio').textContent = data.bio || 'Atleta WODPulse';
                     document.getElementById('targetBox').textContent = data.box_name || 'WODPulse';
-                    if (data.stats) {
-                        document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
-                        document.getElementById('stat-likes').textContent = data.stats.likes || 0;
-                        document.getElementById('stat-matches').textContent = data.stats.matches || 0;
+                }
+
+                // 2. Carregar estatísticas sociais (Rota do Orkut)
+                const resSocial = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resSocial.ok) {
+                    const socialData = await resSocial.json();
+                    if (socialData.stats) {
+                        document.getElementById('stat-challenges').textContent = socialData.stats.challenges || 0;
+                        document.getElementById('stat-likes').textContent = socialData.stats.likes || 0;
+                        document.getElementById('stat-matches').textContent = socialData.stats.matches || 0;
                     }
                 }
 
-                // 2. Carregar estatísticas técnicas e Feedback da IA
+                // 3. Carregar estatísticas técnicas e Feedback da IA (Lógica idêntica ao meu-progresso.html)
                 await loadTechnicalData();
                 
-                // 3. Carregar feed
+                // 4. Carregar feed
                 await loadFeed();
             } catch (err) {
                 console.error('Erro ao carregar perfil:', err);
@@ -340,29 +344,29 @@
 
         async function loadTechnicalData() {
             try {
-                // Usamos a rota de histórico que retorna os dados da tabela session_participants
+                // Rota de histórico que o meu-progresso.html usa
                 const response = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const historicoData = await response.json();
 
                 if (Array.isArray(historicoData)) {
-                    // FILTRO: Usando participant_id conforme logs do banco
+                    // FILTRO: Filtramos pelo participant_id (ID do amigo)
                     const atletaTreinos = historicoData.filter(h => h.participant_id == targetId);
                     
                     if (atletaTreinos.length > 0) {
                         const totalAulas = atletaTreinos.length;
                         const totalCalorias = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.calories_total) || 0), 0);
+                        const totalVO2 = atletaTreinos.reduce((sum, h) => sum + (parseFloat(h.vo2_time_seconds) || 0), 0) / 60;
                         const maxHrHistorica = Math.max(...atletaTreinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
                         const avgCalorias = totalAulas > 0 ? totalCalorias / totalAulas : 0;
 
                         document.getElementById('tech-aulas').textContent = totalAulas;
                         document.getElementById('tech-calorias').textContent = Math.round(totalCalorias) + ' kcal';
                         document.getElementById('tech-media').textContent = Math.round(avgCalorias) + ' kcal';
-                        document.getElementById('tech-fc').textContent = (maxHrHistorica > 0 ? Math.round(maxHrHistorica) : 0) + ' bpm';
+                        document.getElementById('tech-fc').textContent = Math.round(maxHrHistorica) + ' bpm';
 
-                        // Feedback da IA: Usando o campo 'ia_comment' da tabela session_participants (conforme logs)
-                        // Ordenamos por date_start (campo da tabela sessions)
+                        // Feedback da IA (ia_comment no meu-progresso.html)
                         const treinosOrdenados = atletaTreinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
                         const treinoComIA = treinosOrdenados.find(h => h.ia_comment);
 
