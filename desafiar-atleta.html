@@ -191,7 +191,7 @@
             padding: 10px;
             margin-top: 20px;
             font-size: 10px;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             border: 2px solid #333;
         }
@@ -295,9 +295,15 @@
             list.innerHTML = '<p style="text-align: center; color: #888; padding: 10px;">Carregando...</p>';
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
                 const res = await fetch(`${API_BASE_URL}/api/challenges/top-calories?days=${days}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 if (!res.ok) throw new Error(`Status: ${res.status}`);
                 
@@ -321,7 +327,7 @@
                 `).join('');
 
             } catch (err) {
-                log(`ERRO RANKING: ${err.message}`);
+                log(`ERRO RANKING: ${err.name === 'AbortError' ? 'Timeout (10s)' : err.message}`);
                 list.innerHTML = '<p style="text-align: center; color: red; padding: 10px;">Erro ao carregar dados.</p>';
             }
         }
@@ -392,6 +398,9 @@
 
             try {
                 log("Enviando requisição para /api/challenges/create...");
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const res = await fetch(`${API_BASE_URL}/api/challenges/create`, {
                     method: 'POST',
                     headers: { 
@@ -403,9 +412,11 @@
                         startDate,
                         endDate,
                         invitedParticipants: selectedAtletas.map(a => a.id)
-                    })
+                    }),
+                    signal: controller.signal
                 });
 
+                clearTimeout(timeoutId);
                 log(`Resposta do servidor: ${res.status}`);
 
                 if (res.ok) {
@@ -418,8 +429,9 @@
                     alert('Erro: ' + (data.error || 'Falha ao criar desafio'));
                 }
             } catch (err) {
-                log(`ERRO CONEXÃO: ${err.message}`);
-                alert('Erro de conexão com o servidor.');
+                const isTimeout = err.name === 'AbortError';
+                log(`ERRO CONEXÃO: ${isTimeout ? 'Timeout (15s) - O servidor não respondeu.' : err.message}`);
+                alert(isTimeout ? 'O servidor demorou muito para responder. Verifique os logs do Render.' : 'Erro de conexão com o servidor.');
             }
         }
 
