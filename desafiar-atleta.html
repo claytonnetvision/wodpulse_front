@@ -1,78 +1,60 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WODPulse - Desafiar Atleta</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --orkut-blue: #EDF3FD;
-            --orkut-header: #BFD0EA;
-            --orkut-pink: #FF0084;
-            --orkut-text: #333;
-            --orkut-border: #C5D5F0;
-            --orkut-dark-blue: #6D84B4;
+            --orkut-blue: #6d84b4;
+            --orkut-light-blue: #e7ebf2;
+            --orkut-bg: #d4dff1;
+            --orkut-pink: #f03e9b;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, sans-serif;
+            background-color: var(--orkut-bg);
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .header {
             background-color: var(--orkut-blue);
-            color: var(--orkut-text);
-            font-size: 12px;
-        }
-
-        header {
-            background-color: white;
-            border-bottom: 1px solid var(--orkut-border);
-            padding: 5px 0;
-        }
-
-        .header-container {
-            max-width: 950px;
-            margin: 0 auto;
+            color: white;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--orkut-pink);
-            text-decoration: none;
-        }
-
-        .nav-top a {
-            color: var(--orkut-dark-blue);
-            text-decoration: none;
-            margin-left: 15px;
-            font-weight: bold;
-        }
-
-        .main-container {
-            max-width: 950px;
-            margin: 15px auto;
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
             display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 15px;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            padding: 0 15px;
         }
 
-        .box {
+        .card {
             background: white;
-            border: 1px solid var(--orkut-border);
+            border: 1px solid #ccc;
+            border-radius: 4px;
             padding: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .box-header {
-            background: var(--orkut-header);
-            padding: 5px 10px;
-            font-weight: bold;
-            color: var(--orkut-dark-blue);
+        .card-title {
+            background-color: var(--orkut-light-blue);
+            padding: 8px;
             margin: -15px -15px 15px -15px;
+            border-bottom: 1px solid #ccc;
+            font-weight: bold;
+            color: var(--orkut-blue);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -81,383 +63,361 @@
         .ranking-item {
             display: flex;
             align-items: center;
-            gap: 10px;
             padding: 8px 0;
             border-bottom: 1px solid #eee;
         }
 
-        .ranking-item:last-child { border-bottom: none; }
-
-        .ranking-pos {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--orkut-pink);
-            width: 25px;
-        }
-
         .ranking-photo {
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            margin-right: 10px;
             object-fit: cover;
-            border: 1px solid #ccc;
+            background: #eee;
         }
 
-        .ranking-info { flex: 1; }
-        .ranking-name { font-weight: bold; color: var(--orkut-dark-blue); }
-        .ranking-val { color: var(--orkut-pink); font-weight: bold; }
-
-        .filter-buttons {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-
-        .filter-btn {
+        .ranking-info {
             flex: 1;
-            padding: 5px;
-            background: #f0f0f0;
-            border: 1px solid #ccc;
+        }
+
+        .ranking-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .ranking-val {
+            color: var(--orkut-pink);
+            font-weight: bold;
+        }
+
+        .btn-filter {
+            background: white;
+            border: 1px solid var(--orkut-blue);
+            color: var(--orkut-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 10px;
+            font-size: 12px;
+            margin-left: 5px;
         }
 
-        .filter-btn.active {
-            background: var(--orkut-dark-blue);
+        .btn-filter.active {
+            background: var(--orkut-blue);
             color: white;
-            border-color: var(--orkut-dark-blue);
         }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--orkut-dark-blue); }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid var(--orkut-border); }
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-        .btn-action {
-            background: var(--orkut-dark-blue);
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background-color: var(--orkut-pink);
             color: white;
             border: none;
             padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            margin-top: 10px;
         }
 
-        .btn-pink { background: var(--orkut-pink); }
-
-        .selected-participants {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 10px;
+        .btn-primary:hover {
+            opacity: 0.9;
         }
 
         .participant-tag {
-            background: var(--orkut-blue);
-            border: 1px solid var(--orkut-border);
-            padding: 2px 8px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
+            display: inline-block;
+            background: var(--orkut-light-blue);
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 5px;
+            font-size: 13px;
+            border: 1px solid var(--orkut-blue);
         }
 
-        .remove-tag { cursor: pointer; color: red; font-weight: bold; }
-
-        .search-results {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            width: 100%;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-        }
-
-        .search-item {
-            padding: 8px;
+        .participant-tag i {
+            margin-left: 5px;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
+            color: red;
         }
 
-        .search-item:hover { background: #f5f5f5; }
-
-        #debugConsole {
+        #diagnostic-console {
             background: #000;
             color: #0f0;
             font-family: monospace;
-            padding: 10px;
+            padding: 15px;
+            border-radius: 4px;
             margin-top: 20px;
-            font-size: 10px;
-            max-height: 250px;
+            max-height: 200px;
             overflow-y: auto;
-            border: 2px solid #333;
+            font-size: 12px;
+            line-height: 1.4;
         }
 
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-container">
-            <a href="orkut-social.html" class="logo">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">WODPulse</span></a>
-            <nav class="nav-top">
-                <a href="orkut-social.html">Início</a>
-                <a href="#" onclick="logout()">Sair</a>
-            </nav>
+<div class="header">
+    <div style="font-weight: bold; font-size: 20px;">orkut <span style="font-weight: normal;">WODPulse</span></div>
+    <div>
+        <a href="orkut-social.html" style="color: white; text-decoration: none; margin-right: 15px;">Início</a>
+        <a href="#" onclick="logout()" style="color: white; text-decoration: none;">Sair</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Sidebar: Ranking Geral -->
+    <div class="sidebar">
+        <div class="card">
+            <div class="card-title">
+                Top 5 Calorias 🔥
+                <div>
+                    <button class="btn-filter active" onclick="loadRanking(1, this)">24h</button>
+                    <button class="btn-filter" onclick="loadRanking(3, this)">3d</button>
+                    <button class="btn-filter" onclick="loadRanking(7, this)">7d</button>
+                </div>
+            </div>
+            <div id="ranking-list">
+                <p style="text-align: center; color: #666;">Carregando...</p>
+            </div>
         </div>
-    </header>
-
-    <div class="main-container">
-        
-        <aside class="sidebar-left">
-            <div class="box">
-                <div class="box-header">Top 5 Calorias 🔥</div>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="loadTopRanking(1, this)">24h</button>
-                    <button class="filter-btn" onclick="loadTopRanking(3, this)">3 Dias</button>
-                    <button class="filter-btn" onclick="loadTopRanking(7, this)">7 Dias</button>
-                </div>
-                <div id="topRankingList">
-                    <p style="text-align: center; color: #888; padding: 10px;">Carregando...</p>
-                </div>
-            </div>
-        </aside>
-
-        <main class="content-center">
-            <div class="box">
-                <div class="box-header">Criar Novo Desafio</div>
-                
-                <div class="form-group">
-                    <label>Título do Desafio:</label>
-                    <input type="text" id="challengeTitle" placeholder="Ex: Guerra de Calorias do FDS">
-                </div>
-
-                <div class="form-group" style="position: relative;">
-                    <label>Convidar Atletas:</label>
-                    <input type="text" id="searchAtleta" placeholder="Digite o nome do atleta..." oninput="searchAtletas(this.value)">
-                    <div id="searchResults" class="search-results"></div>
-                    <div id="selectedParticipants" class="selected-participants"></div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="form-group">
-                        <label>Data Início:</label>
-                        <input type="datetime-local" id="startDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Data Fim:</label>
-                        <input type="datetime-local" id="endDate">
-                    </div>
-                </div>
-
-                <button class="btn-action btn-pink" onclick="createChallenge()">CRIAR E ENVIAR CONVITES</button>
-            </div>
-
-            <div id="debugConsole">
-                [SISTEMA] Aguardando comandos...
-            </div>
-        </main>
-
     </div>
 
-    <script>
-        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
-        const token = localStorage.getItem('wodpulse_social_token');
+    <!-- Main: Criar Desafio -->
+    <div class="main">
+        <div class="card">
+            <div class="card-title">Criar Novo Desafio</div>
+            
+            <div class="form-group">
+                <label>Título do Desafio:</label>
+                <input type="text" id="challenge-title" placeholder="Ex: Guerra de Calorias">
+            </div>
+
+            <div class="form-group">
+                <label>Convidar Atletas:</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="athlete-select">
+                        <option value="">Selecione um atleta...</option>
+                    </select>
+                    <button class="btn-filter" onclick="addParticipant()" style="height: 35px;">Adicionar</button>
+                </div>
+                <div id="participants-list" style="margin-top: 10px;">
+                    <!-- Tags de participantes aqui -->
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Data Início:</label>
+                    <input type="date" id="start-date">
+                </div>
+                <div class="form-group">
+                    <label>Data Fim:</label>
+                    <input type="date" id="end-date">
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="createChallenge()">CRIAR E ENVIAR CONVITES</button>
+        </div>
+
+        <div id="diagnostic-console">
+            [SISTEMA] Aguardando comandos...
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "https://wodpulse-back.onrender.com/api";
+    const token = localStorage.getItem("wodpulse_social_token");
+    const studentId = localStorage.getItem("studentId");
+    let selectedParticipants = [];
+
+    function log(msg) {
+        const console = document.getElementById("diagnostic-console");
+        const time = new Date().toLocaleTimeString();
+        console.innerHTML += `<br>[${time}] ${msg}`;
+        console.scrollTop = console.scrollHeight;
+    }
+
+    // Inicialização
+    window.onload = async () => {
+        log("Iniciando página...");
+        if (!token) {
+            log("ERRO: Usuário não logado.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Pegar ID da URL se vier do perfil
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
+        
+        await loadAthletes(targetId);
+        await loadRanking(1);
+    };
 
-        let selectedAtletas = [];
+    async function loadAthletes(targetId) {
+        try {
+            log("Buscando lista de atletas...");
+            const res = await fetch(`${API_BASE}/social/search-users?q=`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const select = document.getElementById("athlete-select");
+            
+            if (data.users) {
+                data.users.forEach(p => {
+                    const opt = document.createElement("option");
+                    opt.value = p.id;
+                    opt.text = p.name;
+                    select.add(opt);
+                    
+                    if (targetId && p.id == targetId) {
+                        addParticipantById(p.id, p.name);
+                    }
+                });
+            }
+            log("Lista de atletas carregada.");
+        } catch (err) {
+            log("ERRO ao carregar atletas: " + err.message);
+        }
+    }
 
-        function log(msg) {
-            const console = document.getElementById('debugConsole');
-            const time = new Date().toLocaleTimeString();
-            console.innerHTML += `<br>[${time}] ${msg}`;
-            console.scrollTop = console.scrollHeight;
+    function addParticipant() {
+        const select = document.getElementById("athlete-select");
+        const id = select.value;
+        const name = select.options[select.selectedIndex].text;
+        if (id) addParticipantById(id, name);
+    }
+
+    function addParticipantById(id, name) {
+        if (selectedParticipants.includes(id)) return;
+        selectedParticipants.push(id);
+        
+        const list = document.getElementById("participants-list");
+        const tag = document.createElement("span");
+        tag.className = "participant-tag";
+        tag.innerHTML = `${name} <i class="fas fa-times" onclick="removeParticipant('${id}', this)"></i>`;
+        list.appendChild(tag);
+        log(`Atleta adicionado: ${name}`);
+    }
+
+    function removeParticipant(id, el) {
+        selectedParticipants = selectedParticipants.filter(p => p != id);
+        el.parentElement.remove();
+    }
+
+    async function loadRanking(days, btn) {
+        if (btn) {
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         }
 
-        function formatPhoto(photo) {
-            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
-            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
-            return `data:image/jpeg;base64,${photo}`;
-        }
-
-        async function loadTopRanking(days, btn) {
-            if (btn) {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        const list = document.getElementById("ranking-list");
+        list.innerHTML = '<p style="text-align: center; color: #666;">Carregando...</p>';
+        
+        try {
+            log(`Buscando ranking de ${days} dias...`);
+            const res = await fetch(`${API_BASE}/challenges/top-calories?days=${days}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!res.ok) throw new Error(`Status ${res.status}`);
+            
+            const data = await res.json();
+            list.innerHTML = "";
+            
+            if (data.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666;">Nenhum treino no período.</p>';
             }
 
-            log(`Buscando ranking de ${days} dias...`);
-            const list = document.getElementById('topRankingList');
-            list.innerHTML = '<p style="text-align: center; color: #888; padding: 10px;">Carregando...</p>';
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-                const res = await fetch(`${API_BASE_URL}/api/challenges/top-calories?days=${days}`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                
-                if (!res.ok) throw new Error(`Status: ${res.status}`);
-                
-                const data = await res.json();
-                log(`Ranking recebido: ${data.length} atletas.`);
-
-                if (data.length === 0) {
-                    list.innerHTML = '<p style="text-align: center; color: #888; padding: 10px;">Nenhum treino no período.</p>';
-                    return;
-                }
-
-                list.innerHTML = data.map((item, index) => `
+            data.forEach(item => {
+                const photo = item.photo ? (item.photo.startsWith('data:') ? item.photo : `data:image/jpeg;base64,${item.photo}`) : 'https://www.infrapower.com.br/logo-v6.png';
+                list.innerHTML += `
                     <div class="ranking-item">
-                        <div class="ranking-pos">${index + 1}º</div>
-                        <img src="${formatPhoto(item.photo)}" class="ranking-photo">
+                        <img src="${photo}" class="ranking-photo">
                         <div class="ranking-info">
                             <div class="ranking-name">${item.name}</div>
                             <div class="ranking-val">${Math.round(item.total_calories)} kcal</div>
                         </div>
                     </div>
-                `).join('');
+                `;
+            });
+            log("Ranking carregado com sucesso.");
+        } catch (err) {
+            log("ERRO no ranking: " + err.message);
+            list.innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar.</p>';
+        }
+    }
 
-            } catch (err) {
-                log(`ERRO RANKING: ${err.name === 'AbortError' ? 'Timeout (10s)' : err.message}`);
-                list.innerHTML = '<p style="text-align: center; color: red; padding: 10px;">Erro ao carregar dados.</p>';
-            }
+    async function createChallenge() {
+        const title = document.getElementById("challenge-title").value;
+        const start = document.getElementById("start-date").value;
+        const end = document.getElementById("end-date").value;
+
+        if (!title || !start || !end || selectedParticipants.length === 0) {
+            alert("Preencha todos os campos e convide pelo menos um atleta!");
+            return;
         }
 
-        async function searchAtletas(query) {
-            const results = document.getElementById('searchResults');
-            if (query.length < 2) {
-                results.style.display = 'none';
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                
-                if (data.users.length === 0) {
-                    results.innerHTML = '<div class="search-item">Nenhum atleta encontrado</div>';
-                } else {
-                    results.innerHTML = data.users.map(u => `
-                        <div class="search-item" onclick="addAtleta(${u.id}, '${u.name}')">
-                            <strong>${u.name}</strong>
-                        </div>
-                    `).join('');
-                }
-                results.style.display = 'block';
-            } catch (err) {
-                log(`ERRO BUSCA: ${err.message}`);
-            }
-        }
-
-        function addAtleta(id, name) {
-            if (selectedAtletas.find(a => a.id === id)) return;
-            selectedAtletas.push({ id, name });
-            renderSelected();
-            document.getElementById('searchAtleta').value = '';
-            document.getElementById('searchResults').style.display = 'none';
-            log(`Atleta adicionado: ${name}`);
-        }
-
-        function removeAtleta(id) {
-            selectedAtletas = selectedAtletas.filter(a => a.id !== id);
-            renderSelected();
-        }
-
-        function renderSelected() {
-            const container = document.getElementById('selectedParticipants');
-            container.innerHTML = selectedAtletas.map(a => `
-                <div class="participant-tag">
-                    ${a.name} <span class="remove-tag" onclick="removeAtleta(${a.id})">×</span>
-                </div>
-            `).join('');
-        }
-
-        async function createChallenge() {
-            const title = document.getElementById('challengeTitle').value.trim();
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-
+        try {
             log(`Tentando criar desafio: ${title}`);
+            const res = await fetch(`${API_BASE}/challenges/create`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title,
+                    startDate: start,
+                    endDate: end,
+                    invitedParticipants: selectedParticipants
+                })
+            });
 
-            if (!title || !startDate || !endDate || selectedAtletas.length === 0) {
-                log("AVISO: Campos incompletos.");
-                alert('Preencha todos os campos e convide pelo menos um atleta!');
-                return;
+            const result = await res.json();
+            
+            if (res.ok) {
+                log("SUCESSO! Desafio criado e convites enviados.");
+                alert("Desafio criado com sucesso! Aguarde os atletas aceitarem.");
+                window.location.href = "orkut-social.html";
+            } else {
+                log("ERRO do servidor: " + (result.error || "Erro desconhecido"));
+                alert("Erro: " + (result.error || "Não foi possível criar o desafio."));
             }
-
-            try {
-                log("Enviando requisição para /api/challenges/create...");
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-                const res = await fetch(`${API_BASE_URL}/api/challenges/create`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title,
-                        startDate,
-                        endDate,
-                        invitedParticipants: selectedAtletas.map(a => a.id)
-                    }),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-                log(`Resposta do servidor: ${res.status}`);
-
-                if (res.ok) {
-                    log("SUCESSO: Desafio criado!");
-                    alert('Desafio criado e convites enviados!');
-                    window.location.reload();
-                } else {
-                    const data = await res.json();
-                    log(`ERRO SERVIDOR: ${data.error}`);
-                    alert('Erro: ' + (data.error || 'Falha ao criar desafio'));
-                }
-            } catch (err) {
-                const isTimeout = err.name === 'AbortError';
-                log(`ERRO CONEXÃO: ${isTimeout ? 'Timeout (15s) - O servidor não respondeu.' : err.message}`);
-                alert(isTimeout ? 'O servidor demorou muito para responder. Verifique os logs do Render.' : 'Erro de conexão com o servidor.');
-            }
+        } catch (err) {
+            log("ERRO de conexão: " + err.message);
+            alert("Erro de conexão com o servidor.");
         }
+    }
 
-        async function init() {
-            log("Iniciando página...");
-            if (targetId) {
-                log(`Buscando atleta inicial ID: ${targetId}`);
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/participants/${targetId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) addAtleta(data.participant.id, data.participant.name);
-                } catch (e) {
-                    log(`ERRO ATLETA INICIAL: ${e.message}`);
-                }
-            }
-            loadTopRanking(1);
-        }
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+</script>
 
-        function logout() {
-            localStorage.removeItem('wodpulse_social_token');
-            window.location.href = 'login.html';
-        }
-
-        init();
-    </script>
 </body>
 </html>
