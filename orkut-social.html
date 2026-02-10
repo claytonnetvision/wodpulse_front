@@ -596,7 +596,7 @@
                     <li><a href="#" onclick="showSection('scraps')"><i class="fas fa-envelope"></i> Mural (Scraps)</a></li>
                     <li><a href="#" onclick="showSection('photos')"><i class="fas fa-camera"></i> Fotos</a></li>
                     <li><a href="#" id="progressLink"><i class="fas fa-chart-line"></i> Meu Progresso</a></li>
-                    <li><a href="desafios.html"><i class="fas fa-trophy"></i> Desafios</a></li>
+                    <li><a href="desafiar-atleta.html"><i class="fas fa-trophy"></i> Desafios</a></li>
                 </ul>
             </div>
 
@@ -749,28 +749,30 @@
                 </select>
             </div>
             <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
-                <button class="btn-post" onclick="saveAlbumPhoto()">Salvar Foto</button>
+                <button class="btn-post" onclick="saveAlbumPhoto()">Salvar no Álbum</button>
                 <button onclick="closePhotosModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
             </div>
-            <div id="albumPhotosGrid" style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;"></div>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            <div id="albumPhotosGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <!-- Fotos do álbum aqui -->
+            </div>
         </div>
     </div>
 
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-        let currentSection = 'feed';
-        let userData = null;
-        let candidates = [];
-        let currentCandidateIndex = 0;
-        let selectedPhotoData = null;
-        let selectedAlbumPhotoData = null;
-        let allFriends = [];
+        const alunoId = localStorage.getItem('wodpulse_aluno_id');
 
         if (!token) window.location.href = 'login.html';
 
-        let notificationsCount = 0;
-        let allNotifications = [];
+        let userData = null;
+        let currentSection = 'feed';
+        let candidates = [];
+        let currentCandidateIndex = 0;
+        let allFriends = [];
+        let selectedPhotoData = null;
+        let selectedAlbumPhotoData = null;
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
@@ -778,75 +780,21 @@
             return `data:image/jpeg;base64,${photo}`;
         }
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function triggerPhotoUpload() {
-            document.getElementById('photoInput').click();
-        }
-
-        async function previewPhoto(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            selectedPhotoData = await fileToBase64(file);
-            const preview = document.getElementById('photoPreview');
-            preview.innerHTML = `<img src="${selectedPhotoData}" style="max-width: 200px; max-height: 200px; border: 1px solid #ccc; border-radius: 4px;">`;
-        }
-
-        async function handleMentionInput(event) {
-            const text = event.target.value;
-            const cursorPosition = event.target.selectionStart;
-            const lastAtIndex = text.lastIndexOf('@', cursorPosition - 1);
-            const suggestionsDiv = document.getElementById('mentionSuggestions');
-            
-            if (lastAtIndex !== -1) {
-                const query = text.substring(lastAtIndex + 1, cursorPosition).toLowerCase();
-                if (query.length >= 1) {
-                    const filteredFriends = allFriends.filter(f => f.name.toLowerCase().includes(query));
-                    if (filteredFriends.length > 0) {
-                        suggestionsDiv.innerHTML = filteredFriends.map(f => `
-                            <div class="mention-item" onclick="insertMention('${f.name}', ${lastAtIndex}, ${cursorPosition})">
-                                <strong>${f.name}</strong>
-                            </div>
-                        `).join('');
-                        suggestionsDiv.style.display = 'block';
-                        return;
-                    }
-                }
-            }
-            suggestionsDiv.style.display = 'none';
-        }
-
-        function insertMention(name, start, end) {
-            const input = document.getElementById('postInput');
-            const text = input.value;
-            const newText = text.substring(0, start) + '@' + name + ' ' + text.substring(end);
-            input.value = newText;
-            input.focus();
-            document.getElementById('mentionSuggestions').style.display = 'none';
-        }
-
-        async function loadProfile() {
+        async function loadProfileData() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 userData = await res.json();
-                
+                document.getElementById('userName').textContent = userData.name;
                 document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
-                document.getElementById('userName').textContent = userData.name || 'Atleta';
-                document.getElementById('userBio').textContent = userData.bio || 'Sem bio definida.';
+                document.getElementById('userBio').textContent = userData.bio || 'Atleta WODPulse';
                 
-                document.getElementById('stat-challenges').textContent = userData.stats?.challenges || 0;
-                document.getElementById('stat-likes').textContent = userData.stats?.likes || 0;
-                document.getElementById('stat-matches').textContent = userData.stats?.matches || 0;
+                if (userData.stats) {
+                    document.getElementById('stat-challenges').textContent = userData.stats.challenges || 0;
+                    document.getElementById('stat-likes').textContent = userData.stats.likes || 0;
+                    document.getElementById('stat-matches').textContent = userData.stats.matches || 0;
+                }
 
                 document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
 
@@ -1242,37 +1190,58 @@
             container.innerHTML = `
                 <img src="${formatPhoto(c.photo)}" class="match-photo-small">
                 <div class="blue" style="font-weight: bold;">${c.name}</div>
-                <div style="font-size: 10px; color: #666;">${c.box_name || 'WODPulse'}</div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 10px;">Box: ${c.box_id || '--'}</div>
                 <div class="match-actions-mini">
-                    <button class="btn-match-mini btn-pass" onclick="matchAction(${c.id}, 'rejected')"><i class="fas fa-times"></i></button>
-                    <button class="btn-match-mini btn-like" onclick="matchAction(${c.id}, 'matched')"><i class="fas fa-heart"></i></button>
+                    <button class="btn-match-mini btn-dislike-mini" onclick="nextCandidate()"><i class="fas fa-times"></i></button>
+                    <button class="btn-match-mini btn-like-mini" onclick="likeCandidate(${c.id})"><i class="fas fa-heart"></i></button>
                 </div>
             `;
         }
 
-        async function matchAction(targetId, status) {
+        async function likeCandidate(targetId) {
             try {
-                await fetch(`${API_BASE_URL}/api/social/match`, {
+                const res = await fetch(`${API_BASE_URL}/api/social/match/like`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetId, status })
+                    body: JSON.stringify({ targetId })
                 });
-                currentCandidateIndex++;
-                displayCandidate();
+                const data = await res.json();
+                if (data.match) alert('MATCH! Vocês agora podem conversar!');
+                nextCandidate();
             } catch (err) {}
         }
 
-        function openProfile(userId) {
-            window.location.href = `perfil-participante.html?id=${userId}`;
+        function nextCandidate() {
+            currentCandidateIndex++;
+            displayCandidate();
+        }
+
+        function openProfile(id) {
+            window.location.href = `perfil-participante.html?id=${id}`;
         }
 
         function openEditModal() {
-            document.getElementById('editModal').style.display = 'flex';
             document.getElementById('bioInput').value = userData.bio || '';
+            document.getElementById('editModal').style.display = 'flex';
         }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveProfile() {
+            const bio = document.getElementById('bioInput').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bio })
+                });
+                if (res.ok) {
+                    closeEditModal();
+                    loadProfileData();
+                }
+            } catch (err) {}
         }
 
         function openPhotosModal() {
@@ -1284,155 +1253,207 @@
             document.getElementById('photosModal').style.display = 'none';
         }
 
-        async function saveProfile() {
-            const bio = document.getElementById('bioInput').value.trim();
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/profile/update`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify({ bio: bio })
-                });
-                if (res.ok) {
-                    alert('Perfil atualizado!');
-                    closeEditModal();
-                    loadProfile();
-                }
-            } catch (err) { alert('Erro ao salvar'); }
-        }
-
-        function showSection(section) {
-            currentSection = section;
-            loadContent();
-        }
-
-        function logout() {
-            if (confirm('Sair do Orkut WODPulse?')) {
-                localStorage.removeItem('wodpulse_social_token');
-                window.location.href = 'login.html';
-            }
-        }
-
-        async function loadNotifications() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/notifications`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                allNotifications = await res.json();
-                notificationsCount = allNotifications.filter(n => !n.is_read).length;
-                updateNotificationBadge();
-            } catch (err) {
-                console.error('Erro ao carregar notificacoes:', err);
-            }
-        }
-
-        function updateNotificationBadge() {
-            const badge = document.getElementById('notificationBadge');
-            if (notificationsCount > 0) {
-                badge.textContent = notificationsCount;
-                badge.style.display = 'flex';
-                badge.style.alignItems = 'center';
-                badge.style.justifyContent = 'center';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
         function toggleNotifications() {
-            document.getElementById('notificationsModal').style.display = 'flex';
-            displayNotifications();
-            markNotificationsAsRead();
-        }
-
-        async function markNotificationsAsRead() {
-            try {
-                await fetch(`${API_BASE_URL}/api/social/notifications/read`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                notificationsCount = 0;
-                updateNotificationBadge();
-            } catch (err) {}
+            const modal = document.getElementById('notificationsModal');
+            if (modal.style.display === 'flex') {
+                closeNotificationsModal();
+            } else {
+                modal.style.display = 'flex';
+                loadNotifications();
+            }
         }
 
         function closeNotificationsModal() {
             document.getElementById('notificationsModal').style.display = 'none';
         }
 
-        function displayNotifications() {
-            const container = document.getElementById('notificationsList');
-            if (allNotifications.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma notificacao.</p>';
-                return;
-            }
+        async function loadNotifications() {
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = '<p style="text-align: center; padding: 20px;">Carregando...</p>';
 
-            container.innerHTML = ''; 
+            try {
+                const resFriends = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataFriends = await resFriends.json();
 
-            allNotifications.forEach(notif => {
-                let icon = '📢';
-                let message = '';
-                
-                if (notif.type === 'mention') {
-                    icon = '🏷️';
-                    message = notif.from_user_name + ' te marcou em uma postagem';
-                } else if (notif.type === 'like') {
-                    icon = '👍';
-                    message = notif.from_user_name + ' curtiu sua postagem';
-                } else if (notif.type === 'dislike') {
-                    icon = '👎';
-                    message = notif.from_user_name + ' disse que pode melhorar sua postagem';
-                } else if (notif.type === 'match') {
-                    icon = '❤️';
-                    message = notif.from_user_name + ' deu match com voce!';
-                } else if (notif.type === 'friend_request') {
-                    icon = '👥';
-                    message = notif.from_user_name + ' enviou um pedido de amizade';
+                let challengeNotifications = [];
+                try {
+                    const resChallenges = await fetch(`${API_BASE_URL}/api/challenges/notifications`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (resChallenges.ok) {
+                        challengeNotifications = await resChallenges.json();
+                    }
+                } catch (e) { console.log('Rota de desafios ainda não ativa'); }
+
+                let html = '';
+                const totalNotifications = dataFriends.pendingRequests.length + challengeNotifications.length;
+
+                if (totalNotifications === 0) {
+                    html = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma notificação nova.</p>';
+                } else {
+                    html += dataFriends.pendingRequests.map(req => `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee;">
+                            <img src="${formatPhoto(req.photo)}" style="width: 35px; height: 35px; border-radius: 50%;">
+                            <div style="flex: 1;">
+                                <strong>${req.name}</strong> quer ser seu amigo!
+                            </div>
+                            <button onclick="respondFriend(${req.id}, 'accept')" class="btn-post" style="font-size: 10px;">Aceitar</button>
+                        </div>
+                    `).join('');
+
+                    html += challengeNotifications.map(notif => `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; background: #fff9c4;">
+                            <div style="font-size: 20px;">🏆</div>
+                            <div style="flex: 1;">
+                                <strong>${notif.creator_name}</strong> te desafiou: <em>"${notif.title}"</em>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="respondChallenge(${notif.challenge_id}, 'accepted')" class="btn-post" style="font-size: 10px;">Aceitar</button>
+                                <button onclick="respondChallenge(${notif.challenge_id}, 'declined')" style="font-size: 10px; background: #ccc; border: none; padding: 5px;">Recusar</button>
+                            </div>
+                        </div>
+                    `).join('');
                 }
 
-                const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '10px';
-                itemDiv.style.borderBottom = '1px solid #eee';
-                itemDiv.style.backgroundColor = notif.is_read ? '#ffffff' : '#f0f8ff';
+                list.innerHTML = html;
+                updateNotificationBadge(totalNotifications);
+            } catch (err) {
+                list.innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar.</p>';
+            }
+        }
 
-                const contentDiv = document.createElement('div');
-                contentDiv.style.display = 'flex';
-                contentDiv.style.alignItems = 'center';
-                contentDiv.style.gap = '10px';
+        async function respondChallenge(challengeId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if (res.ok) {
+                    alert(action === 'accepted' ? 'Desafio aceito! Prepare-se!' : 'Desafio recusado.');
+                    loadNotifications();
+                }
+            } catch (err) { alert('Erro ao responder desafio'); }
+        }
 
-                const iconSpan = document.createElement('span');
-                iconSpan.style.fontSize = '20px';
-                iconSpan.textContent = icon;
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
 
-                const textDiv = document.createElement('div');
-                textDiv.style.flex = '1';
+        function triggerPhotoUpload() {
+            document.getElementById('photoInput').click();
+        }
 
-                const strongMsg = document.createElement('strong');
-                strongMsg.textContent = message;
+        async function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedPhotoData = await fileToBase64(file);
+            document.getElementById('photoPreview').innerHTML = `
+                <div style="position: relative; display: inline-block;">
+                    <img src="${selectedPhotoData}" style="max-width: 100px; border: 1px solid #ccc;">
+                    <button onclick="removePreview()" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>
+                </div>
+            `;
+        }
 
-                const timeDiv = document.createElement('div');
-                timeDiv.style.fontSize = '10px';
-                timeDiv.style.color = '#999';
-                timeDiv.style.marginTop = '3px';
-                timeDiv.textContent = new Date(notif.created_at).toLocaleString();
+        function removePreview() {
+            selectedPhotoData = null;
+            document.getElementById('photoPreview').innerHTML = '';
+            document.getElementById('photoInput').value = '';
+        }
 
-                textDiv.appendChild(strongMsg);
-                textDiv.appendChild(timeDiv);
-                contentDiv.appendChild(iconSpan);
-                contentDiv.appendChild(textDiv);
-                itemDiv.appendChild(contentDiv);
-                
-                container.appendChild(itemDiv);
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
             });
         }
 
-        setInterval(() => {
-            loadNotifications();
-        }, 30000);
+        async function handleMentionInput(event) {
+            const textarea = event.target;
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            const lastAtPos = text.lastIndexOf('@', cursorPosition - 1);
 
-        loadProfile();
-        loadNotifications();
+            if (lastAtPos !== -1 && (lastAtPos === 0 || text[lastAtPos - 1] === ' ' || text[lastAtPos - 1] === '\n')) {
+                const query = text.substring(lastAtPos + 1, cursorPosition);
+                if (query.length >= 1) {
+                    showMentionSuggestions(query, lastAtPos);
+                } else {
+                    hideMentionSuggestions();
+                }
+            } else {
+                hideMentionSuggestions();
+            }
+        }
+
+        async function showMentionSuggestions(query, atPos) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const suggestions = document.getElementById('mentionSuggestions');
+                
+                if (data.users.length === 0) {
+                    hideMentionSuggestions();
+                    return;
+                }
+
+                suggestions.innerHTML = data.users.map(user => `
+                    <div class="mention-item" onclick="insertMention('${user.name}', ${atPos})">
+                        <img src="${formatPhoto(user.photo)}" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px;">
+                        <strong>${user.name}</strong>
+                    </div>
+                `).join('');
+                suggestions.style.display = 'block';
+            } catch (err) {}
+        }
+
+        function hideMentionSuggestions() {
+            document.getElementById('mentionSuggestions').style.display = 'none';
+        }
+
+        function insertMention(name, atPos) {
+            const textarea = document.getElementById('postInput');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            const beforeAt = text.substring(0, atPos);
+            const afterCursor = text.substring(cursorPosition);
+            
+            textarea.value = beforeAt + '@' + name + ' ' + afterCursor;
+            hideMentionSuggestions();
+            textarea.focus();
+        }
+
+        function logout() {
+            localStorage.removeItem('wodpulse_social_token');
+            window.location.href = 'login.html';
+        }
+
+        async function init() {
+            await loadProfileData();
+            // loadTrainingStats() is called inside loadProfileData()
+            // loadContent() is called inside loadProfileData()
+            // loadFriends() is called inside loadProfileData()
+            // loadPendingRequests() is called inside loadProfileData()
+            // loadMatchCandidates() is called inside loadProfileData()
+            
+            setInterval(loadNotifications, 60000);
+            loadNotifications();
+        }
+
+        init();
     </script>
 </body>
 </html>
