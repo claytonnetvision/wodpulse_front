@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOD Challenge - Desafiar Atleta</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --orkut-blue: #EDF3FD;
+            --orkut-header: #BFD0EA;
+            --orkut-pink: #FF0084;
+            --orkut-text: #333;
+            --orkut-border: #C5D5F0;
+            --orkut-dark-blue: #6D84B4;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--orkut-blue);
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            color: var(--orkut-text);
+        }
+
+        header {
+            background-color: white;
+            border-bottom: 1px solid var(--orkut-border);
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .box {
+            background: white;
+            border: 1px solid var(--orkut-border);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .box-header {
+            background: var(--orkut-header);
+            padding: 8px 15px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            margin: -15px -15px 15px -15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .ranking-item:last-child { border-bottom: none; }
+
+        .rank-pos {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--orkut-pink);
+            width: 25px;
+        }
+
+        .rank-photo {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        .rank-info { flex: 1; }
+        .rank-name { font-weight: bold; color: var(--orkut-dark-blue); }
+        .rank-cals { color: var(--orkut-pink); font-weight: bold; }
+
+        .filter-btns {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .btn-filter {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 3px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .btn-filter.active {
+            background: var(--orkut-dark-blue);
+            color: white;
+            border-color: var(--orkut-dark-blue);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--orkut-dark-blue); }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--orkut-border);
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-pink { background: var(--orkut-pink); color: white; }
+        .btn-blue { background: var(--orkut-dark-blue); color: white; }
+        .btn-red { background: #ff4444; color: white; }
+
+        .selected-participants {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .participant-tag {
+            background: #e1f5fe;
+            border: 1px solid #b3e5fc;
+            padding: 2px 8px;
+            border-radius: 15px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .participant-tag i { cursor: pointer; color: #ff4444; }
+
+        .search-results {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-item:hover { background: #f5f5f5; }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">CHALLENGE</span></a>
+            <a href="orkut-social.html" class="btn btn-blue">Voltar para o Início</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Coluna Esquerda: Rankings Gerais -->
+        <aside>
+            <div class="box">
+                <div class="box-header">Top 5 Calorias 🔥</div>
+                <div class="filter-btns">
+                    <button class="btn-filter active" onclick="loadTopRanking(1, this)">24h</button>
+                    <button class="btn-filter" onclick="loadTopRanking(3, this)">3 Dias</button>
+                    <button class="btn-filter" onclick="loadTopRanking(7, this)">7 Dias</button>
+                </div>
+                <div id="topRankingList">Carregando...</div>
+            </div>
+
+            <div class="box">
+                <div class="box-header">Meus Desafios Ativos</div>
+                <div id="myChallengesList">Você não tem desafios ativos.</div>
+            </div>
+        </aside>
+
+        <!-- Coluna Direita: Criar e Ver Desafio -->
+        <main>
+            <div class="box">
+                <div class="box-header">Criar Novo Desafio</div>
+                <div class="form-group">
+                    <label>Título do Desafio:</label>
+                    <input type="text" id="challengeTitle" placeholder="Ex: Guerra de Calorias do FDS">
+                </div>
+                <div class="form-group" style="position: relative;">
+                    <label>Convidar Atletas:</label>
+                    <input type="text" id="searchAtleta" placeholder="Digite o nome do atleta..." oninput="searchAtletas(this.value)">
+                    <div id="searchResults" class="search-results" style="display:none;"></div>
+                    <div id="selectedList" class="selected-participants"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Data Início:</label>
+                        <input type="datetime-local" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Fim:</label>
+                        <input type="datetime-local" id="endDate">
+                    </div>
+                </div>
+                <button class="btn btn-pink" onclick="createChallenge()"><i class="fas fa-plus"></i> Criar e Enviar Convites</button>
+            </div>
+
+            <div id="activeChallengeBox" class="box" style="display:none;">
+                <div class="box-header">
+                    <span id="activeChallengeTitle">Ranking do Desafio</span>
+                    <div id="challengeControls">
+                        <!-- Botões de Iniciar/Excluir aparecerão aqui -->
+                    </div>
+                </div>
+                <div id="challengeRanking"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialTargetId = urlParams.get('id');
+        
+        let selectedParticipants = [];
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        // 1. Carregar Ranking Geral (Top 5)
+        async function loadTopRanking(days, btn) {
+            if (btn) {
+                document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/top-calories?days=${days}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const list = document.getElementById('topRankingList');
+                
+                if (data.length === 0) {
+                    list.innerHTML = '<p style="color:#888; font-size:10px;">Nenhum treino no período.</p>';
+                    return;
+                }
+
+                list.innerHTML = data.map((item, index) => `
+                    <div class="ranking-item">
+                        <div class="rank-pos">${index + 1}º</div>
+                        <img src="${formatPhoto(item.photo)}" class="rank-photo">
+                        <div class="rank-info">
+                            <div class="rank-name">${item.name}</div>
+                            <div class="rank-cals">${Math.round(item.total_calories)} kcal</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        // 2. Busca de Atletas para Convite
+        let searchTimeout;
+        async function searchAtletas(query) {
+            clearTimeout(searchTimeout);
+            if (query.length < 2) {
+                document.getElementById('searchResults').style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    const results = document.getElementById('searchResults');
+                    results.innerHTML = data.users.map(u => `
+                        <div class="search-item" onclick="addParticipant(${u.id}, '${u.name}')">
+                            ${u.name}
+                        </div>
+                    `).join('');
+                    results.style.display = 'block';
+                } catch (e) {}
+            }, 300);
+        }
+
+        function addParticipant(id, name) {
+            if (selectedParticipants.find(p => p.id === id)) return;
+            selectedParticipants.push({ id, name });
+            renderSelected();
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchAtleta').value = '';
+        }
+
+        function removeParticipant(id) {
+            selectedParticipants = selectedParticipants.filter(p => p.id !== id);
+            renderSelected();
+        }
+
+        function renderSelected() {
+            const list = document.getElementById('selectedList');
+            list.innerHTML = selectedParticipants.map(p => `
+                <div class="participant-tag">
+                    ${p.name} <i class="fas fa-times" onclick="removeParticipant(${p.id})"></i>
+                </div>
+            `).join('');
+        }
+
+        // 3. Criar Desafio
+        async function createChallenge() {
+            const title = document.getElementById('challengeTitle').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!title || !startDate || !endDate || selectedParticipants.length === 0) {
+                alert('Preencha todos os campos e convide pelo menos um atleta!');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/create`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title,
+                        startDate,
+                        endDate,
+                        invitedParticipants: selectedParticipants.map(p => p.id)
+                    })
+                });
+
+                if (res.ok) {
+                    alert('Desafio criado e convites enviados!');
+                    location.reload();
+                } else {
+                    const err = await res.json();
+                    alert('Erro: ' + err.error);
+                }
+            } catch (e) { alert('Erro ao criar desafio'); }
+        }
+
+        // Inicialização
+        async function init() {
+            loadTopRanking(1);
+            
+            // Se veio de um perfil, já adiciona o atleta
+            if (initialTargetId) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/participants/${initialTargetId}`);
+                    const data = await res.json();
+                    const p = data.participant || data;
+                    addParticipant(p.id, p.name);
+                } catch (e) {}
+            }
+
+            // TODO: Carregar desafios ativos do usuário
+        }
+
+        init();
+    </script>
+</body>
+</html>
