@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAGNÓSTICO - Perfil do Atleta</title>
+    <title>Perfil do Atleta - WODPulse</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -90,13 +90,17 @@
             cursor: pointer;
             font-weight: bold;
             text-decoration: none;
-            display: inline-block;
+            display: block;
+            width: 100%;
             margin-top: 10px;
             font-size: 11px;
             border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
         }
 
         .btn-pink { background: var(--orkut-pink); }
+        .btn-blue { background: #4A90E2; }
 
         .stats-grid {
             display: grid;
@@ -181,22 +185,37 @@
             font-style: italic;
         }
 
-        #debug-panel {
-            background: #1a1a1a;
-            color: #00ff00;
-            padding: 20px;
-            margin-top: 40px;
-            border-radius: 10px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            border: 3px solid #333;
-            max-height: 400px;
-            overflow-y: auto;
+        .feed-item {
+            border-bottom: 1px dotted #ccc;
+            padding: 15px 0;
         }
 
-        .debug-entry { margin-bottom: 5px; border-bottom: 1px solid #333; }
-        .debug-error { color: #ff4444; }
-        .debug-success { color: #44ff44; }
+        .feed-time {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .feed-content {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            .sidebar {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .profile-pic {
+                width: 120px;
+                height: 120px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -204,7 +223,7 @@
     <header>
         <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
             <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut</a>
-            <a href="orkut-social.html" class="btn">Voltar para o Início</a>
+            <a href="orkut-social.html" class="btn" style="width: auto; margin-top: 0;">Voltar para o Início</a>
         </div>
     </header>
 
@@ -212,8 +231,10 @@
         <aside class="sidebar">
             <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
             <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
+            
             <div id="actionButtons">
-                <button class="btn btn-pink" onclick="location.reload()">Recarregar Página</button>
+                <a id="btnDesafiar" href="#" class="btn btn-pink"><i class="fas fa-bolt"></i> Desafiar</a>
+                <button id="btnAddFriend" class="btn btn-blue" onclick="addFriend()"><i class="fas fa-user-plus"></i> Adicionar Amigo</button>
             </div>
         </aside>
 
@@ -266,19 +287,17 @@
                 </div>
             </div>
 
+            <!-- Feedback do Treinador (IA) -->
             <div id="feedbackSection" class="feedback-box" style="display:none;">
-                <div class="feedback-title"><i class="fas fa-robot"></i> Feedback do Treinador (IA)</div>
+                <div class="feedback-title">
+                    <i class="fas fa-robot"></i> Feedback do Treinador (IA)
+                </div>
                 <div id="feedbackContent" class="feedback-content"></div>
             </div>
 
             <div id="targetFeedSection" style="margin-top: 30px;">
                 <div class="box-header">Últimas Postagens</div>
                 <div id="feedList">Carregando postagens...</div>
-            </div>
-
-            <div id="debug-panel">
-                <h3 style="color: #fff; border-bottom: 1px solid #555;">CONSOLE DE DIAGNÓSTICO</h3>
-                <div id="debug-content"></div>
             </div>
         </main>
     </div>
@@ -289,17 +308,18 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id');
 
-        function log(msg, type = 'info') {
-            const content = document.getElementById('debug-content');
-            const div = document.createElement('div');
-            div.className = `debug-entry debug-${type}`;
-            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            content.appendChild(div);
-            content.scrollTop = content.scrollHeight;
+        if (!targetId) window.location.href = 'orkut-social.html';
+
+        // Configura o link do botão Desafiar
+        document.getElementById('btnDesafiar').href = `desafiar-atleta.html?id=${targetId}`;
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
         }
 
         async function loadAll() {
-            log(`Iniciando carga para o Atleta ID: ${targetId}`);
             let athleteName = "";
 
             // 1. Nome e Bio
@@ -308,12 +328,11 @@
                 if (res.ok) {
                     const data = await res.json();
                     athleteName = data.participant?.name || data.name;
-                    log(`Nome do atleta identificado: ${athleteName}`, 'success');
                     document.getElementById('targetName').textContent = athleteName;
                     document.getElementById('targetBio').textContent = data.participant?.bio || data.bio || 'Atleta WODPulse';
                     document.getElementById('targetBox').textContent = data.participant?.box_name || data.box_name || 'WODPulse';
                 }
-            } catch (e) { log(`Erro /participants: ${e.message}`, 'error'); }
+            } catch (e) { console.error(e); }
 
             // 2. Foto e Stats Sociais
             try {
@@ -322,30 +341,23 @@
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.photo) {
-                        log(`Foto carregada com sucesso`, 'success');
-                        document.getElementById('targetPhoto').src = `data:image/jpeg;base64,${data.photo}`;
-                    }
+                    document.getElementById('targetPhoto').src = formatPhoto(data.photo);
                     if (data.stats) {
                         document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
                         document.getElementById('stat-likes').textContent = data.stats.likes || 0;
                         document.getElementById('stat-matches').textContent = data.stats.matches || 0;
                     }
                 }
-            } catch (e) { log(`Erro /public-profile: ${e.message}`, 'error'); }
+            } catch (e) { console.error(e); }
 
-            // 3. Histórico (FILTRO POR NOME CONFORME LOGS)
+            // 3. Histórico (Filtro por Nome validado via logs)
             try {
                 const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const historico = await res.json();
-                    log(`Total histórico: ${historico.length} registros`);
-                    
-                    // Filtramos pelo NOME do atleta, pois o campo 'aluno' contém o nome
                     const treinos = historico.filter(h => h.aluno === athleteName);
-                    log(`Treinos encontrados para '${athleteName}': ${treinos.length}`, 'success');
 
                     if (treinos.length > 0) {
                         const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
@@ -360,11 +372,10 @@
                         if (comIA) {
                             document.getElementById('feedbackSection').style.display = 'block';
                             document.getElementById('feedbackContent').textContent = comIA.ia_comment;
-                            log('Feedback da IA carregado', 'success');
                         }
                     }
                 }
-            } catch (e) { log(`Erro /historico: ${e.message}`, 'error'); }
+            } catch (e) { console.error(e); }
 
             // 4. Feed
             try {
@@ -380,9 +391,25 @@
                             <div class="feed-content">${p.content}</div>
                         </div>
                     `).join('') : 'Nenhuma postagem.';
-                    log(`Feed carregado: ${userPosts.length} posts`, 'success');
                 }
-            } catch (e) { log(`Erro /feed: ${e.message}`, 'error'); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function addFriend() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido.');
+            }
         }
 
         if (targetId) loadAll();
