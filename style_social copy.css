@@ -1,0 +1,560 @@
+:root {
+    --primary: #FF9800;
+    --dark-bg: #0f0f0f;
+    --card-bg: #1e1e1e;
+    --card-hover: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --border-color: #333333;
+    --success: #4CAF50;
+    --error: #ff4d4d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+    padding-bottom: 100px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ===== HEADER ESTILO FACEBOOK ===== */
+.profile-cover {
+    height: 320px;
+    background: linear-gradient(135deg, #FF9800, #E63946);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    border-radius: 0 0 30px 30px;
+    overflow: hidden;
+}
+
+.profile-cover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(transparent, var(--dark-bg));
+}
+
+.profile-pic-large {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 6px solid var(--dark-bg);
+    object-fit: cover;
+    position: absolute;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    background: #333;
+}
+
+.profile-info-header {
+    text-align: center;
+    padding: 90px 20px 30px;
+    position: relative;
+}
+
+.profile-info-header h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.profile-bio {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 90%;
+    margin: 0 auto 20px;
+    line-height: 1.5;
+}
+
+.btn-edit-profile {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.btn-edit-profile:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Stats e resto */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 20px 15px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    background: var(--card-hover);
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.action-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 25px 15px;
+    border-radius: 20px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.action-btn:hover {
+    border-color: var(--primary);
+    background: var(--card-hover);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(255, 152, 0, 0.1);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.action-btn span {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.full-width-btn {
+    background: var(--card-bg);
+    padding: 18px 20px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.full-width-btn:hover {
+    background: var(--card-hover);
+    border-color: var(--primary);
+    transform: translateX(5px);
+}
+
+.full-width-btn i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    min-width: 30px;
+}
+
+.full-width-btn div {
+    flex: 1;
+}
+
+.full-width-btn strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 3px;
+}
+
+.full-width-btn p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 20px 0 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--primary);
+    font-size: 1.3rem;
+}
+
+/* Busca de atletas */
+.search-section {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px;
+    background: #2a2a2a;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+}
+
+.search-results {
+    margin-top: 15px;
+}
+
+.search-result-card {
+    background: #252525;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.search-result-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.search-result-actions button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.btn-view-profile { background: var(--primary); color: white; }
+.btn-add-friend { background: var(--success); color: white; }
+.btn-challenge { background: #333; color: white; }
+
+.mutual-match-card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.match-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+}
+
+.match-info {
+    flex: 1;
+}
+
+.match-info h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.match-indicator {
+    font-size: 0.8rem;
+    color: var(--primary);
+}
+
+.view-profile-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.privacy-section {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.friend-request-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.friend-request-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+}
+
+.friend-request-actions button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-accept-friend {
+    background: var(--success);
+    color: white;
+}
+
+.btn-reject-friend {
+    background: var(--error);
+    color: white;
+}
+
+.logout-btn {
+    background: var(--card-bg);
+    color: var(--error);
+    border: none;
+    padding: 15px;
+    width: 100%;
+    border-radius: 15px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    z-index: 100;
+}
+
+.nav-item {
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    padding: 10px;
+}
+
+.nav-item.active {
+    color: var(--primary);
+}
+
+/* SEÇÃO DE AMIGOS */
+.friends-section {
+    margin: 30px 0;
+}
+
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.friend-item {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.friend-item:hover {
+    transform: translateY(-4px);
+}
+
+.friend-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+}
+
+.friend-item span {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.btn-view-all-friends {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: 12px;
+    margin-top: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-view-all-friends:hover {
+    background: rgba(255, 152, 0, 0.1);
+}
+
+/* MODAL DE EDIÇÃO */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.cover-preview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin: 20px 0;
+    background: #333;
+    border: 2px dashed var(--border-color);
+}
+
+.bio-textarea {
+    width: 100%;
+    height: 120px;
+    background: #2a2a2a;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: white;
+    padding: 15px;
+    margin: 20px 0;
+    resize: vertical;
+    font-size: 1rem;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-save-profile {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-cancel-profile {
+    background: #444;
+    color: white;
+}

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Atleta - WODPulse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --orkut-blue: #EDF3FD;
+            --orkut-header: #BFD0EA;
+            --orkut-pink: #FF0084;
+            --orkut-text: #333;
+            --orkut-border: #C5D5F0;
+            --orkut-dark-blue: #6D84B4;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--orkut-blue);
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            color: var(--orkut-text);
+        }
+
+        header {
+            background-color: white;
+            border-bottom: 1px solid var(--orkut-border);
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border: 1px solid var(--orkut-border);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .profile-pic {
+            width: 170px;
+            height: 170px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            background: #eee;
+        }
+
+        .main-content {
+            background: white;
+            border: 1px solid var(--orkut-border);
+            padding: 20px;
+        }
+
+        .box-header {
+            background: var(--orkut-header);
+            padding: 8px 15px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            margin: -20px -20px 20px -20px;
+        }
+
+        .info-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            width: 100px;
+            display: inline-block;
+        }
+
+        .btn {
+            background: var(--orkut-dark-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 11px;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .btn-pink { background: var(--orkut-pink); }
+        .btn-blue { background: #4A90E2; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--orkut-pink);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .tech-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tech-stat-item {
+            background: #f0f4ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #d0d7ff;
+        }
+
+        .tech-stat-label {
+            display: block;
+            font-size: 9px;
+            color: #555;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .tech-stat-value {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+        }
+
+        .feedback-box {
+            background: #fff9e6;
+            border: 1px solid #ffeeba;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border-left: 5px solid #FF9800;
+        }
+
+        .feedback-title {
+            color: #856404;
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+
+        .feedback-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            font-style: italic;
+        }
+
+        .feed-item {
+            border-bottom: 1px dotted #ccc;
+            padding: 15px 0;
+        }
+
+        .feed-time {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .feed-content {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            .sidebar {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .profile-pic {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut</a>
+            <a href="orkut-social.html" class="btn" style="width: auto; margin-top: 0;">Voltar para o Início</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
+            <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
+            
+            <div id="actionButtons">
+                <a id="btnDesafiar" href="#" class="btn btn-pink"><i class="fas fa-bolt"></i> Desafiar</a>
+                <button id="btnAddFriend" class="btn btn-blue" onclick="addFriend()"><i class="fas fa-user-plus"></i> Adicionar Amigo</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="box-header">Perfil do Atleta</div>
+            
+            <div class="info-row">
+                <span class="info-label">Bio:</span>
+                <span id="targetBio">...</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Box:</span>
+                <span id="targetBox">...</span>
+            </div>
+
+            <div class="box-header" style="margin-top: 30px;">Estatísticas Sociais</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span id="stat-challenges" class="stat-value">0</span>
+                    <span class="stat-label">Desafios</span>
+                </div>
+                <div class="stat-card">
+                    <span id="stat-likes" class="stat-value">0</span>
+                    <span class="stat-label">Likes</span>
+                </div>
+                <div class="stat-card">
+                    <span id="stat-matches" class="stat-value">0</span>
+                    <span class="stat-label">Matches</span>
+                </div>
+            </div>
+
+            <div class="box-header" style="margin-top: 30px;">Progresso Técnico (WODPulse)</div>
+            <div class="tech-stats-grid">
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Aulas</span>
+                    <span id="tech-aulas" class="tech-stat-value">0</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Calorias</span>
+                    <span id="tech-calorias" class="tech-stat-value">0 kcal</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">Média/Aula</span>
+                    <span id="tech-media" class="tech-stat-value">0 kcal</span>
+                </div>
+                <div class="tech-stat-item">
+                    <span class="tech-stat-label">FC Máxima</span>
+                    <span id="tech-fc" class="tech-stat-value">0 bpm</span>
+                </div>
+            </div>
+
+            <!-- Feedback do Treinador (IA) -->
+            <div id="feedbackSection" class="feedback-box" style="display:none;">
+                <div class="feedback-title">
+                    <i class="fas fa-robot"></i> Feedback do Treinador (IA)
+                </div>
+                <div id="feedbackContent" class="feedback-content"></div>
+            </div>
+
+            <div id="targetFeedSection" style="margin-top: 30px;">
+                <div class="box-header">Últimas Postagens</div>
+                <div id="feedList">Carregando postagens...</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id');
+
+        if (!targetId) window.location.href = 'orkut-social.html';
+
+        // Configura o link do botão Desafiar
+        document.getElementById('btnDesafiar').href = `desafiar-atleta.html?id=${targetId}`;
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        async function loadAll() {
+            let athleteName = "";
+
+            // 1. Nome e Bio
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/participants/${targetId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    athleteName = data.participant?.name || data.name;
+                    document.getElementById('targetName').textContent = athleteName;
+                    document.getElementById('targetBio').textContent = data.participant?.bio || data.bio || 'Atleta WODPulse';
+                    document.getElementById('targetBox').textContent = data.participant?.box_name || data.box_name || 'WODPulse';
+                }
+            } catch (e) { console.error(e); }
+
+            // 2. Foto e Stats Sociais
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('targetPhoto').src = formatPhoto(data.photo);
+                    if (data.stats) {
+                        document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
+                        document.getElementById('stat-likes').textContent = data.stats.likes || 0;
+                        document.getElementById('stat-matches').textContent = data.stats.matches || 0;
+                    }
+                }
+            } catch (e) { console.error(e); }
+
+            // 3. Histórico (Filtro por Nome validado via logs)
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const historico = await res.json();
+                    const treinos = historico.filter(h => h.aluno === athleteName);
+
+                    if (treinos.length > 0) {
+                        const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                        const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                        
+                        document.getElementById('tech-aulas').textContent = treinos.length;
+                        document.getElementById('tech-calorias').textContent = Math.round(totalCal) + ' kcal';
+                        document.getElementById('tech-media').textContent = Math.round(totalCal / treinos.length) + ' kcal';
+                        document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
+
+                        const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                        if (comIA) {
+                            document.getElementById('feedbackSection').style.display = 'block';
+                            document.getElementById('feedbackContent').textContent = comIA.ia_comment;
+                        }
+                    }
+                }
+            } catch (e) { console.error(e); }
+
+            // 4. Feed
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const posts = await res.json();
+                    const userPosts = posts.filter(p => p.user_id == targetId);
+                    document.getElementById('feedList').innerHTML = userPosts.length ? userPosts.map(p => `
+                        <div class="feed-item">
+                            <div class="feed-time">${new Date(p.created_at).toLocaleString()}</div>
+                            <div class="feed-content">${p.content}</div>
+                        </div>
+                    `).join('') : 'Nenhuma postagem.';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function addFriend() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido.');
+            }
+        }
+
+        if (targetId) loadAll();
+    </script>
+</body>
+</html>
