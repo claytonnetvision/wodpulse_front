@@ -3,388 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Atleta - WODPulse</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --orkut-blue: #EDF3FD;
-            --orkut-header: #BFD0EA;
-            --orkut-pink: #FF0084;
-            --orkut-text: #333;
-            --orkut-border: #C5D5F0;
-            --orkut-dark-blue: #6D84B4;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--orkut-blue);
-            margin: 0;
-            padding: 0;
-            font-size: 12px;
-            color: var(--orkut-text);
-        }
-
-        header {
-            background-color: white;
-            border-bottom: 1px solid var(--orkut-border);
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 950px;
-            margin: 20px auto;
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 20px;
-        }
-
-        .sidebar {
-            background: white;
-            border: 1px solid var(--orkut-border);
-            padding: 15px;
-            text-align: center;
-        }
-
-        .profile-pic {
-            width: 170px;
-            height: 170px;
-            object-fit: cover;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            background: #eee;
-        }
-
-        .main-content {
-            background: white;
-            border: 1px solid var(--orkut-border);
-            padding: 20px;
-        }
-
-        .box-header {
-            background: var(--orkut-header);
-            padding: 8px 15px;
-            font-weight: bold;
-            color: var(--orkut-dark-blue);
-            margin: -20px -20px 20px -20px;
-        }
-
-        .info-row {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px dotted #ccc;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: var(--orkut-dark-blue);
-            width: 100px;
-            display: inline-block;
-        }
-
-        .btn {
-            background: var(--orkut-dark-blue);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 11px;
-            border-radius: 4px;
-        }
-
-        .btn-pink { background: var(--orkut-pink); }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #eee;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--orkut-pink);
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 10px;
-            color: #666;
-        }
-
-        .tech-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .tech-stat-item {
-            background: #f0f4ff;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #d0d7ff;
-        }
-
-        .tech-stat-label {
-            display: block;
-            font-size: 9px;
-            color: #555;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .tech-stat-value {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--orkut-dark-blue);
-        }
-
-        .feedback-box {
-            background: #fff9e6;
-            border: 1px solid #ffeeba;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 25px;
-            border-left: 5px solid #FF9800;
-        }
-
-        .feedback-title {
-            color: #856404;
-            font-weight: 800;
-            font-size: 13px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-        }
-
-        .feedback-content {
-            font-size: 13px;
-            line-height: 1.6;
-            color: #555;
-            font-style: italic;
-        }
-
-        .feed-item {
-            border-bottom: 1px dotted #ccc;
-            padding: 15px 0;
-        }
-
-        .feed-time {
-            font-size: 10px;
-            color: #999;
-            margin-bottom: 5px;
-        }
-
-        .feed-content {
-            font-size: 12px;
-            line-height: 1.4;
-        }
-    </style>
+    <title>WODPulse Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <link rel="stylesheet" href="style_social.css"> <!-- CSS externo -->
 </head>
 <body>
-
-    <header>
-        <div style="max-width: 950px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-            <a href="orkut-social.html" style="font-size: 24px; font-weight: bold; color: var(--orkut-pink); text-decoration: none;">orkut</a>
-            <a href="orkut-social.html" class="btn">Voltar para o Início</a>
-        </div>
-    </header>
-
     <div class="container">
-        <aside class="sidebar">
-            <img id="targetPhoto" class="profile-pic" src="https://www.infrapower.com.br/logo-v6.png">
-            <h3 id="targetName" style="color: var(--orkut-dark-blue); margin: 10px 0;">Carregando...</h3>
-            <div id="actionButtons">
-                <button id="btnChallenge" class="btn btn-pink" onclick="alert('Funcionalidade de desafio em breve!')">Desafiar Atleta</button>
-                <button id="btnAddFriend" class="btn" onclick="addFriend()">Adicionar Amigo</button>
-            </div>
-        </aside>
+        <!-- HEADER ESTILO FACEBOOK -->
+        <div id="profileCover" class="profile-cover"></div>
+        
+        <img id="userPhotoLarge" class="profile-pic-large" src="" alt="Foto do usuário">
 
-        <main class="main-content">
-            <div class="box-header">Perfil do Atleta</div>
+        <div class="profile-info-header">
+            <h1 id="userName">Carregando...</h1>
+            <p id="userBio" class="profile-bio">Adicione uma bio clicando em Editar Perfil</p>
+            <button id="btnEditProfile" class="btn-edit-profile" onclick="openEditModal()">Editar Perfil</button>
+            <p id="userBox" style="margin-top: 20px; color: var(--text-secondary); font-size: 0.95rem;">Box ID: --</p>
+        </div>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value" id="stat-challenges">0</span>
+                <span class="stat-label">Desafios</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-likes">0</span>
+                <span class="stat-label">Likes</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="stat-matches">0</span>
+                <span class="stat-label">Matches</span>
+            </div>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="action-grid">
+            <a href="matches.html" class="action-btn">
+                <i class="fas fa-heart"></i>
+                <span>WOD Match</span>
+            </a>
+            <a href="desafios.html" class="action-btn">
+                <i class="fas fa-trophy"></i>
+                <span>Novo Desafio</span>
+            </a>
+        </div>
+
+        <!-- BUSCA DE ATLETAS -->
+        <div class="search-section">
+            <div class="section-title">
+                <i class="fas fa-search"></i>
+                <span>Encontrar Atletas</span>
+            </div>
+            <input type="text" id="searchUsersInput" class="search-input" placeholder="Digite o nome do atleta...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <!-- PROGRESSO TÉCNICO -->
+        <a href="#" id="linkProgresso" class="full-width-btn">
+            <i class="fas fa-chart-line"></i>
+            <div>
+                <strong>Meu Progresso Técnico</strong>
+                <p>Ver gráficos e histórico</p>
+            </div>
+        </a>
+
+        <!-- PRIVACIDADE DO PROGRESSO -->
+        <div class="privacy-section">
+            <div class="section-title">
+                <i class="fas fa-lock"></i>
+                <span>Privacidade do Meu Progresso</span>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                Atual: <strong id="currentPrivacyText">Carregando...</strong>
+            </p>
+            <select id="privacySelect" style="width:100%; padding:12px; background:#2a2a2a; border:1px solid #444; border-radius:10px; color:white; margin-bottom:10px;">
+                <option value="public">Público (qualquer um com o link)</option>
+                <option value="friends_only">Só Amigos</option>
+                <option value="private">Privado (só eu)</option>
+            </select>
+            <button onclick="savePrivacy()" style="width:100%; background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer;">
+                Salvar Configuração
+            </button>
+        </div>
+
+        <!-- PEDIDOS DE AMIZADE PENDENTES -->
+        <div class="section-title">
+            <i class="fas fa-user-plus"></i>
+            <span>Pedidos de Amizade</span>
+        </div>
+        <div id="pendingRequests"></div>
+
+        <!-- AMIGOS CONFIRMADOS -->
+        <div class="friends-section">
+            <div class="section-title">
+                <i class="fas fa-users"></i>
+                <span>Amigos <strong id="friendsCount">(0)</strong></span>
+            </div>
+            <div id="friendsGrid" class="friends-grid"></div>
+            <button class="btn-view-all-friends" onclick="alert('Página completa de amigos em desenvolvimento')">Ver todos os amigos</button>
+        </div>
+
+        <!-- MATCHES MÚTUOS -->
+        <div class="mutual-matches-section">
+            <div class="section-title">
+                <i class="fas fa-heart"></i>
+                <span>Seus Matches</span>
+            </div>
+            <div class="matches-container" id="matchesContainer">
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÃO DE LOGOUT -->
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Sair da Conta
+        </button>
+    </div>
+
+    <!-- NAVEGAÇÃO INFERIOR -->
+    <nav class="nav-bar">
+        <a href="perfil-social.html" class="nav-item active"><i class="fas fa-home"></i></a>
+        <a href="matches.html" class="nav-item"><i class="fas fa-heart"></i></a>
+        <a href="desafios.html" class="nav-item"><i class="fas fa-medal"></i></a>
+        <a href="#" id="navProgresso" class="nav-item"><i class="fas fa-chart-line"></i></a>
+    </nav>
+
+    <!-- MODAL DE EDIÇÃO DE PERFIL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Editar Perfil</h2>
             
-            <div class="info-row">
-                <span class="info-label">Bio:</span>
-                <span id="targetBio">...</span>
+            <p style="margin-bottom: 10px;">Foto de Capa</p>
+            <input type="file" id="coverInput" accept="image/*" style="margin-bottom: 10px;">
+            <img id="coverPreview" class="cover-preview" src="" alt="Preview da capa">
+            
+            <p style="margin: 30px 0 10px;">Bio</p>
+            <textarea id="bioInput" class="bio-textarea" placeholder="Fale um pouco sobre você... (ex: Atleta desde 2020, apaixonado por WODs pesados)"></textarea>
+            
+            <div class="modal-buttons">
+                <button class="btn-save-profile" onclick="saveProfile()">Salvar</button>
+                <button class="btn-cancel-profile" onclick="closeEditModal()">Cancelar</button>
             </div>
-
-            <div class="info-row">
-                <span class="info-label">Box:</span>
-                <span id="targetBox">...</span>
-            </div>
-
-            <div class="box-header" style="margin-top: 30px;">Estatísticas Sociais</div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span id="stat-challenges" class="stat-value">0</span>
-                    <span class="stat-label">Desafios</span>
-                </div>
-                <div class="stat-card">
-                    <span id="stat-likes" class="stat-value">0</span>
-                    <span class="stat-label">Likes</span>
-                </div>
-                <div class="stat-card">
-                    <span id="stat-matches" class="stat-value">0</span>
-                    <span class="stat-label">Matches</span>
-                </div>
-            </div>
-
-            <div class="box-header" style="margin-top: 30px;">Progresso Técnico (WODPulse)</div>
-            <div class="tech-stats-grid">
-                <div class="tech-stat-item">
-                    <span class="tech-stat-label">Aulas</span>
-                    <span id="tech-aulas" class="tech-stat-value">0</span>
-                </div>
-                <div class="tech-stat-item">
-                    <span class="tech-stat-label">Calorias</span>
-                    <span id="tech-calorias" class="tech-stat-value">0 kcal</span>
-                </div>
-                <div class="tech-stat-item">
-                    <span class="tech-stat-label">Média/Aula</span>
-                    <span id="tech-media" class="tech-stat-value">0 kcal</span>
-                </div>
-                <div class="tech-stat-item">
-                    <span class="tech-stat-label">FC Máxima</span>
-                    <span id="tech-fc" class="tech-stat-value">0 bpm</span>
-                </div>
-            </div>
-
-            <!-- Feedback do Treinador (IA) -->
-            <div id="feedbackSection" class="feedback-box" style="display:none;">
-                <div class="feedback-title">
-                    <i class="fas fa-robot"></i> Feedback do Treinador (IA)
-                </div>
-                <div id="feedbackContent" class="feedback-content"></div>
-            </div>
-
-            <div id="targetFeedSection" style="margin-top: 30px;">
-                <div class="box-header">Últimas Postagens</div>
-                <div id="feedList">Carregando postagens...</div>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token');
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetId = urlParams.get('id');
-
-        if (!targetId) window.location.href = 'orkut-social.html';
-
-        async function loadAll() {
-            let athleteName = "";
-
-            // 1. Nome e Bio
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/participants/${targetId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    athleteName = data.participant?.name || data.name;
-                    document.getElementById('targetName').textContent = athleteName;
-                    document.getElementById('targetBio').textContent = data.participant?.bio || data.bio || 'Atleta WODPulse';
-                    document.getElementById('targetBox').textContent = data.participant?.box_name || data.box_name || 'WODPulse';
-                }
-            } catch (e) { console.error(e); }
-
-            // 2. Foto e Stats Sociais
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.photo) {
-                        document.getElementById('targetPhoto').src = `data:image/jpeg;base64,${data.photo}`;
-                    }
-                    if (data.stats) {
-                        document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
-                        document.getElementById('stat-likes').textContent = data.stats.likes || 0;
-                        document.getElementById('stat-matches').textContent = data.stats.matches || 0;
-                    }
-                }
-            } catch (e) { console.error(e); }
-
-            // 3. Histórico (Filtro por Nome validado via logs)
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const historico = await res.json();
-                    const treinos = historico.filter(h => h.aluno === athleteName);
-
-                    if (treinos.length > 0) {
-                        const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
-                        const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
-                        
-                        document.getElementById('tech-aulas').textContent = treinos.length;
-                        document.getElementById('tech-calorias').textContent = Math.round(totalCal) + ' kcal';
-                        document.getElementById('tech-media').textContent = Math.round(totalCal / treinos.length) + ' kcal';
-                        document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
-
-                        const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
-                        if (comIA) {
-                            document.getElementById('feedbackSection').style.display = 'block';
-                            document.getElementById('feedbackContent').textContent = comIA.ia_comment;
-                        }
-                    }
-                }
-            } catch (e) { console.error(e); }
-
-            // 4. Feed
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const posts = await res.json();
-                    const userPosts = posts.filter(p => p.user_id == targetId);
-                    document.getElementById('feedList').innerHTML = userPosts.length ? userPosts.map(p => `
-                        <div class="feed-item">
-                            <div class="feed-time">${new Date(p.created_at).toLocaleString()}</div>
-                            <div class="feed-content">${p.content}</div>
-                        </div>
-                    `).join('') : 'Nenhuma postagem.';
-                }
-            } catch (e) { console.error(e); }
+        
+        if (!token) {
+            window.location.href = 'login.html';
         }
 
-        async function addFriend() {
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        let searchTimeout;
+
+        // Busca de atletas
+        document.getElementById('searchUsersInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+            searchTimeout = setTimeout(() => searchUsers(query), 500);
+        });
+
+        async function searchUsers(query) {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ targetId: targetId })
+                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                alert(data.message || 'Pedido enviado!');
+                const container = document.getElementById('searchResults');
+                if (data.users.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Nenhum atleta encontrado</p>';
+                    return;
+                }
+                container.innerHTML = data.users.map(user => `
+                    <div class="search-result-card">
+                        <img src="${formatPhoto(user.photo)}" class="search-result-photo" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                        <div class="search-result-info">
+                            <strong>${user.name}</strong>
+                            <p style="color:#888; font-size:0.8rem; margin-top:4px;">Box ID: ${user.box_id || '--'}</p>
+                        </div>
+                        <div class="search-result-actions">
+                            <button class="btn-view-profile" onclick="openProfile(${user.id})">
+                                Ver Perfil
+                            </button>
+                            <button class="btn-add-friend" onclick="requestFriendship(${user.id})">
+                                Adicionar Amigo
+                            </button>
+                            <button class="btn-challenge" onclick="challengeUser(${user.id})">
+                                Desafiar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (err) {
-                alert('Erro ao enviar pedido.');
+                document.getElementById('searchResults').innerHTML = '<p style="color:#f44336; text-align:center;">Erro na busca</p>';
             }
         }
 
-        if (targetId) loadAll();
+        async function requestFriendship(targetId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+                searchUsers(document.getElementById('searchUsersInput').value.trim());
+            } catch (err) {
+                alert('Erro ao enviar pedido');
+            }
+        }
+
+        function challengeUser(userId) {
+            window.location.href = `desafios.html?opponent=${userId}`;
+        }
+
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                // Foto de perfil grande
+                document.getElementById('userPhotoLarge').src = formatPhoto(data.photo);
+
+                // Capa
+                const coverEl = document.getElementById('profileCover');
+                if (data.cover_photo) {
+                    coverEl.style.backgroundImage = `url(data:image;base64,${data.cover_photo})`;
+                } else {
+                    coverEl.style.backgroundImage = 'linear-gradient(135deg, #FF9800, #E63946)';
+                }
+
+                // Nome, bio, box
+                document.getElementById('userName').textContent = data.name || 'Atleta';
+                document.getElementById('userBio').textContent = data.bio || 'Adicione uma bio no Editar Perfil';
+                document.getElementById('userBox').textContent = `Box ID: ${data.box_id || '--'}`;
+
+                // Stats
+                document.getElementById('stat-challenges').textContent = data.stats?.challenges || 0;
+                document.getElementById('stat-likes').textContent = data.stats?.likes || 0;
+                document.getElementById('stat-matches').textContent = data.stats?.matches || 0;
+
+                // Links progresso
+                const progUrl = `meu-progresso.html?id=${data.id}`;
+                document.getElementById('linkProgresso').href = progUrl;
+                document.getElementById('navProgresso').href = progUrl;
+
+                // Privacidade
+                const privacy = data.progress_privacy || 'friends_only';
+                document.getElementById('currentPrivacyText').textContent = 
+                    privacy === 'public' ? 'Público' : 
+                    privacy === 'friends_only' ? 'Só Amigos' : 'Privado';
+                document.getElementById('privacySelect').value = privacy;
+
+                loadMutualMatches();
+                loadFriendsAndRequests();
+            } catch (err) {
+                console.error('Erro ao carregar perfil:', err);
+            }
+        }
+
+        async function loadMutualMatches() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/mutual-matches`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                const container = document.getElementById('matchesContainer');
+                
+                if (data.success && data.matches && data.matches.length > 0) {
+                    container.innerHTML = data.matches.map(match => `
+                        <div class="mutual-match-card">
+                            <img src="${formatPhoto(match.photo)}" alt="${match.name}" class="match-photo">
+                            <div class="match-info">
+                                <h3>${match.name}</h3>
+                                <span class="match-indicator">
+                                    <i class="fas fa-heart"></i> Match!
+                                </span>
+                            </div>
+                            <button class="view-profile-btn" onclick="openProfile(${match.id})">
+                                Ver Perfil
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-heart-broken"></i>
+                            <p>Nenhum match ainda. Comece a explorar no WOD Match!</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Erro ao carregar matches:', err);
+            }
+        }
+
+        async function loadFriendsAndRequests() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                // Pedidos pendentes
+                const pendingContainer = document.getElementById('pendingRequests');
+                if (data.pendingRequests && data.pendingRequests.length > 0) {
+                    pendingContainer.innerHTML = data.pendingRequests.map(req => `
+                        <div class="friend-request-card">
+                            <img src="${formatPhoto(req.photo)}" class="match-photo">
+                            <div class="match-info">
+                                <h3>${req.name}</h3>
+                                <span>Pede para ser amigo</span>
+                            </div>
+                            <div class="friend-request-actions">
+                                <button class="btn-accept-friend" onclick="respondFriend(${req.id}, 'accept')">Aceitar</button>
+                                <button class="btn-reject-friend" onclick="respondFriend(${req.id}, 'reject')">Recusar</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    pendingContainer.innerHTML = '<p style="color:#888; text-align:center; padding:20px;">Nenhum pedido pendente</p>';
+                }
+
+                // Amigos confirmados
+                const friendsGrid = document.getElementById('friendsGrid');
+                const friendsCount = document.getElementById('friendsCount');
+                if (data.confirmedFriends && data.confirmedFriends.length > 0) {
+                    friendsCount.textContent = `(${data.confirmedFriends.length})`;
+                    friendsGrid.innerHTML = data.confirmedFriends.slice(0, 9).map(f => `
+                        <div class="friend-item" onclick="openProfile(${f.id})">
+                            <img src="${formatPhoto(f.photo)}" onerror="this.src='https://www.infrapower.com.br/logo-v6.png'">
+                            <span>${f.name.split(' ')[0]}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    friendsCount.textContent = '(0)';
+                    friendsGrid.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center; padding:20px;">Nenhum amigo ainda</p>';
+                }
+            } catch (err) {
+                console.error('Erro ao carregar amigos/pedidos:', err);
+            }
+        }
+
+        async function openProfile(userId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/is-friend/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.isFriend) {
+                    window.location.href = `meu-progresso.html?id=${userId}`;
+                } else {
+                    window.location.href = `perfil-participante.html?id=${userId}`;
+                }
+            } catch (err) {
+                window.location.href = `perfil-participante.html?id=${userId}`;
+            }
+        }
+
+        async function savePrivacy() {
+            const privacy = document.getElementById('privacySelect').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/privacy/set`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ privacy })
+                });
+                if (res.ok) {
+                    alert('Privacidade atualizada com sucesso!');
+                    loadProfile();
+                } else {
+                    alert('Erro ao salvar privacidade');
+                }
+            } catch (err) {
+                alert('Erro de conexão');
+            }
+        }
+
+        async function respondFriend(requesterId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requesterId, action })
+                });
+                if (res.ok) {
+                    loadFriendsAndRequests();
+                    loadMutualMatches();
+                }
+            } catch (err) {
+                alert('Erro ao responder pedido');
+            }
+        }
+
+        function logout() {
+            if (confirm('Tem certeza que deseja sair da conta?')) {
+                localStorage.removeItem('wodpulse_social_token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ===== FUNÇÕES DO NOVO LAYOUT FB =====
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'flex';
+            // Preenche com valores atuais
+            document.getElementById('bioInput').value = document.getElementById('userBio').textContent.trim() === 'Adicione uma bio no Editar Perfil' ? '' : document.getElementById('userBio').textContent;
+            document.getElementById('coverPreview').src = document.getElementById('profileCover').style.backgroundImage.slice(5, -2) || '';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Preview da capa ao selecionar arquivo
+        document.getElementById('coverInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('coverPreview').src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function saveProfile() {
+            const bio = document.getElementById('bioInput').value.trim();
+            const coverFile = document.getElementById('coverInput').files[0];
+
+            let coverBase64 = null;
+            if (coverFile) {
+                coverBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+                    reader.readAsDataURL(coverFile);
+                });
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile/update`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        bio: bio || null,
+                        cover_photo: coverBase64 
+                    })
+                });
+
+                if (res.ok) {
+                    alert('Perfil atualizado com sucesso!');
+                    closeEditModal();
+                    loadProfile(); // recarrega tudo
+                } else {
+                    const error = await res.json();
+                    alert('Erro: ' + (error.error || 'Tente novamente'));
+                }
+            } catch (err) {
+                alert('Erro de conexão');
+                console.error(err);
+            }
+        }
+
+        // Carrega tudo
+        loadProfile();
+
+        // Atualiza periodicamente
+        setInterval(() => {
+            loadMutualMatches();
+            loadFriendsAndRequests();
+        }, 30000);
     </script>
 </body>
 </html>

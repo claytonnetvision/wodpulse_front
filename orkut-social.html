@@ -3,54 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WODPulse - Social</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style_social.css">
+    <title>WODPulse - Orkut Style</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
     <style>
-        /* Ajustes específicos de layout */
+        :root {
+            --orkut-blue: #EDF3FD;
+            --orkut-header: #BFD0EA;
+            --orkut-pink: #FF0084;
+            --orkut-text: #333;
+            --orkut-border: #C5D5F0;
+            --orkut-dark-blue: #6D84B4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: var(--orkut-blue);
+            color: var(--orkut-text);
+            font-size: 12px;
+        }
+
+        header {
+            background-color: white;
+            border-bottom: 1px solid var(--orkut-border);
+            padding: 5px 0;
+        }
+
+        .header-container {
+            max-width: 950px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--orkut-pink);
+            text-decoration: none;
+        }
+
+        .nav-top a {
+            color: var(--orkut-dark-blue);
+            text-decoration: none;
+            margin-left: 15px;
+            font-weight: bold;
+        }
+
+        .main-container {
+            max-width: 950px;
+            margin: 15px auto;
+            display: grid;
+            grid-template-columns: 180px 1fr 250px;
+            gap: 15px;
+        }
+
+        .sidebar-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-box {
+            background: white;
+            border: 1px solid var(--orkut-border);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .profile-pic-large {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .menu-list {
+            list-style: none;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .menu-list li {
+            padding: 3px 0;
+        }
+
+        .menu-list a {
+            color: var(--orkut-dark-blue);
+            text-decoration: none;
+        }
+
+        .menu-list a:hover { text-decoration: underline; }
+
+        .stats-widget {
+            background: #fff;
+            border: 1px solid var(--orkut-border);
+            padding: 10px;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .stats-widget-header {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+
+        .stat-label { color: #666; }
+        .stat-value { font-weight: bold; color: var(--orkut-pink); }
+
+        .motivational-box {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 8px;
+            margin-top: 10px;
+            font-size: 10px;
+            color: #795548;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+
+        .content-center {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .box {
+            background: white;
+            border: 1px solid var(--orkut-border);
+            padding: 15px;
+        }
+
+        .box-header {
+            background: var(--orkut-header);
+            padding: 5px 10px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            margin: -15px -15px 15px -15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .post-input-area {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .post-input-wrapper {
+            position: relative;
+        }
+
+        .post-input-area textarea {
+            width: 100%;
+            height: 60px;
+            border: 1px solid var(--orkut-border);
+            padding: 8px;
+            margin-bottom: 5px;
+            resize: none;
+            font-family: Arial, sans-serif;
+        }
+
         .mention-suggestions {
             position: absolute;
+            top: 100%;
+            left: 0;
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 2000;
-            max-height: 200px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-height: 150px;
             overflow-y: auto;
             width: 100%;
             display: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+
         .mention-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 11px;
+        }
+
+        .mention-item:hover {
+            background: #f5f5f5;
+        }
+
+        .mention-item strong {
+            color: var(--orkut-dark-blue);
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-post {
+            background: var(--orkut-dark-blue);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-icon {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .btn-icon:hover { background: #e0e0e0; }
+
+        .feed-item {
+            border-bottom: 1px dotted #ccc;
+            padding: 10px 0;
+            position: relative;
+        }
+
+        .feed-item:last-child { border-bottom: none; }
+
+        .feed-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .feed-header-left {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .feed-photo-small {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .feed-info {
+            flex: 1;
+        }
+
+        .feed-author {
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+            cursor: pointer;
+        }
+
+        .feed-author:hover {
+            text-decoration: underline;
+        }
+
+        .feed-time {
+            color: #999;
+            font-size: 10px;
+        }
+
+        .feed-content {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .feed-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+        }
+
+        .feed-reactions {
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reaction-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .reaction-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            transition: color 0.2s;
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+
+        .reaction-btn:hover { color: var(--orkut-pink); background: #f5f5f5; }
+        .reaction-btn.active { color: var(--orkut-pink); font-weight: bold; background: #fff0f6; }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 3px 8px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .delete-btn:hover { color: #ff6b6b; background: #fff5f5; border-radius: 3px; }
+
+        .sidebar-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .match-sidebar-card {
+            text-align: center;
             padding: 10px;
+        }
+
+        .match-photo-small {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .match-actions-mini {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-match-mini {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .mention-item:hover { background: #f7f7f7; }
-        .mention-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-        
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: white;
-            border-top: 1px solid #ddd;
-            justify-content: space-around;
-            padding: 10px 0;
-            z-index: 1000;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s;
         }
 
-        #notificationBadge {
-            background: var(--secondary);
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
+        .btn-match-mini:hover { transform: scale(1.1); }
+        .btn-like { background: var(--orkut-pink); color: white; }
+        .btn-pass { background: #ccc; color: #666; }
+
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .friend-item {
+            text-align: center;
             font-size: 10px;
-            position: absolute;
-            top: -5px; right: -10px;
-            display: none;
+            cursor: pointer;
+        }
+
+        .friend-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        .friend-item span {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--orkut-dark-blue);
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid var(--orkut-border);
         }
 
         .modal {
@@ -58,44 +443,153 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center; align-items: center;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
+
         .modal-content {
             background: white;
             padding: 20px;
-            border-radius: 12px;
-            width: 90%; max-width: 500px;
-            max-height: 80vh; overflow-y: auto;
+            border: 5px solid var(--orkut-header);
+            width: 400px;
         }
 
-        @media (max-width: 768px) {
-            .mobile-nav { display: flex; }
-            .main-container { grid-template-columns: 1fr; margin-top: 10px; padding-bottom: 70px; }
-            .sidebar-right { display: none; }
+        .form-group {
+            margin-bottom: 15px;
         }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--orkut-dark-blue);
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--orkut-border);
+            border-radius: 4px;
+        }
+
+        .pink { color: var(--orkut-pink); }
+        .blue { color: var(--orkut-dark-blue); }
+        .hidden { display: none; }
+
+        #notificationBadge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--orkut-pink);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: none;
+            border: 2px solid white;
+        }
+
+        /* MEDIA QUERIES PARA RESPONSIVIDADE */
+        @media (max-width: 850px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 0 10px;
+            }
+
+            .sidebar-left, .sidebar-right {
+                order: 2;
+            }
+
+            .content-center {
+                order: 1;
+            }
+
+            .header-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .nav-top {
+                width: 100%;
+                justify-content: center;
+                overflow-x: auto;
+                padding-bottom: 5px;
+            }
+
+            .nav-top a {
+                margin: 0 10px;
+                white-space: nowrap;
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                gap: 15px;
+            }
+
+            .profile-pic-large {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 0;
+            }
+
+            .menu-list {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 90%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn-post {
+                width: 100%;
+            }
+        }
+
     </style>
 </head>
 <body>
 
     <header>
-        <div class="container header-container">
-            <a href="orkut-social.html" class="logo">wodpulse</a>
+        <div class="header-container">
+            <a href="#" class="logo">orkut <span style="font-weight: normal; font-size: 14px; color: #666;">WODPulse</span></a>
             <nav class="nav-top">
+                <a href="orkut-social.html">Início</a>
                 <a href="#" onclick="toggleNotifications()" style="position: relative;">
-                    <i class="fas fa-bell"></i> <span id="notificationBadge">0</span>
+                    Notificações <span id="notificationBadge">0</span>
                 </a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                <a href="#" onclick="logout()">Sair</a>
             </nav>
         </div>
     </header>
 
-    <div class="container main-container">
+    <div class="main-container">
+        
         <aside class="sidebar-left">
-            <div class="sidebar-card">
-                <img id="userPhotoLarge" class="profile-pic-large" src="https://www.infrapower.com.br/logo-v6.png">
-                <div id="userName" class="profile-name">Carregando...</div>
-                <p id="userBio" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;"></p>
+            <div class="profile-box">
+                <img id="userPhotoLarge" class="profile-pic-large" src="https://www.infrapower.com.br/logo-v6.png" alt="Foto">
+                <span id="userName" class="profile-name">Carregando...</span>
+                <p id="userBio" style="font-size: 11px; color: #666;"></p>
+                
                 <ul class="menu-list">
                     <li><a href="#" onclick="openEditModal()"><i class="fas fa-edit"></i> Editar Perfil</a></li>
                     <li><a href="#" onclick="showSection('feed')"><i class="fas fa-rss"></i> Feed</a></li>
@@ -106,119 +600,860 @@
                 </ul>
             </div>
 
-            <div class="sidebar-card">
-                <div class="box-header"><i class="fas fa-bolt"></i> Meu Progresso</div>
-                <div class="stat-row"><span class="stat-label">Aulas:</span><span id="stat-aulas" class="stat-value">0</span></div>
-                <div class="stat-row"><span class="stat-label">Total Calorias:</span><span id="stat-calorias" class="stat-value">0 kcal</span></div>
-                <div class="stat-row"><span class="stat-label">Média/Aula:</span><span id="stat-media" class="stat-value">0 kcal</span></div>
-                <div class="stat-row"><span class="stat-label">FC Máxima:</span><span id="stat-fc-max" class="stat-value">0 bpm</span></div>
-                <div class="stat-row"><span class="stat-label">Tempo VO2:</span><span id="stat-vo2" class="stat-value">0 min</span></div>
-                <div id="motivational-msg" class="motivational-box">🔥 Carregando sua motivação...</div>
+            <div class="stats-widget">
+                <div class="stats-widget-header"><i class="fas fa-bolt"></i> Meu Progresso</div>
+                <div class="stat-row">
+                    <span class="stat-label">Aulas:</span>
+                    <span id="stat-aulas" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Calorias:</span>
+                    <span id="stat-calorias" class="stat-value">0 kcal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Média/Aula:</span>
+                    <span id="stat-media" class="stat-value">0 kcal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FC Máxima:</span>
+                    <span id="stat-fc-max" class="stat-value">0 bpm</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Tempo VO2:</span>
+                    <span id="stat-vo2" class="stat-value">0 min</span>
+                </div>
+                <div id="motivational-msg" class="motivational-box">
+                    🔥 Carregando sua motivação...
+                </div>
             </div>
 
-            <div class="sidebar-card">
+            <div class="box">
                 <div class="box-header">Estatísticas Sociais</div>
-                <div class="stat-row"><span class="stat-label">Desafios:</span><span id="stat-challenges" class="stat-value">0</span></div>
-                <div class="stat-row"><span class="stat-label">Likes:</span><span id="stat-likes" class="stat-value">0</span></div>
-                <div class="stat-row"><span class="stat-label">Matches:</span><span id="stat-matches" class="stat-value">0</span></div>
+                <p>Desafios: <strong id="stat-challenges" class="pink">0</strong></p>
+                <p>Likes: <strong id="stat-likes" class="pink">0</strong></p>
+                <p>Matches: <strong id="stat-matches" class="pink">0</strong></p>
             </div>
         </aside>
 
         <main class="content-center">
-            <div class="box">
+            
+            <div class="box search-box">
                 <div class="box-header">Procurar Atletas</div>
-                <div class="post-input-wrapper">
-                    <input type="text" id="searchUsersInput" placeholder="Digite o nome do atleta..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <div id="searchResults" style="margin-top: 10px;"></div>
-                </div>
+                <input type="text" id="searchUsersInput" class="search-input" placeholder="Digite o nome do atleta...">
+                <div id="searchResults" style="margin-top: 10px;"></div>
             </div>
 
-            <div id="post-area" class="box">
-                <div class="box-header" id="content-title">Feed de Notícias</div>
-                <div class="post-input-area">
+            <div id="main-content-box" class="box">
+                <div id="content-title" class="box-header">Feed de Notícias</div>
+                
+                <div id="post-area" class="post-input-area">
                     <div class="post-input-wrapper">
                         <textarea id="postInput" placeholder="O que você está treinando hoje? (Digite @ para marcar amigos)" oninput="handleMentionInput(event)"></textarea>
                         <div id="mentionSuggestions" class="mention-suggestions"></div>
                     </div>
                     <div class="post-actions">
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <select id="postPrivacy" class="btn-icon" style="padding: 5px;">
-                                <option value="public">Público</option>
-                                <option value="friends">Só Amigos</option>
-                                <option value="private">Privado</option>
-                            </select>
-                            <button class="btn-icon" onclick="triggerPhotoUpload()"><i class="fas fa-image"></i> Foto</button>
-                            <input type="file" id="photoInput" style="display:none;" accept="image/*" onchange="previewPhoto(event)">
-                        </div>
+                        <select id="postPrivacy">
+                            <option value="public">Público</option>
+                            <option value="friends">Só Amigos</option>
+                            <option value="private">Privado</option>
+                        </select>
+                        <button class="btn-icon" onclick="triggerPhotoUpload()"><i class="fas fa-image"></i> Foto</button>
+                        <input type="file" id="photoInput" style="display:none;" accept="image/*" onchange="previewPhoto(event)">
                         <button class="btn-post" onclick="createPost()">Postar</button>
                     </div>
                     <div id="photoPreview" style="margin-top: 10px;"></div>
                 </div>
-            </div>
 
-            <div class="box">
                 <div id="dynamic-list">
-                    <p style="text-align: center; padding: 20px; color: #999;">Carregando conteúdo...</p>
+                    <p style="text-align: center; color: #888;">Carregando conteúdo...</p>
                 </div>
             </div>
         </main>
 
         <aside class="sidebar-right">
-            <div class="sidebar-card">
+            <div class="box">
                 <div class="box-header">WOD Match 🔥</div>
                 <div id="matchCandidate" class="match-sidebar-card">
                     <p style="color: #888; padding: 20px;">Buscando atletas...</p>
                 </div>
             </div>
-            <div class="sidebar-card">
-                <div class="box-header">Meus Amigos <span id="friendsCount">(0)</span></div>
-                <div id="friendsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+
+            <div class="box">
+                <div class="box-header">
+                    Meus Amigos <span id="friendsCount">(0)</span>
+                </div>
+                <div id="friendsGrid" class="friends-grid"></div>
+                <a href="#" style="display: block; margin-top: 10px; text-align: right; color: var(--orkut-dark-blue);">ver todos</a>
             </div>
-            <div class="sidebar-card">
+
+            <div class="box">
                 <div class="box-header">Pedidos de Amizade</div>
                 <div id="pendingRequests">
                     <p style="font-size: 11px; color: #888;">Nenhum pedido.</p>
                 </div>
             </div>
         </aside>
+
     </div>
 
-    <div class="mobile-nav">
-        <a href="orkut-social.html" style="color: var(--primary);"><i class="fas fa-home fa-lg"></i></a>
-        <a href="desafiar-atleta.html" style="color: var(--text-muted);"><i class="fas fa-bolt fa-lg"></i></a>
-        <a href="#" onclick="showSection('feed')" style="color: var(--text-muted);"><i class="fas fa-rss fa-lg"></i></a>
-        <a href="perfil-participante.html?id=me" style="color: var(--text-muted);"><i class="fas fa-user fa-lg"></i></a>
-    </div>
-
-    <!-- Modais -->
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <div class="box-header">Editar Perfil <span onclick="closeEditModal()" style="cursor:pointer">×</span></div>
-            <textarea id="bioInput" placeholder="Sua bio..." style="width:100%; height:80px; margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
-            <button class="btn-post" onclick="saveProfile()" style="width:100%">Salvar</button>
-        </div>
-    </div>
-
-    <div id="photosModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="box-header">Meu Álbum de Fotos <span onclick="closePhotosModal()" style="cursor:pointer">×</span></div>
-            <div style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 8px;">
-                <input type="file" id="albumPhotoInput" accept="image/*" style="margin-bottom: 10px;">
-                <input type="text" id="photoDescription" placeholder="Descrição da foto..." style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ddd; border-radius:4px;">
-                <button class="btn-post" onclick="uploadAlbumPhoto()">Adicionar ao Álbum</button>
+            <h3 class="blue">Editar Perfil</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div class="form-group">
+                <label>Bio:</label>
+                <textarea id="bioInput" style="height: 80px;"></textarea>
             </div>
-            <div id="albumPhotosGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+            <div class="form-group">
+                <label>Foto de Capa (URL):</label>
+                <input type="text" id="coverInput">
+            </div>
+            <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                <button class="btn-post" onclick="saveProfile()">Salvar</button>
+                <button onclick="closeEditModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Cancelar</button>
+            </div>
         </div>
     </div>
 
     <div id="notificationsModal" class="modal">
-        <div class="modal-content">
-            <div class="box-header">Notificações <span onclick="closeNotificationsModal()" style="cursor:pointer">×</span></div>
-            <div id="notificationsList"></div>
+        <div class="modal-content" style="width: 500px;">
+            <h3 class="blue">Notificações</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div id="notificationsList" style="max-height: 400px; overflow-y: auto;">
+                <p style="text-align: center; color: #888;">Carregando notificações...</p>
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button onclick="closeNotificationsModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts Externos -->
-    <script src="social_logic.js"></script>
+    <div id="photosModal" class="modal">
+        <div class="modal-content">
+            <h3 class="blue">Meu Álbum de Fotos</h3>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <div class="form-group">
+                <label>Enviar Foto:</label>
+                <input type="file" id="albumPhotoInput" accept="image/*" onchange="uploadAlbumPhoto(event)">
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional):</label>
+                <textarea id="photoDescription" style="height: 60px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Privacidade:</label>
+                <select id="photoPrivacy">
+                    <option value="public">Público</option>
+                    <option value="friends">Só Amigos</option>
+                    <option value="private">Privado</option>
+                </select>
+            </div>
+            <div style="text-align: right; gap: 10px; display: flex; justify-content: flex-end;">
+                <button class="btn-post" onclick="saveAlbumPhoto()">Salvar no Álbum</button>
+                <button onclick="closePhotosModal()" style="padding: 5px 10px; background: #ccc; border: none; cursor: pointer;">Fechar</button>
+            </div>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            <div id="albumPhotosGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <!-- Fotos do álbum aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token');
+        const alunoId = localStorage.getItem('wodpulse_aluno_id');
+
+        if (!token) window.location.href = 'login.html';
+
+        let userData = null;
+        let currentSection = 'feed';
+        let candidates = [];
+        let currentCandidateIndex = 0;
+        let allFriends = [];
+        let selectedPhotoData = null;
+        let selectedAlbumPhotoData = null;
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image') || photo.startsWith('http')) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        async function loadProfileData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                userData = await res.json();
+                document.getElementById('userName').textContent = userData.name;
+                document.getElementById('userPhotoLarge').src = formatPhoto(userData.photo);
+                document.getElementById('userBio').textContent = userData.bio || 'Atleta WODPulse';
+                
+                if (userData.stats) {
+                    document.getElementById('stat-challenges').textContent = userData.stats.challenges || 0;
+                    document.getElementById('stat-likes').textContent = userData.stats.likes || 0;
+                    document.getElementById('stat-matches').textContent = userData.stats.matches || 0;
+                }
+
+                document.getElementById('progressLink').href = `meu-progresso.html?id=${userData.id}`;
+
+                loadTrainingStats();
+                loadFriends();
+                loadPendingRequests();
+                loadContent();
+                loadMatchCandidates();
+            } catch (err) {
+                console.error('Erro ao carregar perfil:', err);
+            }
+        }
+
+        async function loadTrainingStats() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historico = await res.json();
+                
+                if (Array.isArray(historico)) {
+                    const treinos = historico.filter(h => h.aluno === userData.name);
+                    const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                    const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                    const totalVo2 = treinos.reduce((s, h) => s + (parseFloat(h.vo2_time_seconds) || 0), 0);
+
+                    document.getElementById('stat-aulas').textContent = treinos.length;
+                    document.getElementById('stat-calorias').textContent = Math.round(totalCal) + ' kcal';
+                    document.getElementById('stat-media').textContent = Math.round(totalCal / (treinos.length || 1)) + ' kcal';
+                    document.getElementById('stat-fc-max').textContent = Math.round(maxHr) + ' bpm';
+                    document.getElementById('stat-vo2').textContent = Math.round(totalVo2 / 60) + ' min';
+
+                    const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                    if (comIA) {
+                        document.getElementById('motivational-msg').textContent = "💡 " + comIA.ia_comment.substring(0, 100) + "...";
+                    } else {
+                        document.getElementById('motivational-msg').textContent = "🔥 Continue treinando para receber feedbacks da IA!";
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadContent() {
+            const list = document.getElementById('dynamic-list');
+            const title = document.getElementById('content-title');
+            const postArea = document.getElementById('post-area');
+            
+            list.innerHTML = '<p style="text-align: center; color: #888;">Carregando...</p>';
+
+            if (currentSection === 'feed') {
+                title.textContent = 'Feed de Notícias';
+                postArea.style.display = 'block';
+                loadFeed();
+            } else if (currentSection === 'scraps') {
+                title.textContent = 'Mural de Recados (Scraps)';
+                postArea.style.display = 'block';
+                loadScraps();
+            } else if (currentSection === 'photos') {
+                title.textContent = 'Minhas Fotos';
+                postArea.style.display = 'none';
+                openPhotosModal();
+            }
+        }
+
+        async function loadFeed() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/feed`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const posts = await res.json();
+                renderPosts(posts);
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadScraps() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/scraps`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const scraps = await res.json();
+                renderPosts(scraps);
+            } catch (err) {
+                console.error('Erro ao carregar scraps:', err);
+            }
+        }
+
+        function renderPosts(posts) {
+            const list = document.getElementById('dynamic-list');
+            if (posts.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma postagem ainda.</p>';
+                return;
+            }
+
+            list.innerHTML = posts.map(item => `
+                <div class="feed-item">
+                    <div class="feed-header">
+                        <div class="feed-header-left">
+                            <img src="${formatPhoto(item.user_photo)}" class="feed-photo-small" onclick="openProfile(${item.user_id})">
+                            <div class="feed-info">
+                                <div class="feed-author" onclick="openProfile(${item.user_id})">${item.user_name}</div>
+                                <div class="feed-time">${new Date(item.created_at).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
+                    </div>
+                    <div class="feed-content">${item.content}</div>
+                    ${item.photo_data ? `<div class="feed-image-container"><img src="${item.photo_data}" class="feed-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;"></div>` : ''}
+                    <div class="feed-reactions">
+                        <div class="reaction-buttons">
+                            <button class="reaction-btn ${item.user_reaction === 'like' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'like')">
+                                <i class="fas fa-thumbs-up"></i> CURTI (${item.likes_count || 0})
+                            </button>
+                            <button class="reaction-btn ${item.user_reaction === 'dislike' ? 'active' : ''}" onclick="reactToPost(${item.id}, 'dislike')">
+                                <i class="fas fa-thumbs-down"></i> PODE MELHORAR (${item.dislikes_count || 0})
+                            </button>
+                            ${item.isAuthor ? `<button onclick="deletePost(${item.id})" class="delete-btn" style="margin-left: 10px; color: #999; background: none; border: none; cursor: pointer; font-size: 11px;" title="Excluir"><i class="fas fa-trash"></i> EXCLUIR</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createPost() {
+            const content = document.getElementById('postInput').value.trim();
+            const privacy = document.getElementById('postPrivacy').value;
+            if (!content && !selectedPhotoData) return alert('Escreva algo ou selecione uma foto!');
+
+            try {
+                const postData = { 
+                    content, 
+                    type: currentSection === 'scraps' ? 'scrap' : 'feed',
+                    privacy,
+                    photoData: selectedPhotoData,
+                    targetUserId: currentSection === 'scraps' ? userData.id : null
+                };
+
+                const res = await fetch(`${API_BASE_URL}/api/social/posts`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(postData),
+                    credentials: 'include'
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    throw new Error(errorData.error || `Erro ${res.status}`);
+                }
+
+                document.getElementById('postInput').value = '';
+                document.getElementById('photoPreview').innerHTML = '';
+                selectedPhotoData = null;
+                alert('Postagem criada com sucesso!');
+                loadContent();
+            } catch (err) {
+                console.error('Erro ao postar:', err);
+                alert('Erro ao postar: ' + err.message);
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Deseja excluir esta postagem?')) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) loadContent();
+            } catch (err) { alert('Erro ao excluir'); }
+        }
+
+        async function reactToPost(postId, type) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/posts/${postId}/react`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ type })
+                });
+                if (res.ok) loadContent();
+            } catch (err) {}
+        }
+
+        async function loadScraps() {
+            const container = document.getElementById('dynamic-list');
+            container.innerHTML = '<p style="text-align: center; padding: 20px;">Mural de recados em desenvolvimento...</p>';
+        }
+
+        async function uploadAlbumPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedAlbumPhotoData = await fileToBase64(file);
+        }
+
+        async function saveAlbumPhoto() {
+            if (!selectedAlbumPhotoData) return alert('Selecione uma foto!');
+            const body = {
+                photo: selectedAlbumPhotoData,
+                description: document.getElementById('photoDescription').value || '',
+                privacy: document.getElementById('photoPrivacy').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/upload`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.ok) {
+                    alert('Foto salva no álbum!');
+                    document.getElementById('photoDescription').value = '';
+                    loadAlbumPhotos();
+                }
+            } catch (err) { alert('Erro ao salvar foto'); }
+        }
+
+        async function loadAlbumPhotos() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const photos = await res.json();
+                const grid = document.getElementById('albumPhotosGrid');
+                
+                if (photos.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Nenhuma foto ainda.</p>';
+                    return;
+                }
+
+                grid.innerHTML = photos.map(photo => `
+                    <div style="text-align: center;">
+                        <img src="${photo.photo_data}" style="width: 100%; height: 150px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px;">
+                        <p style="font-size: 10px; margin-top: 5px; color: #666;">${photo.description || 'Sem descrição'}</p>
+                        <button class="btn-icon" onclick="postPhotoToFeed(${photo.id})" style="margin-top: 5px; font-size: 10px;">Postar no Feed</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Erro ao carregar fotos:', err);
+            }
+        }
+
+        async function postPhotoToFeed(photoId) {
+            const caption = prompt('Adicione uma legenda (opcional):');
+            const privacy = prompt('Privacidade (public/friends/private):', 'public');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}/post-to-feed`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ caption: caption || '', privacy })
+                });
+
+                if (res.ok) {
+                    alert('Foto postada no feed!');
+                    closePhotosModal();
+                    showSection('feed');
+                }
+            } catch (err) {
+                alert('Erro ao postar foto');
+            }
+        }
+
+        let searchTimeout;
+        document.getElementById('searchUsersInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+            searchTimeout = setTimeout(() => searchUsers(query), 500);
+        });
+
+        async function searchUsers(query) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('searchResults');
+                if (data.users.length === 0) {
+                    container.innerHTML = '<p style="color:#888;">Nenhum atleta encontrado.</p>';
+                    return;
+                }
+                container.innerHTML = data.users.map(user => `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #eee;">
+                        <img src="${formatPhoto(user.photo)}" style="width: 30px; height: 30px; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <strong class="blue" style="cursor:pointer" onclick="openProfile(${user.id})">${user.name}</strong>
+                            <div style="font-size: 10px; color: #999;">Box: ${user.box_id || '--'}</div>
+                        </div>
+                        <button onclick="requestFriendship(${user.id})" style="font-size: 10px;">Add</button>
+                    </div>
+                `).join('');
+            } catch (err) {}
+        }
+
+        async function requestFriendship(targetId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) { alert('Erro ao enviar pedido'); }
+        }
+
+        async function loadFriends() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                allFriends = data.confirmedFriends || [];
+                
+                document.getElementById('friendsCount').textContent = `(${allFriends.length})`;
+                const grid = document.getElementById('friendsGrid');
+                grid.innerHTML = allFriends.slice(0, 9).map(f => `
+                    <div class="friend-item" onclick="openProfile(${f.id})">
+                        <img src="${formatPhoto(f.photo)}">
+                        <span>${f.name.split(' ')[0]}</span>
+                    </div>
+                `).join('');
+            } catch (err) { console.error('Erro ao carregar amigos:', err); }
+        }
+
+        async function loadPendingRequests() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('pendingRequests');
+                
+                if (data.pendingRequests.length === 0) {
+                    container.innerHTML = '<p style="font-size: 11px; color: #888;">Nenhum pedido.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.pendingRequests.map(req => `
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px;">
+                        <img src="${formatPhoto(req.photo)}" style="width: 25px; height: 25px; border-radius: 50%;">
+                        <span style="flex: 1;">${req.name}</span>
+                        <button onclick="respondFriend(${req.id}, 'accept')" style="background: var(--orkut-pink); color: white; border: none; padding: 2px 5px; cursor: pointer;">Aceitar</button>
+                    </div>
+                `).join('');
+            } catch (err) {}
+        }
+
+        async function respondFriend(requesterId, action) {
+            try {
+                await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requesterId, action })
+                });
+                loadFriends();
+                loadPendingRequests();
+            } catch (err) {}
+        }
+
+        async function loadMatchCandidates() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                candidates = await res.json();
+                displayCandidate();
+            } catch (err) {}
+        }
+
+        function displayCandidate() {
+            const container = document.getElementById('matchCandidate');
+            if (candidates.length === 0 || currentCandidateIndex >= candidates.length) {
+                container.innerHTML = '<p style="color: #888; padding: 20px;">Buscando atletas...</p>';
+                return;
+            }
+
+            const c = candidates[currentCandidateIndex];
+            container.innerHTML = `
+                <img src="${formatPhoto(c.photo)}" class="match-photo-small">
+                <div class="blue" style="font-weight: bold;">${c.name}</div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 10px;">Box: ${c.box_id || '--'}</div>
+                <div class="match-actions-mini">
+                    <button class="btn-match-mini btn-dislike-mini" onclick="nextCandidate()"><i class="fas fa-times"></i></button>
+                    <button class="btn-match-mini btn-like-mini" onclick="likeCandidate(${c.id})"><i class="fas fa-heart"></i></button>
+                </div>
+            `;
+        }
+
+        async function likeCandidate(targetId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/match/like`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetId })
+                });
+                const data = await res.json();
+                if (data.match) alert('MATCH! Vocês agora podem conversar!');
+                nextCandidate();
+            } catch (err) {}
+        }
+
+        function nextCandidate() {
+            currentCandidateIndex++;
+            displayCandidate();
+        }
+
+        function openProfile(id) {
+            window.location.href = `perfil-participante.html?id=${id}`;
+        }
+
+        function openEditModal() {
+            document.getElementById('bioInput').value = userData.bio || '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveProfile() {
+            const bio = document.getElementById('bioInput').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bio })
+                });
+                if (res.ok) {
+                    closeEditModal();
+                    loadProfileData();
+                }
+            } catch (err) {}
+        }
+
+        function openPhotosModal() {
+            document.getElementById('photosModal').style.display = 'flex';
+            loadAlbumPhotos();
+        }
+
+        function closePhotosModal() {
+            document.getElementById('photosModal').style.display = 'none';
+        }
+
+        function toggleNotifications() {
+            const modal = document.getElementById('notificationsModal');
+            if (modal.style.display === 'flex') {
+                closeNotificationsModal();
+            } else {
+                modal.style.display = 'flex';
+                loadNotifications();
+            }
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').style.display = 'none';
+        }
+
+        async function loadNotifications() {
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = '<p style="text-align: center; padding: 20px;">Carregando...</p>';
+
+            try {
+                const resFriends = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataFriends = await resFriends.json();
+
+                let challengeNotifications = [];
+                try {
+                    const resChallenges = await fetch(`${API_BASE_URL}/api/challenges/notifications`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (resChallenges.ok) {
+                        challengeNotifications = await resChallenges.json();
+                    }
+                } catch (e) { console.log('Rota de desafios ainda não ativa'); }
+
+                let html = '';
+                const totalNotifications = dataFriends.pendingRequests.length + challengeNotifications.length;
+
+                if (totalNotifications === 0) {
+                    html = '<p style="text-align: center; color: #888; padding: 20px;">Nenhuma notificação nova.</p>';
+                } else {
+                    html += dataFriends.pendingRequests.map(req => `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee;">
+                            <img src="${formatPhoto(req.photo)}" style="width: 35px; height: 35px; border-radius: 50%;">
+                            <div style="flex: 1;">
+                                <strong>${req.name}</strong> quer ser seu amigo!
+                            </div>
+                            <button onclick="respondFriend(${req.id}, 'accept')" class="btn-post" style="font-size: 10px;">Aceitar</button>
+                        </div>
+                    `).join('');
+
+                    html += challengeNotifications.map(notif => `
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; background: #fff9c4;">
+                            <div style="font-size: 20px;">🏆</div>
+                            <div style="flex: 1;">
+                                <strong>${notif.creator_name}</strong> te desafiou: <em>"${notif.title}"</em>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="respondChallenge(${notif.challenge_id}, 'accepted')" class="btn-post" style="font-size: 10px;">Aceitar</button>
+                                <button onclick="respondChallenge(${notif.challenge_id}, 'declined')" style="font-size: 10px; background: #ccc; border: none; padding: 5px;">Recusar</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                list.innerHTML = html;
+                updateNotificationBadge(totalNotifications);
+            } catch (err) {
+                list.innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar.</p>';
+            }
+        }
+
+        async function respondChallenge(challengeId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if (res.ok) {
+                    alert(action === 'accepted' ? 'Desafio aceito! Prepare-se!' : 'Desafio recusado.');
+                    loadNotifications();
+                }
+            } catch (err) { alert('Erro ao responder desafio'); }
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function triggerPhotoUpload() {
+            document.getElementById('photoInput').click();
+        }
+
+        async function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedPhotoData = await fileToBase64(file);
+            document.getElementById('photoPreview').innerHTML = `
+                <div style="position: relative; display: inline-block;">
+                    <img src="${selectedPhotoData}" style="max-width: 100px; border: 1px solid #ccc;">
+                    <button onclick="removePreview()" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>
+                </div>
+            `;
+        }
+
+        function removePreview() {
+            selectedPhotoData = null;
+            document.getElementById('photoPreview').innerHTML = '';
+            document.getElementById('photoInput').value = '';
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleMentionInput(event) {
+            const textarea = event.target;
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            const lastAtPos = text.lastIndexOf('@', cursorPosition - 1);
+
+            if (lastAtPos !== -1 && (lastAtPos === 0 || text[lastAtPos - 1] === ' ' || text[lastAtPos - 1] === '\n')) {
+                const query = text.substring(lastAtPos + 1, cursorPosition);
+                if (query.length >= 1) {
+                    showMentionSuggestions(query, lastAtPos);
+                } else {
+                    hideMentionSuggestions();
+                }
+            } else {
+                hideMentionSuggestions();
+            }
+        }
+
+        async function showMentionSuggestions(query, atPos) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/search-users?q=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const suggestions = document.getElementById('mentionSuggestions');
+                
+                if (data.users.length === 0) {
+                    hideMentionSuggestions();
+                    return;
+                }
+
+                suggestions.innerHTML = data.users.map(user => `
+                    <div class="mention-item" onclick="insertMention('${user.name}', ${atPos})">
+                        <img src="${formatPhoto(user.photo)}" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 5px;">
+                        <strong>${user.name}</strong>
+                    </div>
+                `).join('');
+                suggestions.style.display = 'block';
+            } catch (err) {}
+        }
+
+        function hideMentionSuggestions() {
+            document.getElementById('mentionSuggestions').style.display = 'none';
+        }
+
+        function insertMention(name, atPos) {
+            const textarea = document.getElementById('postInput');
+            const text = textarea.value;
+            const cursorPosition = textarea.selectionStart;
+            const beforeAt = text.substring(0, atPos);
+            const afterCursor = text.substring(cursorPosition);
+            
+            textarea.value = beforeAt + '@' + name + ' ' + afterCursor;
+            hideMentionSuggestions();
+            textarea.focus();
+        }
+
+        function logout() {
+            localStorage.removeItem('wodpulse_social_token');
+            window.location.href = 'login.html';
+        }
+
+        async function init() {
+            await loadProfileData();
+            // loadTrainingStats() is called inside loadProfileData()
+            // loadContent() is called inside loadProfileData()
+            // loadFriends() is called inside loadProfileData()
+            // loadPendingRequests() is called inside loadProfileData()
+            // loadMatchCandidates() is called inside loadProfileData()
+            
+            setInterval(loadNotifications, 60000);
+            loadNotifications();
+        }
+
+        init();
+    </script>
 </body>
 </html>
