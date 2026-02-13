@@ -1016,38 +1016,60 @@
             return gordura.toFixed(1);
         }
 
-        async function carregarPagina() {
+                async function carregarPagina() {
             document.getElementById('loading').style.display = 'block';
+            
+            // Pega o token de ALUNO do localStorage
+            const tokenDeAluno = localStorage.getItem('wodpulse_social_token');
+
+            // Pega o ID do aluno da URL, como antes
+            const alunoId = urlParams.get('id');
+
+            if (!alunoId) {
+                document.body.innerHTML = '<h1>ID do aluno não encontrado na URL.</h1>';
+                return;
+            }
+
             try {
+                // 1. Busca os dados do participante (rota pública, não precisa de token)
                 const alunoRes = await fetch(`${API_BASE_URL}/api/public/participants/${alunoId}`);
-                if (!alunoRes.ok) throw new Error('Aluno não encontrado');
+                if (!alunoRes.ok) {
+                    throw new Error('Não foi possível carregar os dados do aluno.');
+                }
                 alunoData = (await alunoRes.json()).participant;
 
-                const historicoRes = await fetch(`${API_BASE_URL}/api/sessions/historico?alunoId=${alunoId}`);
-                if (!historicoRes.ok) throw new Error('Erro no histórico');
-                historicoData = await historicoRes.json();
-                historicoData.sort((a, b) => new Date(b.date_start) - new Date(a.date_start));
+                // 2. Busca o histórico de sessões (rota segura, precisa de token de ALUNO)
+                if (tokenDeAluno) {
+                    const historicoRes = await fetch(`${API_BASE_URL}/api/social/my-sessions-history`, {
+                        headers: {
+                            'Authorization': `Bearer ${tokenDeAluno}`
+                        }
+                    });
+                    if (historicoRes.ok) {
+                        historicoData = await historicoRes.json();
+                    } else {
+                        console.warn('Não foi possível carregar o histórico de treinos (sessão de aluno pode ter expirado).');
+                        historicoData = []; // Define como vazio se falhar
+                    }
+                } else {
+                    console.warn('Nenhum token de aluno encontrado para carregar o histórico de treinos.');
+                    historicoData = []; // Define como vazio se não houver token
+                }
 
+                // 3. Busca o progresso corporal (rota pública)
+                await carregarProgresso(); // Esta função já usa a rota pública correta
+
+                // 4. Renderiza tudo com os dados que conseguiu buscar
                 renderizarTudo();
-                await carregarProgresso();
+
             } catch (err) {
+                console.error('Erro ao carregar dados da página de progresso:', err);
                 document.getElementById('loading').textContent = '❌ Erro ao carregar dados: ' + err.message;
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        async function carregarProgresso() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/body-progress?alunoId=${alunoId}`);
-                if (res.ok) {
-                    progressoData = await res.json();
-                    renderizarGaleria();
-                }
-            } catch (err) {
-                console.error('Erro ao carregar progresso corporal:', err);
-            }
-        }
 
         function renderizarGaleria() {
             const container = document.getElementById('galeria-progresso');
