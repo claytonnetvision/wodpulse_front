@@ -1019,7 +1019,7 @@
         async function carregarPagina() {
             document.getElementById('loading').style.display = 'block';
             try {
-                const alunoRes = await fetch(`${API_BASE_URL}/api/participants/${alunoId}`);
+                const alunoRes = await fetch(`${API_BASE_URL}/api/public/participants/${alunoId}`);
                 if (!alunoRes.ok) throw new Error('Aluno não encontrado');
                 alunoData = (await alunoRes.json()).participant;
 
