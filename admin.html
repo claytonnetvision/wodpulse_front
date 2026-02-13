@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin - WODPulse</title>
+  <title>Super Admin - WODPulse</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap">
   <link rel="stylesheet" href="style.css">
   <style>
@@ -11,8 +11,8 @@
     body.admin { background: #0a0e14; }
     .admin-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
     .section { background: #161b22; border-radius: 12px; padding: 20px; margin-bottom: 30px; }
-    .section h2 { color: #FF5722; margin-top: 0; }
-    table.admin-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    .section h2 { color: #FF5722; margin-top: 0; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+    table.admin-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 15px; }
     table.admin-table th, table.admin-table td { padding: 12px; border-bottom: 1px solid #30363d; text-align: left; }
     table.admin-table th { background: #0d1117; color: #aaa; }
     .btn-admin { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 6px; }
@@ -20,29 +20,58 @@
     .btn-delete { background: #E63946; color: white; }
     .btn-details { background: #2196F3; color: white; }
     .btn-mass-delete { background: #E63946; color: white; padding: 12px 20px; font-size: 1rem; margin-bottom: 15px; }
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85 ); display: none; align-items: center; justify-content: center; z-index: 9999; }
     .modal-content { background: #1c1c1c; padding: 30px; border-radius: 12px; max-width: 90%; max-height: 90vh; overflow-y: auto; width: 1000px; }
     .close-modal { float: right; font-size: 2.5rem; cursor: pointer; color: #aaa; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+    .form-grid input, .form-grid select { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; }
+    .btn-create { background: #4CAF50; color: white; padding: 12px 20px; font-size: 1rem; margin-top: 15px; }
   </style>
 </head>
 <body class="admin">
 
   <div class="admin-container">
-    <h1 style="color:#FF5722; text-align:center;">Admin - WODPulse</h1>
-    <p style="text-align:center; color:#888;">Gerencie alunos e aulas (use com cuidado)</p>
+    <h1 style="color:#FF5722; text-align:center;">Super Admin - WODPulse</h1>
+    <p style="text-align:center; color:#888;">Gerenciamento Global do Sistema</p>
 
-    <!-- Seção Alunos -->
+    <!-- NOVO: Seção Gerenciar Boxes -->
     <div class="section">
-      <h2>Alunos Cadastrados</h2>
+      <h2>Gerenciar Boxes</h2>
+      <div class="form-grid">
+        <input type="text" id="boxName" placeholder="Nome do Novo Box">
+        <input type="text" id="boxSlug" placeholder="Slug (ex: crossfit-power)">
+      </div>
+      <button class="btn-create" onclick="createBox()">Criar Novo Box</button>
+      <table class="admin-table" id="boxesTable">
+        <thead><tr><th>ID</th><th>Nome</th><th>Slug</th><th>Ativo</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- NOVO: Seção Gerenciar Usuários Admin -->
+    <div class="section">
+      <h2>Gerenciar Usuários Admin</h2>
+      <div class="form-grid">
+        <select id="userBoxId"></select>
+        <input type="text" id="userName" placeholder="Username do Admin">
+        <input type="text" id="userPassword" placeholder="Senha Inicial">
+      </div>
+      <button class="btn-create" onclick="createUser()">Criar Novo Usuário Admin</button>
+      <table class="admin-table" id="usersTable">
+        <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Box ID</th><th>Ações</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Seção Alunos (Mantida do seu original) -->
+    <div class="section">
+      <h2>Alunos Cadastrados (Todos os Boxes)</h2>
       <table class="admin-table" id="alunosTable">
         <thead>
           <tr>
             <th>ID</th>
+            <th>Box ID</th> <!-- Coluna adicionada -->
             <th>Nome</th>
-            <th>Idade</th>
-            <th>Peso</th>
-            <th>Altura</th>
-            <th>Gênero</th>
             <th>Email</th>
             <th>Pulseira</th>
             <th>Ações</th>
@@ -52,18 +81,18 @@
       </table>
     </div>
 
-    <!-- Seção Aulas -->
+    <!-- Seção Aulas (Mantida do seu original) -->
     <div class="section">
-      <h2>Aulas Registradas</h2>
+      <h2>Aulas Registradas (Todos os Boxes)</h2>
       <button class="btn-mass-delete" onclick="deleteSelectedAulas()">Excluir Aulas Selecionadas</button>
       <table class="admin-table" id="aulasTable">
         <thead>
           <tr>
-            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th> <!-- Select All -->
+            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
             <th>ID</th>
+            <th>Box ID</th> <!-- Coluna adicionada -->
             <th>Nome da Aula</th>
             <th>Data/Hora Início</th>
-            <th>Duração (min)</th>
             <th>Alunos</th>
             <th>Ações</th>
           </tr>
@@ -73,7 +102,7 @@
     </div>
   </div>
 
-  <!-- Modal detalhes -->
+  <!-- Modal detalhes (Mantido do seu original) -->
   <div id="detailsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="document.getElementById('detailsModal').style.display='none'">&times;</span>
