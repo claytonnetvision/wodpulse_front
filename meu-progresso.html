@@ -1071,9 +1071,8 @@
             }
         }
   async function carregarProgresso() {
-        try {
-            // Usando a rota pública para o progresso corporal também
-            const res = await fetch(`${API_BASE_URL}/api/public/participants/${alunoId}/body-progress`);
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/public/body-progress?alunoId=${alunoId}`);
             if (res.ok) {
                 progressoData = await res.json();
                 renderizarGaleria();
