@@ -1067,9 +1067,21 @@
                 document.getElementById('loading').textContent = '❌ Erro ao carregar dados: ' + err.message;
             } finally {
                 document.getElementById('loading').style.display = 'none';
+                
             }
         }
-
+  async function carregarProgresso() {
+        try {
+            // Usando a rota pública para o progresso corporal também
+            const res = await fetch(`${API_BASE_URL}/api/public/participants/${alunoId}/body-progress`);
+            if (res.ok) {
+                progressoData = await res.json();
+                renderizarGaleria();
+            }
+        } catch (err) {
+            console.error('Erro ao carregar progresso corporal:', err);
+        }
+    }
 
         function renderizarGaleria() {
             const container = document.getElementById('galeria-progresso');
