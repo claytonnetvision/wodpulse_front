@@ -4,7 +4,7 @@ const API_BASE_URL = 'https://wodpulse-back.onrender.com'; // seu backend no Ren
 let participants = [];
 let activeParticipants = []; // IDs dos alunos selecionados para a aula atual
 let tecnofitEnabled = false;
-let connectedDevices = new Map();
+let connectedDevices = new Map( );
 let wodStartTime = 0;
 let burnInterval = null;
 let trimpInterval = null;
@@ -55,13 +55,23 @@ async function fileToBase64(file) {
 }
 // ── INICIALIZAÇÃO ───────────────────────────────────────────────────────────────
 window.addEventListener('load', async () => {
+    // ALTERAÇÃO: Bloco de verificação de login
+    const token = localStorage.getItem('wodpulse_token');
+    if (!token) {
+        // Se não houver token, redireciona para a tela de login do instrutor.
+        console.log('[AUTH] Nenhum token encontrado. Redirecionando para o login.');
+        window.location.href = 'dashboard-login.html';
+        return; // Para a execução do script para evitar erros.
+    }
+    console.log('[AUTH] Token encontrado. Acesso liberado.');
+    // Fim da alteração
+
     console.log('[INIT] Página carregada - iniciando load inicial');
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1' ) {
         console.warn("A página não está em HTTPS. Web Bluetooth pode não funcionar.");
         alert("Atenção: Para parear dispositivos Bluetooth, acesse via HTTPS (Vercel já fornece).");
     }
-    participants = await loadParticipantsFromDB();
-    console.log('[INIT] Load do IndexedDB/local concluído - ' + participants.length + ' alunos');
+    
     loadWeeklyHistory();
     loadDailyLeader();
     loadDailyCaloriesLeader();
@@ -171,7 +181,23 @@ function startRestingHRCapture() {
 async function loadParticipantsFromBackend() {
     try {
         console.log('[LOAD BACKEND] Iniciando request para /api/participants');
-        const response = await fetch(`${API_BASE_URL}/api/participants`);
+        // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+        const token = localStorage.getItem('wodpulse_token');
+        const response = await fetch(`${API_BASE_URL}/api/participants`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            // Se o token for inválido ou expirado, limpa e redireciona para o login.
+            console.error('[AUTH] Token inválido ou expirado. Deslogando...');
+            localStorage.removeItem('wodpulse_token');
+            localStorage.removeItem('wodpulse_box');
+            window.location.href = 'dashboard-login.html';
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(`Erro HTTP ${response.status}`);
         }
@@ -227,13 +253,9 @@ async function loadParticipantsFromBackend() {
                 photo: p.photo || null
             };
         });
-        renderParticipantList();
-        renderTiles();
     } catch (err) {
         console.error('Falha ao carregar do backend:', err);
-        participants = await loadParticipantsFromDB();
-        renderParticipantList();
-        renderTiles();
+        alert('Falha ao conectar com o servidor. Verifique sua conexão e tente recarregar a página.');
     }
 }
 // ── CADASTRO MANUAL (COM UPLOAD DE FOTO) ───────────────────────────────────────
@@ -275,9 +297,14 @@ window.addNewParticipantFromSetup = async function() {
         photo: photoBase64 // envia base64 (backend salva como TEXT)
     };
     try {
+        // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+        const token = localStorage.getItem('wodpulse_token');
         const response = await fetch(`${API_BASE_URL}/api/participants`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(data)
         });
         const json = await response.json();
@@ -393,9 +420,14 @@ async function editParticipant(id) {
             historical_max_hr: p.historicalMaxHR
         };
         try {
+            // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+            const token = localStorage.getItem('wodpulse_token');
             const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(data)
             });
             if (!res.ok) throw new Error('Erro ao editar dados');
@@ -410,9 +442,14 @@ async function editParticipant(id) {
             const remove = confirm(`O aluno ${p.name} tem uma pulseira cadastrada (${p.deviceName || p.deviceId}).\nDeseja remover a pulseira atual?`);
             if (remove) {
                 try {
+                    // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+                    const token = localStorage.getItem('wodpulse_token');
                     await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({
                             device_id: null,
                             device_name: null
@@ -442,9 +479,14 @@ async function editParticipant(id) {
             if (!file) return;
             try {
                 const photoBase64 = await fileToBase64(file);
+                // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+                const token = localStorage.getItem('wodpulse_token');
                 const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ photo: photoBase64 })
                 });
                 if (!res.ok) {
@@ -471,9 +513,14 @@ window.deleteParticipant = async function(id) {
         return;
     }
     try {
+        // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+        const token = localStorage.getItem('wodpulse_token');
         const response = await fetch(`${API_BASE_URL}/api/participants/${id}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
         });
         if (!response.ok) {
             const err = await response.json();
@@ -507,9 +554,15 @@ window.addParticipantDuringClass = async function() {
             const gender = prompt("Gênero (M/F/O):", "M") || null;
             const email = prompt("Email (opcional):", "") || null;
             const estimatedMaxHR = 220 - age;
+            
+            // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+            const token = localStorage.getItem('wodpulse_token');
             const response = await fetch(`${API_BASE_URL}/api/participants`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     name: name.trim(),
                     age,
@@ -570,9 +623,15 @@ window.addParticipantDuringClass = async function() {
         p.device = device;
         p.deviceId = device.id;
         p.deviceName = device.name || "Dispositivo sem nome";
+        
+        // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+        const token = localStorage.getItem('wodpulse_token');
         await fetch(`${API_BASE_URL}/api/participants/${p.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
                 device_id: p.deviceId,
                 device_name: p.deviceName
@@ -759,13 +818,18 @@ async function autoEndClass() {
         date_start: sessionStart.toISOString(),
         date_end: sessionEnd.toISOString(),
         duration_minutes: durationMinutes,
-        box_id: 1,
+        // O box_id não é mais necessário aqui, pois o backend o pegará do token.
         participantsData
     };
     try {
+        // ALTERAÇÃO: Adicionando o cabeçalho de autorização com o token.
+        const token = localStorage.getItem('wodpulse_token');
         const res = await fetch(`${API_BASE_URL}/api/sessions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(sessionData)
         });
         if (!res.ok) {
@@ -848,7 +912,7 @@ function renderParticipantList() {
         const tr = document.createElement('tr');
         const photoSrc = p.photo
             ? `data:image;base64,${p.photo}`
-            : `https://i.pravatar.cc/100?u=${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+            : `https://i.pravatar.cc/100?u=${p.name.toLowerCase( ).replace(/\s+/g, '-')}`;
         tr.innerHTML = `
             <td><input type="checkbox" class="participant-checkbox" data-id="${p.id}" ${activeParticipants.includes(p.id) ? 'checked' : ''}></td>
             <td><img src="${photoSrc}" alt="${p.name}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #FF5722;"></td>
@@ -987,3 +1051,4 @@ function getTodayDate() {
 // Placeholders Tecnofit
 async function checkTecnofitStatus() { }
 async function fetchDailyWorkout() { }
+
