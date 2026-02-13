@@ -1,27 +1,24 @@
-// Arquivo: admin.js (VERSÃO UNIFICADA E COMPLETA)
+// Arquivo: admin.js (VERSÃO FINAL CORRIGIDA E COMPLETA)
 
 const API_BASE_URL = 'https://wodpulse-back.onrender.com';
 const token = localStorage.getItem('wodpulse_token' );
 
 // Função principal que roda ao carregar a página
 async function initializeAdminPanel() {
-    // 1. VERIFICA SE HÁ UM TOKEN
     if (!token) {
         alert('Acesso negado. Faça o login como Super Admin.');
         window.location.href = 'dashboard-login.html';
         return;
     }
 
-    // 2. CARREGA TODOS OS DADOS INICIAIS
-    // Funções novas de Super Admin
+    // Carrega todos os dados usando as rotas de Super Admin
     await loadBoxes();
     await loadUsers();
-    // Funções adaptadas do seu admin.js original
     await loadAllAlunos();
     await loadAllAulas();
 }
 
-// --- NOVAS FUNÇÕES DE SUPER ADMIN ---
+// --- FUNÇÕES DE SUPER ADMIN ---
 
 async function loadBoxes() {
     try {
@@ -36,7 +33,14 @@ async function loadBoxes() {
         tbody.innerHTML = '';
         select.innerHTML = '<option value="">Selecione um Box para o novo usuário</option>';
         boxes.forEach(box => {
-            tbody.innerHTML += `<tr><td>${box.id}</td><td>${box.name}</td><td>${box.slug}</td><td>${box.active ? 'Sim' : 'Não'}</td></tr>`;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${box.id}</td>
+                    <td>${box.name}</td>
+                    <td>${box.slug}</td>
+                    <td>${box.active ? 'Sim' : 'Não'}</td>
+                    <td><button class="btn-admin btn-delete" onclick="deleteBox(${box.id}, '${box.name}')">Excluir</button></td>
+                </tr>`;
             select.innerHTML += `<option value="${box.id}">${box.name} (ID: ${box.id})</option>`;
         });
     } catch (err) {
@@ -61,7 +65,10 @@ async function loadUsers() {
                     <td>${user.username}</td>
                     <td>${user.role}</td>
                     <td>${user.box_id}</td>
-                    <td><button class="btn-admin btn-edit" onclick="changePassword(${user.id}, '${user.username}')">Alterar Senha</button></td>
+                    <td>
+                        <button class="btn-admin btn-edit" onclick="changePassword(${user.id}, '${user.username}')">Alterar Senha</button>
+                        <button class="btn-admin btn-delete" onclick="deleteUser(${user.id}, '${user.username}')">Excluir</button>
+                    </td>
                 </tr>`;
         });
     } catch (err) {
@@ -129,21 +136,53 @@ async function changePassword(userId, username) {
     }
 }
 
-// --- FUNÇÕES ADAPTADAS DO SEU ADMIN.JS ORIGINAL ---
-// Elas agora usam o token e chamam as rotas que retornam TODOS os dados.
+async function deleteBox(boxId, boxName) {
+    if (!confirm(`ATENÇÃO!\n\nVocê está prestes a excluir o box "${boxName}" (ID: ${boxId}).\n\nISSO APAGARÁ O BOX, TODOS OS SEUS USUÁRIOS ADMIN, TODOS OS ALUNOS E TODAS AS AULAS ASSOCIADAS A ELE.\n\nEsta ação é irreversível. Deseja continuar?`)) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/superadmin/delete-box/${boxId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao excluir box.');
+        alert(data.message);
+        loadBoxes();
+        loadUsers();
+        loadAllAlunos();
+        loadAllAulas();
+    } catch (err) {
+        handleAuthError(err);
+    }
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`Tem certeza que deseja excluir o usuário admin "${username}" (ID: ${userId})?`)) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/superadmin/delete-user/${userId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao excluir usuário.');
+        alert(data.message);
+        loadUsers();
+    } catch (err) {
+        handleAuthError(err);
+    }
+}
+
+// --- FUNÇÕES DE VISUALIZAÇÃO GERAL (ADAPTADAS) ---
 
 async function loadAllAlunos() {
   try {
-    // NOTA: Esta rota `/api/participants` agora retornará TODOS os alunos
-    // porque o middleware de Super Admin não filtra por box.
-    const res = await fetch(`${API_BASE_URL}/api/participants`, {
+    const res = await fetch(`${API_BASE_URL}/api/superadmin/all-participants`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Falha ao carregar alunos');
     const data = await res.json();
     const tbody = document.querySelector('#alunosTable tbody');
     tbody.innerHTML = '';
-    data.participants.forEach(p => {
+    data.forEach(p => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${p.id}</td>
@@ -152,7 +191,7 @@ async function loadAllAlunos() {
         <td>${p.email || '-'}</td>
         <td>${p.device_name ? p.device_name : (p.device_id ? 'ID salvo' : 'Sem pulseira')}</td>
         <td>
-          <button class="btn-admin btn-edit" onclick="editAluno(${p.id})">Editar</button>
+          <button class="btn-admin btn-edit" onclick="alert('Edição de aluno em desenvolvimento.')">Editar</button>
           <button class="btn-admin btn-delete" onclick="deleteAluno(${p.id})">Excluir</button>
         </td>
       `;
@@ -165,11 +204,11 @@ async function loadAllAlunos() {
 
 async function loadAllAulas() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/sessions`, {
+    const res = await fetch(`${API_BASE_URL}/api/superadmin/all-sessions`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Falha ao carregar aulas - status: ' + res.status);
-    const { sessions } = await res.json();
+    const sessions = await res.json();
     const tbody = document.querySelector('#aulasTable tbody');
     tbody.innerHTML = '';
     sessions.forEach(s => {
@@ -200,7 +239,7 @@ async function deleteSelectedAulas() {
   if (!confirm(`Tem certeza que deseja excluir ${checkboxes.length} aula(s)?`)) return;
 
   for (const cb of checkboxes) {
-    await deleteAula(cb.dataset.id, true); // Passa true para não pedir confirmação de novo
+    await deleteAula(cb.dataset.id, true);
   }
   alert('Exclusão em massa concluída!');
   loadAllAulas();
@@ -212,9 +251,9 @@ function toggleSelectAll() {
 }
 
 async function deleteAluno(id) {
-  if (!confirm('Excluir aluno permanentemente?')) return;
+  if (!confirm('Excluir aluno permanentemente? Isso remove também histórico associado.')) return;
   try {
-    const res = await fetch(`${API_BASE_URL}/api/participants/${id}`, { 
+    const res = await fetch(`${API_BASE_URL}/api/superadmin/delete-participant/${id}`, { 
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -229,7 +268,7 @@ async function deleteAluno(id) {
 async function deleteAula(id, massDelete = false) {
   if (!massDelete && !confirm('Excluir aula e todos os dados de participantes nela?')) return;
   try {
-    const res = await fetch(`${API_BASE_URL}/api/sessions/${id}`, { 
+    const res = await fetch(`${API_BASE_URL}/api/superadmin/delete-session/${id}`, { 
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -245,30 +284,45 @@ async function deleteAula(id, massDelete = false) {
 
 async function verDetalhesAula(id) {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/sessions/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/superadmin/session-details/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Falha ao carregar detalhes - status: ' + res.status);
     const { session, participants } = await res.json();
     const dateStart = new Date(session.date_start).toLocaleString('pt-BR');
-    let html = `<p><strong>Aula:</strong> ${session.class_name} (Box ID: ${session.box_id})</p><p><strong>Início:</strong> ${dateStart}</p><h3>Participantes (${participants.length})</h3>...`; // (Sua lógica de detalhes continua aqui)
-    // ... (O resto da sua função verDetalhesAula)
+    
+    let html = `
+      <p><strong>Aula:</strong> ${session.class_name} (Box ID: ${session.box_id})</p>
+      <p><strong>Início:</strong> ${dateStart}</p>
+      <h3>Participantes (${participants.length})</h3>
+      <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:0.95rem;">
+        <tr style="background:#222;">
+          <th style="padding:8px;">Nome</th>
+          <th style="padding:8px;">Calorias</th>
+          <th style="padding:8px;">Queima PTS</th>
+          <th style="padding:8px;">TRIMP</th>
+        </tr>
+    `;
+
+    participants.forEach(p => {
+      html += `
+        <tr>
+          <td style="padding:8px; border-top:1px solid #333;">${p.name}</td>
+          <td style="padding:8px; border-top:1px solid #333;">${p.calories_total || 0}</td>
+          <td style="padding:8px; border-top:1px solid #333;">${p.queima_points || 0}</td>
+          <td style="padding:8px; border-top:1px solid #333;">${p.trimp_total || 0}</td>
+        </tr>
+      `;
+    });
+
+    html += '</table>';
+
     document.getElementById('modalTitle').textContent = `Detalhes da Aula #${id}`;
-    document.getElementById('modalContent').innerHTML = html; // Adapte o HTML para mostrar os detalhes que precisa
+    document.getElementById('modalContent').innerHTML = html;
     document.getElementById('detailsModal').style.display = 'flex';
   } catch (err) {
     handleAuthError(err);
   }
-}
-
-async function editAluno(id) {
-    // (Sua função de editAluno, mas lembre-se que os fetch dentro dela precisam do header)
-    // ...
-}
-
-async function salvarEdicao(id) {
-    // (Sua função de salvarEdicao, mas lembre-se que os fetch dentro dela precisam do header)
-    // ...
 }
 
 // FUNÇÃO AUXILIAR PARA TRATAR ERROS DE AUTENTICAÇÃO
