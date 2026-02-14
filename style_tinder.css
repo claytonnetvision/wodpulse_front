@@ -497,3 +497,37 @@ body {
 .send-btn {
     color: var(--accent-like);
 }
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA STATS NO PERFIL */
+/* =================================== */
+
+.performance-stats-section {
+    padding: 0 15px 20px 15px;
+}
+
+.performance-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.stat-card .stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-like);
+    margin-bottom: 5px;
+}
+
+.stat-card .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}

@@ -17,9 +17,7 @@
         </header>
 
         <main class="profile-content">
-            <!-- GALERIA DE FOTOS -->
             <section id="photoGallery" class="photo-gallery">
-                <!-- Fotos serão carregadas aqui -->
                 <div class="photo-grid-item main-photo" style="background-image: url('https://via.placeholder.com/400' );"></div>
                 <div class="photo-grid-item" style="background-image: url('https://via.placeholder.com/400' );"></div>
                 <div class="photo-grid-item" style="background-image: url('https://via.placeholder.com/400' );"></div>
@@ -28,19 +26,21 @@
                 </div>
             </section>
 
-            <!-- INFORMAÇÕES DO PERFIL -->
             <section class="profile-details">
                 <h1 id="profileName">Carregando...</h1>
                 <p id="profileBio">Buscando informações do perfil...</p>
             </section>
 
-            <!-- STATS DE PERFORMANCE -->
-            <section id="performanceStats" class="performance-stats">
-                <!-- Stats serão carregados aqui -->
+            <!-- NOVA SEÇÃO DE STATS DE PERFORMANCE -->
+            <section id="performanceStatsSection" class="performance-stats-section">
+                <h3 class="section-title">Resumo de Performance</h3>
+                <div id="performanceStatsGrid" class="performance-stats-grid">
+                    <!-- Stats serão carregados aqui -->
+                    <p class="loading-text">Carregando estatísticas...</p>
+                </div>
             </section>
         </main>
 
-        <!-- BOTÕES DE AÇÃO (VISUALIZANDO OUTRO PERFIL) -->
         <footer id="profileActionFooter" class="actions-footer" style="display: none;">
             <button class="action-btn btn-pass"><i class="fas fa-times"></i></button>
             <button class="action-btn btn-superlike"><i class="fas fa-star"></i></button>
@@ -48,22 +48,16 @@
         </footer>
     </div>
 
-    <!-- =================================== -->
-    <!-- SCRIPT DE INTEGRAÇÃO DO PERFIL -->
-    <!-- =================================== -->
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
         const selfId = localStorage.getItem('wodpulse_aluno_id');
         
         const urlParams = new URLSearchParams(window.location.search);
-        // Se não houver ID na URL, assume que é o perfil do próprio usuário
         const targetId = urlParams.get('id') || selfId;
         const isOwnProfile = (targetId === selfId);
 
-        if (!token) {
-            alert('Token não encontrado. Faça login.');
-        }
+        if (!token) { alert('Token não encontrado. Faça login.'); }
 
         function formatPhoto(photo) {
             if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
@@ -81,13 +75,11 @@
                 
                 const user = await res.json();
 
-                // Preenche informações básicas
                 document.getElementById('headerUsername').textContent = user.name.split(' ')[0];
                 document.getElementById('profileName').textContent = `${user.name}, ${user.age || 25}`;
                 document.getElementById('profileBio').textContent = user.bio || 'Atleta WODPulse | Adicione sua bio!';
 
-                // Carrega as fotos (usando a rota de fotos que você já tem)
-                loadUserPhotos(user.photo); // Passa a foto principal como fallback
+                loadUserPhotos(user.photo);
 
             } catch (err) {
                 document.getElementById('profileName').textContent = 'Erro ao carregar perfil.';
@@ -103,18 +95,15 @@
                 });
                 const photos = await res.json();
 
-                gallery.innerHTML = ''; // Limpa o conteúdo
+                gallery.innerHTML = '';
                 
-                // Adiciona a foto principal primeiro
                 const mainPhotoUrl = photos.length > 0 ? formatPhoto(photos[0].photo_data) : formatPhoto(mainPhoto);
                 gallery.innerHTML += `<div class="photo-grid-item main-photo" style="background-image: url('${mainPhotoUrl}');"></div>`;
 
-                // Adiciona as outras fotos
                 photos.slice(1).forEach(p => {
                     gallery.innerHTML += `<div class="photo-grid-item" style="background-image: url('${formatPhoto(p.photo_data)}');"></div>`;
                 });
 
-                // Se for o próprio perfil, mostra o botão de adicionar
                 if (isOwnProfile) {
                     gallery.innerHTML += `<div id="addPhotoButton" class="photo-grid-item add-photo-btn"><i class="fas fa-plus"></i></div>`;
                 }
@@ -124,29 +113,49 @@
                 if (isOwnProfile) {
                     gallery.innerHTML += `<div id="addPhotoButton" class="photo-grid-item add-photo-btn"><i class="fas fa-plus"></i></div>`;
                 }
-                console.warn("Não foi possível carregar o álbum de fotos, usando apenas a foto de perfil.");
             }
         }
 
         async function loadPerformanceStats() {
-            // Esta rota é segura e só funciona para o próprio usuário
+            // Esta rota só funciona para o próprio usuário, então só executa se for o perfil dele
             if (!isOwnProfile) {
-                document.getElementById('performanceStats').style.display = 'none';
+                document.getElementById('performanceStatsSection').style.display = 'none';
                 return;
             }
+            const statsGrid = document.getElementById('performanceStatsGrid');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/stats/my-progress`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (!res.ok) throw new Error('Não foi possível carregar as estatísticas.');
+
                 const result = await res.json();
                 const stats = result.data;
 
-                document.getElementById('performanceStats').innerHTML = `
-                    <div class="stat-pill">🔥 ${stats.total_calories} kcal</div>
-                    <div class="stat-pill">💪 ${stats.total_sessions} treinos</div>
-                    <div class="stat-pill">❤️ ${stats.max_hr} bpm max</div>
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <span class="stat-value">${stats.total_sessions}</span>
+                        <span class="stat-label">Aulas Totais</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">${stats.total_calories}</span>
+                        <span class="stat-label">Kcal Totais</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">${stats.avg_calories}</span>
+                        <span class="stat-label">Média Kcal/Aula</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">${stats.max_hr}</span>
+                        <span class="stat-label">FC Máxima</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">${stats.total_vo2_time}</span>
+                        <span class="stat-label">Minutos em VO₂</span>
+                    </div>
                 `;
             } catch (err) {
+                statsGrid.innerHTML = `<p class="loading-text" style="color: var(--accent-pass);">${err.message}</p>`;
                 console.error("Erro ao carregar stats de performance:", err);
             }
         }
@@ -159,11 +168,9 @@
             }
         }
 
-        // Inicia o carregamento
         setupUI();
         loadProfileData();
         loadPerformanceStats();
-
     </script>
 </body>
 </html>
