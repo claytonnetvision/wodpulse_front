@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Atleta - WODPulse</title>
+    <link rel="stylesheet" href="social_moderno.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="social_moderno.html" class="header-back-button"><i class="fas fa-arrow-left"></i></a>
+            <div id="headerUsername" class="header-username">Carregando...</div>
+            <a href="#" class="header-options-button"><i class="fas fa-ellipsis-h"></i></a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        
+        <section class="profile-summary">
+            <div class="profile-header">
+                <img id="profilePicLarge" src="https://via.placeholder.com/150" alt="Foto do perfil" class="profile-pic-large">
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <strong id="statPosts">0</strong>
+                        <span>Publicações</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong id="statFriends">0</strong>
+                        <span>Amigos</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong id="statChallenges">0</strong>
+                        <span>Desafios</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-bio">
+                <h1 id="profileName" class="profile-name">Carregando...</h1>
+                <p id="profileBio">...</p>
+            </div>
+            <div class="profile-actions">
+                <a id="btnDesafiar" href="#" class="btn btn-primary">Desafiar</a>
+                <button class="btn btn-secondary" onclick="addFriend( )">Adicionar</button>
+            </div>
+        </section>
+
+        <section class="profile-tabs">
+            <button class="tab-button active" aria-label="Publicações em grade">
+                <i class="fas fa-th"></i>
+            </button>
+        </section>
+
+        <section class="profile-tab-content">
+            <div id="photoGrid" class="photo-grid">
+                <p>Carregando publicações...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="social_moderno.html" class="nav-item" aria-label="Início"><i class="fas fa-home"></i></a>
+        <a href="desafios.html" class="nav-item" aria-label="Desafios"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="nav-item" aria-label="WOD Match"><i class="fas fa-fire"></i></a>
+        <a href="notificacoes.html" class="nav-item" aria-label="Notificações"><i class="fas fa-bell"></i></a>
+        <a href="perfil_moderno.html" class="nav-item active" aria-label="Perfil"><i class="fas fa-user"></i></a>
+    </nav>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE INTEGRAÇÃO -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id');
+
+        // Redireciona se não houver token ou ID
+        if (!token) window.location.href = 'login.html'; // Assumindo que você terá uma 'login.html'
+        if (!targetId) window.location.href = 'social_moderno.html';
+
+        // Configura o link do botão Desafiar dinamicamente
+        document.getElementById('btnDesafiar').href = `criar_desafio.html?targetId=${targetId}`;
+
+        /**
+         * Formata a URL da foto, tratando casos de base64, http ou nulo.
+         * (Função copiada do seu código original )
+         */
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        /**
+         * Carrega todos os dados do perfil do usuário alvo.
+         * (Lógica adaptada da sua função 'loadAll' original)
+         */
+        async function loadProfile() {
+            try {
+                // 1. Busca dados públicos do perfil (nome, bio, foto, stats)
+                const profileRes = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!profileRes.ok) {
+                    throw new Error('Não foi possível carregar o perfil do atleta.');
+                }
+                
+                const profileData = await profileRes.json();
+                
+                // Preenche os elementos do novo layout com os dados da API
+                document.getElementById('headerUsername').textContent = profileData.name;
+                document.getElementById('profileName').textContent = profileData.name;
+                document.getElementById('profileBio').textContent = profileData.bio || 'Atleta WODPulse';
+                document.getElementById('profilePicLarge').src = formatPhoto(profileData.photo);
+
+                if (profileData.stats) {
+                    document.getElementById('statChallenges').textContent = profileData.stats.challenges || 0;
+                    // Adicione aqui os outros stats se a API retornar (amigos, posts)
+                    // document.getElementById('statFriends').textContent = profileData.stats.friends_count || 0;
+                }
+
+                // 2. Busca o feed de postagens do usuário
+                const feedRes = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (feedRes.ok) {
+                    const posts = await feedRes.json();
+                    // Filtra posts que têm imagem para exibir na grade
+                    const postsComFoto = posts.filter(p => p.photo_data);
+                    
+                    const photoGrid = document.getElementById('photoGrid');
+                    if (postsComFoto.length > 0) {
+                        photoGrid.innerHTML = postsComFoto.map(post => `
+                            <div class="photo-item">
+                                <img src="${post.photo_data}" alt="Publicação de ${post.user_name}">
+                                <div class="photo-overlay"><i class="fas fa-heart"></i> ${post.likes_count || 0}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        photoGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--secondary-text);">Nenhuma foto publicada.</p>';
+                    }
+                    document.getElementById('statPosts').textContent = posts.length;
+                }
+
+            } catch (err) {
+                console.error('Erro ao carregar dados do perfil:', err);
+                document.getElementById('profileName').textContent = 'Erro ao carregar';
+                document.getElementById('profileBio').textContent = err.message;
+            }
+        }
+
+        /**
+         * Envia um pedido de amizade.
+         * (Função copiada do seu código original)
+         */
+        async function addFriend() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/friend/request`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: targetId })
+                });
+                const data = await res.json();
+                alert(data.message || 'Pedido enviado!');
+            } catch (err) {
+                alert('Erro ao enviar pedido.');
+            }
+        }
+
+        // Inicia o carregamento dos dados assim que a página abre
+        loadProfile();
+    </script>
+
+</body>
+</html>

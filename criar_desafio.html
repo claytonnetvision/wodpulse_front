@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Desafio - WODPulse</title>
+    <link rel="stylesheet" href="social_moderno.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        /* Estilos adicionais específicos para esta página */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--secondary-text );
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--card-background);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="desafios.html" class="header-back-button"><i class="fas fa-arrow-left"></i></a>
+            <div class="header-title">Criar Novo Desafio</div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="form-container" style="background: var(--card-background); padding: 20px; border-radius: 12px;">
+            <form id="createChallengeForm">
+                <div class="form-group">
+                    <label for="opponentSelect">Selecione o Oponente</label>
+                    <select id="opponentSelect" name="opponent" required>
+                        <option value="">Carregando atletas...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="challengeType">Tipo de Desafio</label>
+                    <select id="challengeType" name="type" required>
+                        <option value="calories_week">Mais Calorias na Semana</option>
+                        <option value="calories_month">Mais Calorias no Mês</option>
+                        <option value="max_reps">Máximo de Repetições (a combinar)</option>
+                        <option value="amrap">AMRAP (a combinar)</option>
+                        <option value="for_time">For Time (a combinar)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Duração (em dias)</label>
+                    <select id="duration" name="duration" required>
+                        <option value="7">7 dias</option>
+                        <option value="15">15 dias</option>
+                        <option value="30">30 dias</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-fullwidth">
+                    <i class="fas fa-paper-plane"></i> Enviar Desafio
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- A barra de navegação pode ser omitida aqui para focar no formulário, mas vamos manter por consistência -->
+    <nav class="bottom-nav">
+        <a href="social_moderno.html" class="nav-item" aria-label="Início"><i class="fas fa-home"></i></a>
+        <a href="desafios.html" class="nav-item active" aria-label="Desafios"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="nav-item" aria-label="WOD Match"><i class="fas fa-fire"></i></a>
+        <a href="notificacoes.html" class="nav-item" aria-label="Notificações"><i class="fas fa-bell"></i></a>
+        <a href="perfil_moderno.html" class="nav-item" aria-label="Perfil"><i class="fas fa-user"></i></a>
+    </nav>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE CRIAÇÃO DE DESAFIO -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Token não encontrado. Faça login novamente.');
+            // window.location.href = 'login.html';
+        }
+
+        /**
+         * Carrega a lista de participantes que podem ser desafiados.
+         */
+        async function loadOpponents() {
+            const select = document.getElementById('opponentSelect');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/participants-for-challenges`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Não foi possível carregar a lista de atletas.');
+
+                const data = await res.json();
+                const participants = data.participants || [];
+
+                if (participants.length > 0) {
+                    select.innerHTML = '<option value="">Selecione um oponente</option>'; // Limpa o "Carregando..."
+                    participants.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.name;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">Nenhum atleta disponível para desafio.</option>';
+                }
+
+            } catch (err) {
+                select.innerHTML = `<option value="">${err.message}</option>`;
+                console.error(err);
+            }
+        }
+
+        /**
+         * Lida com o envio do formulário de criação de desafio.
+         */
+        document.getElementById('createChallengeForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Impede o recarregamento da página
+
+            const opponentId = document.getElementById('opponentSelect').value;
+            const challengeType = document.getElementById('challengeType').value;
+            const duration = document.getElementById('duration').value;
+
+            if (!opponentId) {
+                alert('Por favor, selecione um oponente.');
+                return;
+            }
+
+            const challengeData = {
+                opponentIds: [parseInt(opponentId)], // A API espera um array
+                type: challengeType,
+                duration: parseInt(duration)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenge/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(challengeData)
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Falha ao criar o desafio.');
+                }
+
+                alert('Desafio enviado com sucesso!');
+                window.location.href = 'desafios.html'; // Redireciona para a lista de desafios
+
+            } catch (err) {
+                alert('Erro: ' + err.message);
+                console.error(err);
+            }
+        });
+
+        // Inicia o carregamento dos oponentes
+        loadOpponents();
+    </script>
+
+</body>
+</html>

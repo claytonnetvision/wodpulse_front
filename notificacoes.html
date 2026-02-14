@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificações - WODPulse</title>
+    <link rel="stylesheet" href="social_moderno.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="social_moderno.html" class="header-back-button"><i class="fas fa-arrow-left"></i></a>
+            <div class="header-title">Notificações</div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div id="notificationList" class="notification-list">
+            <p style="text-align: center; padding: 40px; color: var(--secondary-text );">Carregando notificações...</p>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="social_moderno.html" class="nav-item" aria-label="Início"><i class="fas fa-home"></i></a>
+        <a href="desafios.html" class="nav-item" aria-label="Desafios"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="nav-item" aria-label="WOD Match"><i class="fas fa-fire"></i></a>
+        <a href="#" class="nav-item active" aria-label="Notificações"><i class="fas fa-bell"></i></a>
+        <a href="perfil_moderno.html" class="nav-item" aria-label="Perfil"><i class="fas fa-user"></i></a>
+    </nav>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE INTEGRAÇÃO DE NOTIFICAÇÕES -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Token não encontrado. Faça login novamente.');
+            // window.location.href = 'login.html';
+        }
+
+        /**
+         * Formata a URL da foto.
+         */
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        /**
+         * Carrega e renderiza todas as notificações.
+         * (Lógica adaptada da sua função 'loadNotifications' original)
+         */
+        async function loadNotifications() {
+            const container = document.getElementById('notificationList');
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--secondary-text);">Carregando...</p>';
+
+            try {
+                // 1. Busca notificações de amizade
+                const resFriends = await fetch(`${API_BASE_URL}/api/social/friends`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataFriends = await resFriends.json();
+                const friendRequests = dataFriends.pendingRequests || [];
+
+                // 2. Busca notificações de desafios
+                let challengeNotifications = [];
+                try {
+                    const resChallenges = await fetch(`${API_BASE_URL}/api/challenges/notifications`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (resChallenges.ok) {
+                        challengeNotifications = await resChallenges.json();
+                    }
+                } catch (e) {
+                    console.warn('Não foi possível carregar notificações de desafios. A rota pode não estar ativa.');
+                }
+
+                // 3. Combina e renderiza as notificações
+                const allNotifications = [
+                    ...friendRequests.map(req => ({ type: 'friend_request', data: req, date: req.created_at })),
+                    ...challengeNotifications.map(notif => ({ type: 'challenge_invite', data: notif, date: notif.created_at }))
+                ];
+
+                // Ordena por data, se disponível
+                // allNotifications.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                if (allNotifications.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--secondary-text);">Nenhuma notificação nova.</p>';
+                    return;
+                }
+
+                let html = '';
+                // Agrupamento simples (pode ser melhorado com uma lib de datas)
+                html += '<div class="notification-group"><h3 class="group-title">Recentes</h3>';
+
+                allNotifications.forEach(notification => {
+                    if (notification.type === 'friend_request') {
+                        const req = notification.data;
+                        html += `
+                            <div class="notification-item new">
+                                <img src="${formatPhoto(req.photo)}" alt="Foto de ${req.name}" class="profile-pic-small">
+                                <div class="notification-text">
+                                    <strong>${req.name}</strong> te enviou um pedido de amizade.
+                                </div>
+                                <button class="btn btn-primary btn-small" onclick="respondFriend(${req.id}, 'accept')">Aceitar</button>
+                            </div>
+                        `;
+                    } else if (notification.type === 'challenge_invite') {
+                        const notif = notification.data;
+                        html += `
+                            <div class="notification-item new">
+                                <span class="notification-icon" style="font-size: 28px;">🏆</span>
+                                <div class="notification-text">
+                                    <strong>${notif.creator_name}</strong> te desafiou para: <em>"${notif.title}"</em>
+                                </div>
+                                <div class="challenge-actions" style="margin-top: 0;">
+                                    <button class="btn btn-primary btn-small" onclick="respondChallenge(${notif.challenge_id}, 'accepted')">Aceitar</button>
+                                    <button class="btn btn-secondary btn-small" onclick="respondChallenge(${notif.challenge_id}, 'declined')">Recusar</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (err) {
+                container.innerHTML = '<p style="text-align: center; padding: 40px; color: red;">Erro ao carregar notificações.</p>';
+                console.error('Erro em loadNotifications:', err);
+            }
+        }
+
+        /**
+         * Responde a um pedido de amizade.
+         * (Copiada do seu código original)
+         */
+        async function respondFriend(requesterId, action) {
+            try {
+                await fetch(`${API_BASE_URL}/api/social/friend/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requesterId, action })
+                });
+                alert(action === 'accept' ? 'Amigo adicionado!' : 'Pedido recusado.');
+                loadNotifications(); // Recarrega a lista
+            } catch (err) {
+                alert('Erro ao responder ao pedido.');
+            }
+        }
+
+        /**
+         * Responde a um convite de desafio.
+         * (Copiada do seu código original)
+         */
+        async function respondChallenge(challengeId, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if (res.ok) {
+                    alert(action === 'accepted' ? 'Desafio aceito! Boa sorte!' : 'Desafio recusado.');
+                    loadNotifications(); // Recarrega a lista
+                } else {
+                    throw new Error('Falha ao responder ao desafio.');
+                }
+            } catch (err) {
+                alert('Erro ao responder ao desafio.');
+            }
+        }
+
+        // Inicia o carregamento
+        loadNotifications();
+
+    </script>
+
+</body>
+</html>

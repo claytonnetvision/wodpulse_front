@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WODPulse - Social</title>
+    <!-- Importando a folha de estilos externa (AGORA CORRIGIDO) -->
+    <link rel="stylesheet" href="social_moderno.css">
+    <!-- Importando ícones (Font Awesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <!-- CABEÇALHO SUPERIOR FIXO -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">WODPulse</div>
+            <div class="header-actions">
+                <a href="#" aria-label="Buscar"><i class="fas fa-search"></i></a>
+                <a href="#" aria-label="Mensagens"><i class="fas fa-paper-plane"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL DA PÁGINA -->
+    <main class="main-content">
+        <!-- SEÇÃO DE STORIES (ESPAÇO RESERVADO ) -->
+        <section class="stories-section">
+            <div class="stories-container">
+                <!-- Story do próprio usuário -->
+                <div class="story-card add-story">
+                    <img src="https://via.placeholder.com/150/EDF3FD/6D84B4?text=+" alt="Adicionar Story" class="story-img">
+                    <span>Seu story</span>
+                </div>
+                <!-- Stories dos amigos (Exemplos ) -->
+                <div class="story-card">
+                    <img src="https://i.pravatar.cc/150?img=1" alt="Story de Ana" class="story-img">
+                    <span>Ana</span>
+                </div>
+                <div class="story-card">
+                    <img src="https://i.pravatar.cc/150?img=2" alt="Story de Bruno" class="story-img">
+                    <span>Bruno</span>
+                </div>
+                <div class="story-card">
+                    <img src="https://i.pravatar.cc/150?img=3" alt="Story de Carla" class="story-img">
+                    <span>Carla</span>
+                </div>
+                <div class="story-card">
+                    <img src="https://i.pravatar.cc/150?img=4" alt="Story de Davi" class="story-img">
+                    <span>Davi</span>
+                </div>
+                 <div class="story-card">
+                    <img src="https://i.pravatar.cc/150?img=5" alt="Story de Elisa" class="story-img">
+                    <span>Elisa</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAIXA PARA CRIAR NOVA POSTAGEM -->
+        <section class="post-creator-card">
+            <img src="https://i.pravatar.cc/150?img=10" alt="Sua foto de perfil" class="profile-pic-small">
+            <input type="text" placeholder="O que você treinou hoje?" class="post-input">
+            <button class="btn-icon-action"><i class="fas fa-image"></i></button>
+        </section>
+
+        <!-- FEED DE POSTAGENS -->
+        <section class="feed">
+            <!-- Exemplo de Post 1 (Com Imagem ) -->
+            <div class="feed-post-card">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/150?img=11" alt="Foto do usuário" class="profile-pic-small">
+                    <div class="post-author-info">
+                        <span class="author-name">Fernando</span>
+                        <span class="post-time">2 horas atrás</span>
+                    </div>
+                    <button class="btn-icon-action"><i class="fas fa-ellipsis-h"></i></button>
+                </div>
+                <div class="post-content">
+                    <p>WOD de hoje foi intenso! 🔥 Consegui bater meu recorde no levantamento. Foco total!</p>
+                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800" alt="Imagem do treino" class="post-image">
+                </div>
+                <div class="post-actions">
+                    <button class="action-button"><i class="far fa-heart"></i> <span>15</span></button>
+                    <button class="action-button"><i class="far fa-comment"></i> <span>4</span></button>
+                    <button class="action-button"><i class="far fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <!-- Exemplo de Post 2 (Apenas Texto ) -->
+            <div class="feed-post-card">
+                <div class="post-header">
+                    <img src="https://i.pravatar.cc/150?img=12" alt="Foto do usuário" class="profile-pic-small">
+                    <div class="post-author-info">
+                        <span class="author-name">Juliana</span>
+                        <span class="post-time">5 horas atrás</span>
+                    </div>
+                    <button class="btn-icon-action"><i class="fas fa-ellipsis-h"></i></button>
+                </div>
+                <div class="post-content">
+                    <p>Dia de descanso e mobilidade. Tão importante quanto o treino pesado. Cuidem do corpo de vocês! #crossfit #descanso</p>
+                </div>
+                <div class="post-actions">
+                    <button class="action-button"><i class="far fa-heart"></i> <span>22</span></button>
+                    <button class="action-button"><i class="far fa-comment"></i> <span>8</span></button>
+                    <button class="action-button"><i class="far fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR FIXA -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" aria-label="Início">
+            <i class="fas fa-home"></i>
+        </a>
+        <a href="#" class="nav-item" aria-label="Desafios">
+            <i class="fas fa-trophy"></i>
+        </a>
+        <a href="#" class="nav-item" aria-label="WOD Match">
+            <i class="fas fa-fire"></i>
+        </a>
+        <a href="#" class="nav-item" aria-label="Notificações">
+            <i class="fas fa-bell"></i>
+        </a>
+        <a href="#" class="nav-item" aria-label="Perfil">
+            <i class="fas fa-user"></i>
+        </a>
+    </nav>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversas - WODPulse</title>
+    <link rel="stylesheet" href="social_moderno.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="social_moderno.html" class="header-back-button"><i class="fas fa-arrow-left"></i></a>
+            <div class="header-title">Matches</div>
+            <a href="#" class="header-options-button"><i class="fas fa-edit"></i></a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="search-bar-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar matches">
+        </div>
+
+        <div id="conversationList" class="conversation-list">
+            <p style="text-align: center; padding: 40px; color: var(--secondary-text );">Carregando seus matches...</p>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="social_moderno.html" class="nav-item" aria-label="Início"><i class="fas fa-home"></i></a>
+        <a href="desafios.html" class="nav-item" aria-label="Desafios"><i class="fas fa-trophy"></i></a>
+        <a href="#" class="nav-item" aria-label="WOD Match"><i class="fas fa-fire"></i></a>
+        <a href="notificacoes.html" class="nav-item" aria-label="Notificações"><i class="fas fa-bell"></i></a>
+        <a href="perfil_moderno.html" class="nav-item" aria-label="Perfil"><i class="fas fa-user"></i></a>
+    </nav>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE INTEGRAÇÃO DOS MATCHES -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Token não encontrado. Faça login novamente.');
+            // window.location.href = 'login.html';
+        }
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        /**
+         * Carrega e renderiza a lista de matches mútuos.
+         * (Agora usando a rota real: GET /api/social/matches/list)
+         */
+        async function loadMatches() {
+            const container = document.getElementById('conversationList');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/matches/list`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Não foi possível carregar os matches.');
+                }
+
+                const data = await res.json();
+                const mutualMatches = data.mutualMatches || [];
+
+                if (mutualMatches.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--secondary-text);">Nenhum match. Continue usando o WOD Match!</p>';
+                    return;
+                }
+
+                container.innerHTML = mutualMatches.map(match => {
+                    return `
+                        // Como não temos chat, o link pode ir para o perfil do usuário
+                        <a href="perfil_moderno.html?id=${match.id}" style="text-decoration: none; color: inherit;">
+                            <div class="conversation-item">
+                                <img src="${formatPhoto(match.photo)}" alt="Foto de ${match.name}" class="profile-pic-medium">
+                                <div class="conversation-details">
+                                    <div class="conversation-header">
+                                        <span class="user-name">${match.name}</span>
+                                    </div>
+                                    <div class="last-message">
+                                        <p>Vocês deram match! Que tal um desafio?</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                container.innerHTML = '<p style="text-align: center; padding: 40px; color: red;">Erro ao carregar matches.</p>';
+                console.error('Erro em loadMatches:', err);
+            }
+        }
+        
+        // Inicia o carregamento
+        loadMatches();
+
+    </script>
+
+</body>
+</html>
