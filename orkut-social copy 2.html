@@ -808,52 +808,34 @@
             }
         }
 
-        // CÓDIGO CORRIGIDO PARA orkut-social.html
+        async function loadTrainingStats() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const historico = await res.json();
+                
+                if (Array.isArray(historico)) {
+                    const treinos = historico.filter(h => h.aluno === userData.name);
+                    const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                    const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                    const totalVo2 = treinos.reduce((s, h) => s + (parseFloat(h.vo2_time_seconds) || 0), 0);
 
-async function loadTrainingStats() {
-    try {
-        // CORREÇÃO: A URL foi alterada para a rota correta do social.js
-        const res = await fetch(`${API_BASE_URL}/api/social/my-sessions-history`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+                    document.getElementById('stat-aulas').textContent = treinos.length;
+                    document.getElementById('stat-calorias').textContent = Math.round(totalCal) + ' kcal';
+                    document.getElementById('stat-media').textContent = Math.round(totalCal / (treinos.length || 1)) + ' kcal';
+                    document.getElementById('stat-fc-max').textContent = Math.round(maxHr) + ' bpm';
+                    document.getElementById('stat-vo2').textContent = Math.round(totalVo2 / 60) + ' min';
 
-        // O resto da função permanece idêntico, pois a resposta da nova rota é a mesma.
-        if (!res.ok) {
-            // Se falhar, apenas não mostra os dados, sem quebrar a página.
-            console.error('Não foi possível carregar o histórico de treinos (sessão pode ter expirado).');
-            document.getElementById('motivational-msg').textContent = "Não foi possível carregar seu histórico de treinos.";
-            return;
+                    const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                    if (comIA) {
+                        document.getElementById('motivational-msg').textContent = "💡 " + comIA.ia_comment.substring(0, 100) + "...";
+                    } else {
+                        document.getElementById('motivational-msg').textContent = "🔥 Continue treinando para receber feedbacks da IA!";
+                    }
+                }
+            } catch (err) { console.error(err); }
         }
-        
-        const historico = await res.json();
-        
-        if (Array.isArray(historico)) {
-            // A lógica original para filtrar e calcular os totais está mantida.
-            // O `filter` aqui é uma segurança extra, mas a nova rota já deve trazer apenas os treinos do aluno logado.
-            const treinos = historico.filter(h => h.aluno === userData.name);
-            const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
-            const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
-            const totalVo2 = treinos.reduce((s, h) => s + (parseFloat(h.vo2_time_seconds) || 0), 0);
-
-            document.getElementById('stat-aulas').textContent = treinos.length;
-            document.getElementById('stat-calorias').textContent = Math.round(totalCal) + ' kcal';
-            document.getElementById('stat-media').textContent = Math.round(totalCal / (treinos.length || 1)) + ' kcal';
-            document.getElementById('stat-fc-max').textContent = Math.round(maxHr) + ' bpm';
-            document.getElementById('stat-vo2').textContent = Math.round(totalVo2 / 60) + ' min';
-
-            const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
-            if (comIA) {
-                document.getElementById('motivational-msg').textContent = "💡 " + comIA.ia_comment.substring(0, 100) + "...";
-            } else {
-                document.getElementById('motivational-msg').textContent = "🔥 Continue treinando para receber feedbacks da IA!";
-            }
-        }
-    } catch (err) { 
-        console.error('Erro em loadTrainingStats:', err); 
-        document.getElementById('motivational-msg').textContent = "Erro ao carregar seu histórico.";
-    }
-}
-
 
         async function loadContent() {
             const list = document.getElementById('dynamic-list');

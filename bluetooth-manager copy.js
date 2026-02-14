@@ -137,7 +137,7 @@ async function connectDevice(device, isReconnect = false) {
                 saveRestingHRSample(p.id, currentSessionId, hr);
             }
             // A renderização já acontece no loop principal, mas podemos forçar aqui se necessário
-            renderTiles(); 
+            // renderTiles(); 
         };
         char.addEventListener('characteristicvaluechanged', p._hrListener);
         p.connected = true;

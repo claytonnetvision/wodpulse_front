@@ -319,90 +319,81 @@
             return `data:image/jpeg;base64,${photo}`;
         }
 
-        // CÓDIGO CORRIGIDO E COMPLETO PARA perfil-participante.html
+        async function loadAll() {
+            let athleteName = "";
 
-async function loadAll() {
-    let athleteName = "";
-
-    try {
-        // 1. Unifica a busca de dados do perfil (Nome, Bio, Foto, Stats) em uma única chamada
-        // CORREÇÃO: Usando a rota pública que não exige token de instrutor.
-        const profileRes = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
-            headers: { 'Authorization': `Bearer ${token}` } // Usa o token de aluno logado para permissão
-        });
-
-        if (!profileRes.ok) {
-            throw new Error('Não foi possível carregar o perfil do atleta.');
-        }
-        
-        const profileData = await profileRes.json();
-        
-        // Preenche todos os dados do perfil com a resposta da única chamada
-        athleteName = profileData.name || 'Atleta';
-        document.getElementById('targetName').textContent = athleteName;
-        document.getElementById('targetBio').textContent = profileData.bio || 'Atleta WODPulse';
-        document.getElementById('targetPhoto').src = formatPhoto(profileData.photo);
-        // (Você pode adicionar a busca pelo nome do box se a rota /public-profile retornar o box_id)
-        // document.getElementById('targetBox').textContent = profileData.box_name || 'WODPulse';
-
-        if (profileData.stats) {
-            document.getElementById('stat-challenges').textContent = profileData.stats.challenges || 0;
-            document.getElementById('stat-likes').textContent = profileData.stats.likes || 0;
-            document.getElementById('stat-matches').textContent = profileData.stats.matches || 0;
-        }
-
-        // 2. Histórico de Treinos
-        // CORREÇÃO: Usando a rota de histórico do aluno, passando o ID do atleta que estamos visitando.
-        const historicoRes = await fetch(`${API_BASE_URL}/api/social/my-sessions-history?alunoId=${targetId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (historicoRes.ok) {
-            const historico = await historicoRes.json();
-            // A lógica de filtro por nome não é mais necessária, pois a rota já deve trazer os dados corretos.
-            const treinos = historico; 
-
-            if (treinos.length > 0) {
-                const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
-                const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
-                
-                document.getElementById('tech-aulas').textContent = treinos.length;
-                document.getElementById('tech-calorias').textContent = Math.round(totalCal) + ' kcal';
-                document.getElementById('tech-media').textContent = Math.round(totalCal / treinos.length) + ' kcal';
-                document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
-
-                const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
-                if (comIA) {
-                    document.getElementById('feedbackSection').style.display = 'block';
-                    document.getElementById('feedbackContent').textContent = comIA.ia_comment;
+            // 1. Nome e Bio
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/participants/${targetId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    athleteName = data.participant?.name || data.name;
+                    document.getElementById('targetName').textContent = athleteName;
+                    document.getElementById('targetBio').textContent = data.participant?.bio || data.bio || 'Atleta WODPulse';
+                    document.getElementById('targetBox').textContent = data.participant?.box_name || data.box_name || 'WODPulse';
                 }
-            }
-        } else {
-            console.warn(`Não foi possível carregar o histórico de treinos de ${athleteName}. O perfil pode ser privado.`);
+            } catch (e) { console.error(e); }
+
+            // 2. Foto e Stats Sociais
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('targetPhoto').src = formatPhoto(data.photo);
+                    if (data.stats) {
+                        document.getElementById('stat-challenges').textContent = data.stats.challenges || 0;
+                        document.getElementById('stat-likes').textContent = data.stats.likes || 0;
+                        document.getElementById('stat-matches').textContent = data.stats.matches || 0;
+                    }
+                }
+            } catch (e) { console.error(e); }
+
+            // 3. Histórico (Filtro por Nome validado via logs)
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/sessions/historico`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const historico = await res.json();
+                    const treinos = historico.filter(h => h.aluno === athleteName);
+
+                    if (treinos.length > 0) {
+                        const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
+                        const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
+                        
+                        document.getElementById('tech-aulas').textContent = treinos.length;
+                        document.getElementById('tech-calorias').textContent = Math.round(totalCal) + ' kcal';
+                        document.getElementById('tech-media').textContent = Math.round(totalCal / treinos.length) + ' kcal';
+                        document.getElementById('tech-fc').textContent = Math.round(maxHr) + ' bpm';
+
+                        const comIA = treinos.sort((a, b) => new Date(b.date_start) - new Date(a.date_start)).find(h => h.ia_comment);
+                        if (comIA) {
+                            document.getElementById('feedbackSection').style.display = 'block';
+                            document.getElementById('feedbackContent').textContent = comIA.ia_comment;
+                        }
+                    }
+                }
+            } catch (e) { console.error(e); }
+
+            // 4. Feed
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const posts = await res.json();
+                    const userPosts = posts.filter(p => p.user_id == targetId);
+                    document.getElementById('feedList').innerHTML = userPosts.length ? userPosts.map(p => `
+                        <div class="feed-item">
+                            <div class="feed-time">${new Date(p.created_at).toLocaleString()}</div>
+                            <div class="feed-content">${p.content}</div>
+                        </div>
+                    `).join('') : 'Nenhuma postagem.';
+                }
+            } catch (e) { console.error(e); }
         }
-
-        // 3. Feed (Sua lógica original já estava correta, mantida)
-        const feedRes = await fetch(`${API_BASE_URL}/api/social/feed?userId=${targetId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (feedRes.ok) {
-            const posts = await feedRes.json();
-            const userPosts = posts.filter(p => p.user_id == targetId);
-            document.getElementById('feedList').innerHTML = userPosts.length ? userPosts.map(p => `
-                <div class="feed-item">
-                    <div class="feed-time">${new Date(p.created_at).toLocaleString()}</div>
-                    <div class="feed-content">${p.content}</div>
-                </div>
-            `).join('') : 'Nenhuma postagem.';
-        }
-
-    } catch (err) {
-        console.error('Erro ao carregar dados do perfil:', err);
-        document.getElementById('targetName').textContent = 'Erro ao carregar';
-        document.getElementById('targetBio').textContent = err.message;
-    }
-}
-
 
         async function addFriend() {
             try {
