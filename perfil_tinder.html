@@ -31,11 +31,9 @@
                 <p id="profileBio">Buscando informações do perfil...</p>
             </section>
 
-            <!-- NOVA SEÇÃO DE STATS DE PERFORMANCE -->
             <section id="performanceStatsSection" class="performance-stats-section">
                 <h3 class="section-title">Resumo de Performance</h3>
                 <div id="performanceStatsGrid" class="performance-stats-grid">
-                    <!-- Stats serão carregados aqui -->
                     <p class="loading-text">Carregando estatísticas...</p>
                 </div>
             </section>
@@ -116,41 +114,56 @@
             }
         }
 
+        // ==================================================
+        // FUNÇÃO CORRIGIDA
+        // ==================================================
         async function loadPerformanceStats() {
-            // Esta rota só funciona para o próprio usuário, então só executa se for o perfil dele
-            if (!isOwnProfile) {
-                document.getElementById('performanceStatsSection').style.display = 'none';
-                return;
-            }
+            // A rota /user-history funciona para o próprio usuário (sem query param)
+            // e para outros (com ?alunoId=...).
+            const endpoint = isOwnProfile ? '/api/social/user-history' : `/api/social/user-history?alunoId=${targetId}`;
             const statsGrid = document.getElementById('performanceStatsGrid');
+
             try {
-                const res = await fetch(`${API_BASE_URL}/api/stats/my-progress`, {
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) throw new Error('Não foi possível carregar as estatísticas.');
+                if (!res.ok) throw new Error('Não foi possível carregar o histórico de treinos.');
 
-                const result = await res.json();
-                const stats = result.data;
+                const historico = await res.json();
 
+                if (historico.length === 0) {
+                    statsGrid.innerHTML = '<p class="loading-text">Nenhum treino registrado ainda.</p>';
+                    return;
+                }
+
+                // Calcula os totais a partir do histórico (lógica do seu 'meu-progresso.html')
+                const totalSessions = historico.length;
+                const totalCalories = historico.reduce((sum, treino) => sum + (parseFloat(treino.calories_total) || 0), 0);
+                const avgCalories = totalSessions > 0 ? Math.round(totalCalories / totalSessions) : 0;
+                const maxHr = Math.max(...historico.map(treino => parseFloat(treino.max_hr_reached) || 0));
+                const totalVo2Seconds = historico.reduce((sum, treino) => sum + (parseFloat(treino.vo2_time_seconds) || 0), 0);
+                const totalVo2Minutes = Math.round(totalVo2Seconds / 60);
+
+                // Renderiza os cards de estatísticas
                 statsGrid.innerHTML = `
                     <div class="stat-card">
-                        <span class="stat-value">${stats.total_sessions}</span>
+                        <span class="stat-value">${totalSessions}</span>
                         <span class="stat-label">Aulas Totais</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">${stats.total_calories}</span>
+                        <span class="stat-value">${Math.round(totalCalories)}</span>
                         <span class="stat-label">Kcal Totais</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">${stats.avg_calories}</span>
+                        <span class="stat-value">${avgCalories}</span>
                         <span class="stat-label">Média Kcal/Aula</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">${stats.max_hr}</span>
+                        <span class="stat-value">${maxHr}</span>
                         <span class="stat-label">FC Máxima</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-value">${stats.total_vo2_time}</span>
+                        <span class="stat-value">${totalVo2Minutes}</span>
                         <span class="stat-label">Minutos em VO₂</span>
                     </div>
                 `;
