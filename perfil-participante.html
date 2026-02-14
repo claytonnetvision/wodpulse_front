@@ -321,14 +321,16 @@
 
         // CÓDIGO CORRIGIDO E COMPLETO PARA perfil-participante.html
 
+// CÓDIGO CORRIGIDO E COMPLETO PARA perfil-participante.html
+
 async function loadAll() {
     let athleteName = "";
 
     try {
         // 1. Unifica a busca de dados do perfil (Nome, Bio, Foto, Stats) em uma única chamada
-        // CORREÇÃO: Usando a rota pública que não exige token de instrutor.
+        // CORREÇÃO: Removemos a chamada para /api/participants e usamos apenas /api/social/public-profile
         const profileRes = await fetch(`${API_BASE_URL}/api/social/public-profile/${targetId}`, {
-            headers: { 'Authorization': `Bearer ${token}` } // Usa o token de aluno logado para permissão
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!profileRes.ok) {
@@ -352,15 +354,14 @@ async function loadAll() {
         }
 
         // 2. Histórico de Treinos
-        // CORREÇÃO: Usando a rota de histórico do aluno, passando o ID do atleta que estamos visitando.
-        const historicoRes = await fetch(`${API_BASE_URL}/api/social/my-sessions-history?alunoId=${targetId}`, {
+        // CORREÇÃO: Usando a nova rota /user-history e passando o ID do amigo na URL
+        const historicoRes = await fetch(`${API_BASE_URL}/api/social/user-history?alunoId=${targetId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (historicoRes.ok) {
             const historico = await historicoRes.json();
-            // A lógica de filtro por nome não é mais necessária, pois a rota já deve trazer os dados corretos.
-            const treinos = historico; 
+            const treinos = historico; // Não precisa mais do filtro por nome!
 
             if (treinos.length > 0) {
                 const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
@@ -402,6 +403,7 @@ async function loadAll() {
         document.getElementById('targetBio').textContent = err.message;
     }
 }
+
 
 
         async function addFriend() {

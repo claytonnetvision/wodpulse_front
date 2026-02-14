@@ -810,27 +810,24 @@
 
         // CÓDIGO CORRIGIDO PARA orkut-social.html
 
+// CÓDIGO CORRIGIDO PARA orkut-social.html
+
 async function loadTrainingStats() {
     try {
-        // CORREÇÃO: A URL foi alterada para a rota correta do social.js
-        const res = await fetch(`${API_BASE_URL}/api/social/my-sessions-history`, {
+        // CORREÇÃO: Chamando a nova rota /user-history (sem alunoId, para pegar os próprios dados)
+        const res = await fetch(`${API_BASE_URL}/api/social/user-history`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        // O resto da função permanece idêntico, pois a resposta da nova rota é a mesma.
         if (!res.ok) {
-            // Se falhar, apenas não mostra os dados, sem quebrar a página.
-            console.error('Não foi possível carregar o histórico de treinos (sessão pode ter expirado).');
-            document.getElementById('motivational-msg').textContent = "Não foi possível carregar seu histórico de treinos.";
+            console.error('Não foi possível carregar o histórico de treinos.');
             return;
         }
         
         const historico = await res.json();
         
         if (Array.isArray(historico)) {
-            // A lógica original para filtrar e calcular os totais está mantida.
-            // O `filter` aqui é uma segurança extra, mas a nova rota já deve trazer apenas os treinos do aluno logado.
-            const treinos = historico.filter(h => h.aluno === userData.name);
+            const treinos = historico; // Não precisa mais filtrar!
             const totalCal = treinos.reduce((s, h) => s + (parseFloat(h.calories_total) || 0), 0);
             const maxHr = Math.max(...treinos.map(h => parseFloat(h.max_hr_reached) || 0), 0);
             const totalVo2 = treinos.reduce((s, h) => s + (parseFloat(h.vo2_time_seconds) || 0), 0);
@@ -850,9 +847,9 @@ async function loadTrainingStats() {
         }
     } catch (err) { 
         console.error('Erro em loadTrainingStats:', err); 
-        document.getElementById('motivational-msg').textContent = "Erro ao carregar seu histórico.";
     }
 }
+
 
 
         async function loadContent() {
