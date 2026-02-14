@@ -1,0 +1,499 @@
+/* Importando uma fonte moderna */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap' );
+
+:root {
+    --bg-gradient: linear-gradient(180deg, #222 0%, #111 100%);
+    --card-bg: #2a2a2a;
+    --text-primary: #FFFFFF;
+    --text-secondary: #b3b3b3;
+    --accent-like: #2DE19C;
+    --accent-pass: #FF4A7A;
+    --accent-superlike: #37A5FF;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 420px; /* Largura típica de celular */
+    margin: 0 auto;
+    background: #181818;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* CABEÇALHO */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    flex-shrink: 0;
+}
+.logo-tinder {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--accent-like);
+}
+.header-btn {
+    color: var(--text-secondary);
+    font-size: 22px;
+    text-decoration: none;
+}
+
+/* PILHA DE CARDS */
+.card-stack-container {
+    flex-grow: 1;
+    position: relative;
+    padding: 0 15px;
+}
+.card-stack {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.profile-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    background-color: var(--card-bg);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    cursor: grab;
+}
+.profile-card:active { cursor: grabbing; }
+
+.profile-card-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+.profile-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+    color: white;
+}
+.profile-card-info h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+.profile-card-info p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* PLACEHOLDER E SPINNER */
+.card-placeholder {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--text-secondary);
+    gap: 20px;
+}
+.card-placeholder i { font-size: 48px; }
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--card-bg);
+    border-top-color: var(--accent-like);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* FOOTER COM AÇÕES */
+.actions-footer {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 20px 0;
+    flex-shrink: 0;
+}
+.action-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--card-bg);
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s;
+}
+.action-btn:hover { transform: scale(1.1); }
+.btn-pass { color: var(--accent-pass); }
+.btn-superlike { color: var(--accent-superlike); width: 50px; height: 50px; font-size: 20px; }
+.btn-like { color: var(--accent-like); }
+
+/* POP-UP DE MATCH */
+.match-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.match-popup-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.match-popup-content {
+    background: var(--bg-gradient);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid var(--accent-like);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+.match-popup-overlay.show .match-popup-content {
+    transform: scale(1);
+}
+.match-popup-content h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent-like);
+    margin-bottom: 20px;
+}
+.match-photos {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+.match-photos img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+}
+.match-photos img:first-child {
+    transform: translateX(20px);
+}
+.match-photos img:last-child {
+    transform: translateX(-20px);
+}
+.match-popup-content p {
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+.btn-popup {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+.btn-challenge { background-color: var(--accent-superlike); color: white; }
+.btn-chat { background-color: var(--accent-like); color: white; }
+.btn-close { background: none; color: var(--text-secondary); }
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA PÁGINA DE PERFIL */
+/* =================================== */
+
+.profile-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.photo-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 120px; /* Altura das células menores */
+    gap: 5px;
+    padding: 5px;
+}
+
+.photo-grid-item {
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+}
+
+.photo-grid-item.main-photo {
+    grid-column: 1 / 2;
+    grid-row: 1 / 3; /* Ocupa duas linhas de altura */
+    height: 245px; /* (120px * 2) + 5px de gap */
+}
+
+.add-photo-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--card-bg);
+    border: 2px dashed var(--text-secondary);
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.profile-details {
+    padding: 20px;
+}
+
+.profile-details h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.profile-details p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.performance-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 20px 20px 20px;
+}
+
+.stat-pill {
+    background-color: var(--card-bg);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA PÁGINA DE CONVERSAS */
+/* =================================== */
+
+.conversations-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding-left: 5px;
+}
+
+.new-matches-section {
+    margin-bottom: 30px;
+}
+
+.new-matches-container {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px; /* Espaço para a barra de rolagem não ficar colada */
+    /* Esconde a barra de rolagem visualmente */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.new-matches-container::-webkit-scrollbar {
+    display: none;
+}
+
+.new-match-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+}
+
+.new-match-item img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-like);
+}
+
+.new-match-item span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.loading-text, .empty-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    width: 100%;
+}
+
+.conversations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.conversation-item-link {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 12px;
+    transition: background-color 0.2s;
+}
+.conversation-item-link:hover {
+    background-color: var(--card-bg);
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+}
+
+.convo-profile-pic {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.convo-details h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.convo-details p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA TELA DE CHAT */
+/* =================================== */
+
+.chat-container {
+    background: var(--bg-gradient);
+}
+
+.chat-header {
+    background-color: rgba(34, 34, 34, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #333;
+}
+
+.chat-header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.chat-user-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-header-user span {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.chat-messages-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-bubble-wrapper {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message-bubble-wrapper.self {
+    justify-content: flex-end;
+}
+
+.message-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    line-height: 1.5;
+    font-size: 15px;
+}
+
+.message-bubble.self {
+    background-color: var(--accent-like);
+    color: #111;
+    border-bottom-right-radius: 5px;
+}
+
+.message-bubble.other {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-bottom-left-radius: 5px;
+}
+
+.chat-input-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: #222;
+    border-top: 1px solid #333;
+}
+
+.chat-input-field {
+    flex-grow: 1;
+    background-color: var(--card-bg);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.send-btn {
+    color: var(--accent-like);
+}

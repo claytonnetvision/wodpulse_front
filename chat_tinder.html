@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chat - WODPulse</title>
+    <link rel="stylesheet" href="style_tinder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container chat-container">
+        <!-- CABEÇALHO DO CHAT -->
+        <header class="app-header chat-header">
+            <a href="conversas_tinder.html" class="header-btn"><i class="fas fa-arrow-left"></i></a>
+            <a href="#" id="chatHeaderLink" class="chat-header-user">
+                <img id="chatUserPhoto" src="https://via.placeholder.com/150" alt="Foto do usuário" class="chat-user-photo">
+                <span id="chatUserName">Carregando...</span>
+            </a>
+            <a href="#" class="header-btn"><i class="fas fa-shield-alt"></i></a>
+        </header>
+
+        <!-- CORPO DAS MENSAGENS -->
+        <main id="chatMessages" class="chat-messages-body">
+            <!-- Mensagens de exemplo -->
+            <div class="message-bubble-wrapper">
+                <div class="message-bubble other">E aí, bora treinar hoje?</div>
+            </div>
+            <div class="message-bubble-wrapper self">
+                <div class="message-bubble self">Com certeza! O WOD parece ser pesado.</div>
+            </div>
+            <div class="message-bubble-wrapper other">
+                <div class="message-bubble other">Vi mesmo. Foco no cardio! 🔥</div>
+            </div>
+        </main>
+
+        <!-- ÁREA DE DIGITAÇÃO -->
+        <footer class="chat-input-footer">
+            <button class="btn-icon-action" title="Enviar Desafio">🏆</button>
+            <input type="text" id="messageInput" class="chat-input-field" placeholder="Digite uma mensagem...">
+            <button id="sendButton" class="btn-icon-action send-btn"><i class="fas fa-paper-plane"></i></button>
+        </footer>
+    </div>
+
+    <!-- =================================== -->
+    <!-- SCRIPT (COM LÓGICA DE EXEMPLO ) -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const friendId = urlParams.get('id');
+
+        if (!token || !friendId) {
+            alert('Acesso inválido.');
+            // window.location.href = 'conversas_tinder.html';
+        }
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        /**
+         * Carrega as informações do amigo no cabeçalho do chat.
+         */
+        async function loadFriendInfo() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/public-profile/${friendId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Não foi possível carregar dados do amigo.');
+                
+                const friendData = await res.json();
+                
+                document.getElementById('chatUserPhoto').src = formatPhoto(friendData.photo);
+                document.getElementById('chatUserName').textContent = friendData.name;
+                document.getElementById('chatHeaderLink').href = `perfil_tinder.html?id=${friendId}`;
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('chatUserName').textContent = 'Erro';
+            }
+        }
+
+        /**
+         * [FUNÇÃO DE EXEMPLO] Carrega o histórico de mensagens.
+         * Esta função precisará ser implementada quando a rota da API existir.
+         */
+        async function loadMessages() {
+            console.log(`[EXEMPLO] Buscando mensagens para o amigo com ID: ${friendId}`);
+            // const res = await fetch(`${API_BASE_URL}/api/social/messages/${friendId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            // const messages = await res.json();
+            // Renderizar as mensagens no container 'chatMessages'
+        }
+
+        /**
+         * [FUNÇÃO DE EXEMPLO] Envia uma nova mensagem.
+         * Esta função precisará ser implementada quando a rota da API existir.
+         */
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageContent = input.value.trim();
+
+            if (messageContent === '') return;
+
+            console.log(`[EXEMPLO] Enviando mensagem: "${messageContent}" para o amigo com ID: ${friendId}`);
+            
+            // Lógica de envio para a API:
+            // await fetch(`${API_BASE_URL}/api/social/messages/send`, {
+            //     method: 'POST',
+            //     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ receiverId: friendId, content: messageContent })
+            // });
+
+            // Limpa o input e recarrega as mensagens (ou adiciona a nova mensagem localmente)
+            input.value = '';
+            // loadMessages();
+        }
+
+        // Adiciona o evento de clique ao botão de enviar
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+        // Permite enviar com a tecla Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Carrega as informações do amigo ao abrir a página
+        loadFriendInfo();
+        // loadMessages(); // Chamada para a função de exemplo
+
+    </script>
+
+</body>
+</html>

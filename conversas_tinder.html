@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Matches e Conversas - WODPulse</title>
+    <link rel="stylesheet" href="style_tinder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <a href="match_tinder.html" class="header-btn"><i class="fas fa-arrow-left"></i></a>
+            <div class="logo-tinder">Conversas</div>
+            <a href="#" class="header-btn"><i class="fas fa-search"></i></a>
+        </header>
+
+        <main class="conversations-content">
+            <!-- SEÇÃO DE NOVOS LIKES RECEBIDOS -->
+            <section class="new-matches-section">
+                <h3 class="section-title">Curtiram seu perfil</h3>
+                <div id="newLikesContainer" class="new-matches-container">
+                    <!-- Likes recebidos serão carregados aqui -->
+                    <p class="loading-text">Carregando...</p>
+                </div>
+            </section>
+
+            <!-- SEÇÃO DE CONVERSAS (MATCHES MÚTUOS ) -->
+            <section class="conversations-list-section">
+                <h3 class="section-title">Matches</h3>
+                <div id="conversationsContainer" class="conversations-container">
+                    <!-- Conversas (matches mútuos) serão carregadas aqui -->
+                     <p class="loading-text">Carregando...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE INTEGRAÇÃO -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Token não encontrado. Faça login.');
+            // window.location.href = 'login_tinder.html';
+        }
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        /**
+         * Carrega e renderiza a lista de likes recebidos e matches mútuos.
+         * Usa a rota GET /api/social/matches/list
+         */
+        async function loadMatchesAndConversations() {
+            const newLikesContainer = document.getElementById('newLikesContainer');
+            const conversationsContainer = document.getElementById('conversationsContainer');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/matches/list`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Não foi possível carregar a lista de matches.');
+
+                const data = await res.json();
+                const likesReceived = data.likesReceived || [];
+                const mutualMatches = data.mutualMatches || [];
+
+                // Renderiza a seção de "Curtiram seu perfil"
+                if (likesReceived.length > 0) {
+                    newLikesContainer.innerHTML = likesReceived.map(like => `
+                        <a href="perfil_tinder.html?id=${like.id}" class="new-match-item">
+                            <img src="${formatPhoto(like.photo)}" alt="${like.name}">
+                            <span>${like.name.split(' ')[0]}</span>
+                        </a>
+                    `).join('');
+                } else {
+                    newLikesContainer.innerHTML = '<p class="empty-text">Ninguém curtiu seu perfil ainda.</p>';
+                }
+
+                // Renderiza a seção de "Conversas" (Matches Mútuos)
+                if (mutualMatches.length > 0) {
+                    conversationsContainer.innerHTML = mutualMatches.map(match => `
+                        <a href="chat_tinder.html?id=${match.id}" class="conversation-item-link">
+                            <div class="conversation-item">
+                                <img src="${formatPhoto(match.photo)}" alt="${match.name}" class="convo-profile-pic">
+                                <div class="convo-details">
+                                    <h4>${match.name}</h4>
+                                    <p>Vocês deram match! Comece a conversar.</p>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                } else {
+                    conversationsContainer.innerHTML = '<p class="empty-text">Nenhum match mútuo ainda. Continue curtindo!</p>';
+                }
+
+            } catch (err) {
+                newLikesContainer.innerHTML = `<p class="empty-text" style="color: var(--accent-pass);">${err.message}</p>`;
+                conversationsContainer.innerHTML = `<p class="empty-text" style="color: var(--accent-pass);">${err.message}</p>`;
+                console.error(err);
+            }
+        }
+
+        // Inicia o carregamento
+        loadMatchesAndConversations();
+    </script>
+
+</body>
+</html>

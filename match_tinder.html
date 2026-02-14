@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WODPulse Match</title>
+    <link rel="stylesheet" href="style_tinder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- CABEÇALHO COM NAVEGAÇÃO -->
+        <header class="app-header">
+            <a href="perfil_tinder.html" class="header-btn"><i class="fas fa-user"></i></a>
+            <div class="logo-tinder">WODPulse</div>
+            <a href="conversas_tinder.html" class="header-btn"><i class="fas fa-comments"></i></a>
+        </header>
+
+        <!-- PILHA DE CARDS DE PERFIS -->
+        <main class="card-stack-container">
+            <div id="cardStack" class="card-stack">
+                <!-- Cards serão inseridos aqui via JS -->
+                <div class="card-placeholder">
+                    <div class="spinner"></div>
+                    <p>Buscando atletas...</p>
+                </div>
+            </div>
+            <div id="noMoreCards" class="card-placeholder" style="display: none;">
+                <i class="fas fa-users-slash"></i>
+                <p>Não há novos atletas por perto. Volte mais tarde!</p>
+            </div>
+        </main>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <footer class="actions-footer">
+            <button class="action-btn btn-pass" onclick="handleAction('reject' )"><i class="fas fa-times"></i></button>
+            <button class="action-btn btn-superlike" onclick="handleAction('superlike')"><i class="fas fa-star"></i></button>
+            <button class="action-btn btn-like" onclick="handleAction('like')"><i class="fas fa-heart"></i></button>
+        </footer>
+    </div>
+
+    <!-- POP-UP DE MATCH MÚTUO -->
+    <div id="matchPopup" class="match-popup-overlay">
+        <div class="match-popup-content">
+            <h2>É UM MATCH!</h2>
+            <div class="match-photos">
+                <img id="matchUser1" src="https://via.placeholder.com/150" alt="">
+                <img id="matchUser2" src="https://via.placeholder.com/150" alt="">
+            </div>
+            <p>Você e <strong id="matchName">...</strong> deram like um no outro.</p>
+            <button class="btn-popup btn-challenge">🏆 Enviar um Desafio</button>
+            <button class="btn-popup btn-chat">💬 Enviar Mensagem</button>
+            <button class="btn-popup btn-close" onclick="closeMatchPopup( )">Continuar Descobrindo</button>
+        </div>
+    </div>
+
+    <!-- =================================== -->
+    <!-- SCRIPT DE INTEGRAÇÃO -->
+    <!-- =================================== -->
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+        const selfId = localStorage.getItem('wodpulse_aluno_id');
+        let selfPhoto = ''; // Armazenaremos a foto do próprio usuário
+
+        let candidates = [];
+        let currentIndex = 0;
+
+        const cardStack = document.getElementById('cardStack');
+        const noMoreCards = document.getElementById('noMoreCards');
+
+        if (!token) {
+            // window.location.href = 'login_tinder.html';
+            alert('Token não encontrado. Faça login.');
+        }
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        async function loadSelfProfile() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const userData = await res.json();
+                selfPhoto = formatPhoto(userData.photo);
+            } catch (err) {
+                console.error('Erro ao carregar perfil próprio:', err);
+            }
+        }
+
+        async function loadCandidates() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Falha ao buscar candidatos.');
+                
+                candidates = await res.json();
+                currentIndex = 0;
+                renderCards();
+
+            } catch (err) {
+                console.error(err);
+                noMoreCards.style.display = 'flex';
+                noMoreCards.innerHTML = '<p>Erro ao buscar atletas. Tente novamente.</p>';
+            }
+        }
+
+        function renderCards() {
+            cardStack.innerHTML = '';
+            if (candidates.length === 0) {
+                noMoreCards.style.display = 'flex';
+                return;
+            }
+            noMoreCards.style.display = 'none';
+
+            // Renderiza os cards na ordem inversa para o efeito de pilha
+            candidates.slice().reverse().forEach((user, index) => {
+                const card = document.createElement('div');
+                card.className = 'profile-card';
+                card.style.zIndex = index;
+                card.innerHTML = `
+                    <div class="profile-card-image" style="background-image: url('${formatPhoto(user.photo)}')"></div>
+                    <div class="profile-card-info">
+                        <h3>${user.name}, ${user.age || '25'}</h3>
+                        <p><i class="fas fa-dumbbell"></i> Box: ${user.box_id || 'WODPulse'}</p>
+                    </div>
+                `;
+                cardStack.appendChild(card);
+            });
+        }
+
+        async function handleAction(action) {
+            if (currentIndex >= candidates.length) return;
+
+            const topCard = cardStack.querySelector('.profile-card:last-child');
+            if (!topCard) return;
+
+            const user = candidates[currentIndex];
+
+            // Animação de saída
+            let rotation = (Math.random() - 0.5) * 30; // Rotação aleatória
+            let translateX = 0;
+            if (action === 'like') {
+                translateX = '150%';
+                rotation = 20;
+            } else if (action === 'reject') {
+                translateX = '-150%';
+                rotation = -20;
+            }
+            topCard.style.transform = `translateX(${translateX}) rotate(${rotation}deg)`;
+            topCard.style.opacity = 0;
+
+            // Envia a ação para a API
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/match`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetId: user.id, action: action })
+                });
+                const data = await res.json();
+
+                if (data.mutualMatch) {
+                    showMatchPopup(user);
+                }
+
+            } catch (err) {
+                console.error('Erro ao registrar ação:', err);
+            }
+
+            currentIndex++;
+            setTimeout(() => {
+                topCard.remove();
+                if (currentIndex >= candidates.length) {
+                    noMoreCards.style.display = 'flex';
+                }
+            }, 300);
+        }
+
+        function showMatchPopup(matchedUser) {
+            document.getElementById('matchUser1').src = selfPhoto;
+            document.getElementById('matchUser2').src = formatPhoto(matchedUser.photo);
+            document.getElementById('matchName').textContent = matchedUser.name.split(' ')[0];
+            document.getElementById('matchPopup').classList.add('show');
+        }
+
+        function closeMatchPopup() {
+            document.getElementById('matchPopup').classList.remove('show');
+        }
+
+        // Inicia o carregamento
+        async function init() {
+            await loadSelfProfile();
+            await loadCandidates();
+        }
+
+        init();
+    </script>
+</body>
+</html>
