@@ -10,32 +10,26 @@
 <body>
 
     <div class="app-container">
-        <!-- CABEÇALHO COM NAVEGAÇÃO -->
         <header class="app-header">
             <a href="perfil_tinder.html" class="header-btn"><i class="fas fa-user"></i></a>
             <div class="logo-tinder">WODPulse</div>
-            <a href="conversas_tinder.html" class="header-btn"><i class="fas fa-comments"></i></a>
+            <a href="#" class="header-btn" onclick="openFilterPopup( )"><i class="fas fa-filter"></i></a>
         </header>
 
-        <!-- PILHA DE CARDS DE PERFIS -->
         <main class="card-stack-container">
             <div id="cardStack" class="card-stack">
-                <!-- Cards serão inseridos aqui via JS -->
-                <div class="card-placeholder">
-                    <div class="spinner"></div>
-                    <p>Buscando atletas...</p>
-                </div>
+                <!-- O JavaScript vai inserir os cards aqui. -->
+                <!-- Enquanto carrega, o spinner do CSS será mostrado no placeholder abaixo. -->
             </div>
-            <div id="noMoreCards" class="card-placeholder" style="display: none;">
-                <i class="fas fa-users-slash"></i>
-                <p>Não há novos atletas por perto. Volte mais tarde!</p>
+            <div id="loadingOrEmptyState" class="card-placeholder">
+                <div class="spinner"></div>
+                <p>Buscando atletas...</p>
             </div>
         </main>
 
-        <!-- BOTÕES DE AÇÃO -->
         <footer class="actions-footer">
-            <button class="action-btn btn-pass" onclick="handleAction('reject' )"><i class="fas fa-times"></i></button>
-            <button class="action-btn btn-superlike" onclick="handleAction('superlike')"><i class="fas fa-star"></i></button>
+            <button class="action-btn btn-pass" onclick="handleAction('reject')"><i class="fas fa-times"></i></button>
+            <a href="busca_tinder.html" class="action-btn btn-search"><i class="fas fa-search"></i></a>
             <button class="action-btn btn-like" onclick="handleAction('like')"><i class="fas fa-heart"></i></button>
         </footer>
     </div>
@@ -45,13 +39,30 @@
         <div class="match-popup-content">
             <h2>É UM MATCH!</h2>
             <div class="match-photos">
-                <img id="matchUser1" src="https://via.placeholder.com/150" alt="">
-                <img id="matchUser2" src="https://via.placeholder.com/150" alt="">
+                <img id="matchUser1" src="" alt="">
+                <img id="matchUser2" src="" alt="">
             </div>
             <p>Você e <strong id="matchName">...</strong> deram like um no outro.</p>
             <button class="btn-popup btn-challenge">🏆 Enviar um Desafio</button>
             <button class="btn-popup btn-chat">💬 Enviar Mensagem</button>
-            <button class="btn-popup btn-close" onclick="closeMatchPopup( )">Continuar Descobrindo</button>
+            <button class="btn-popup btn-close" onclick="closeMatchPopup()">Continuar Descobrindo</button>
+        </div>
+    </div>
+
+    <!-- POP-UP DE FILTROS -->
+    <div id="filterPopup" class="match-popup-overlay">
+        <div class="match-popup-content">
+            <h2>Filtros</h2>
+            <div class="filter-group">
+                <label>Mostrar perfis:</label>
+                <div class="filter-options">
+                    <button class="filter-btn" data-gender="M">Masculinos</button>
+                    <button class="filter-btn" data-gender="F">Femininos</button>
+                    <button class="filter-btn active" data-gender="all">Ambos</button>
+                </div>
+            </div>
+            <button class="btn-popup btn-chat" onclick="applyFilters()">Aplicar Filtros</button>
+            <button class="btn-popup btn-close" onclick="closeFilterPopup()">Cancelar</button>
         </div>
     </div>
 
@@ -62,21 +73,21 @@
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
         const selfId = localStorage.getItem('wodpulse_aluno_id');
-        let selfPhoto = ''; // Armazenaremos a foto do próprio usuário
+        let selfPhoto = '';
 
         let candidates = [];
         let currentIndex = 0;
 
         const cardStack = document.getElementById('cardStack');
-        const noMoreCards = document.getElementById('noMoreCards');
+        const loadingOrEmptyState = document.getElementById('loadingOrEmptyState');
 
         if (!token) {
-            // window.location.href = 'login_tinder.html';
             alert('Token não encontrado. Faça login.');
+            // window.location.href = 'login_tinder.html';
         }
 
         function formatPhoto(photo) {
-            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (!photo) return 'https://i.imgur.com/3g7A8vW.png'; // Uma imagem genérica de fallback
             if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
             return `data:image/jpeg;base64,${photo}`;
         }
@@ -90,12 +101,22 @@
                 selfPhoto = formatPhoto(userData.photo);
             } catch (err) {
                 console.error('Erro ao carregar perfil próprio:', err);
+                selfPhoto = 'https://i.imgur.com/3g7A8vW.png'; // Fallback
             }
         }
 
-        async function loadCandidates() {
+        async function loadCandidates( ) {
+            const genderFilter = localStorage.getItem('wodpulse_gender_filter') || 'all';
+            // AVISO: A rota da API precisará ser ajustada para usar este filtro.
+            // Ex: const apiUrl = `${API_BASE_URL}/api/social/candidates?gender=${genderFilter}`;
+            const apiUrl = `${API_BASE_URL}/api/social/candidates`;
+
+            loadingOrEmptyState.innerHTML = '<div class="spinner"></div><p>Buscando atletas...</p>';
+            loadingOrEmptyState.style.display = 'flex';
+            cardStack.innerHTML = '';
+
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/candidates`, {
+                const res = await fetch(apiUrl, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error('Falha ao buscar candidatos.');
@@ -106,20 +127,19 @@
 
             } catch (err) {
                 console.error(err);
-                noMoreCards.style.display = 'flex';
-                noMoreCards.innerHTML = '<p>Erro ao buscar atletas. Tente novamente.</p>';
+                loadingOrEmptyState.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Erro ao buscar atletas. Tente novamente.</p>';
             }
         }
 
         function renderCards() {
-            cardStack.innerHTML = '';
             if (candidates.length === 0) {
-                noMoreCards.style.display = 'flex';
+                loadingOrEmptyState.innerHTML = '<i class="fas fa-users-slash"></i><p>Não há novos atletas por perto. Volte mais tarde!</p>';
+                loadingOrEmptyState.style.display = 'flex';
                 return;
             }
-            noMoreCards.style.display = 'none';
+            
+            loadingOrEmptyState.style.display = 'none';
 
-            // Renderiza os cards na ordem inversa para o efeito de pilha
             candidates.slice().reverse().forEach((user, index) => {
                 const card = document.createElement('div');
                 card.className = 'profile-card';
@@ -127,7 +147,7 @@
                 card.innerHTML = `
                     <div class="profile-card-image" style="background-image: url('${formatPhoto(user.photo)}')"></div>
                     <div class="profile-card-info">
-                        <h3>${user.name}, ${user.age || '25'}</h3>
+                        <h3>${user.name}, ${user.age || 'N/A'}</h3>
                         <p><i class="fas fa-dumbbell"></i> Box: ${user.box_id || 'WODPulse'}</p>
                     </div>
                 `;
@@ -143,8 +163,7 @@
 
             const user = candidates[currentIndex];
 
-            // Animação de saída
-            let rotation = (Math.random() - 0.5) * 30; // Rotação aleatória
+            let rotation = (Math.random() - 0.5) * 30;
             let translateX = 0;
             if (action === 'like') {
                 translateX = '150%';
@@ -156,7 +175,6 @@
             topCard.style.transform = `translateX(${translateX}) rotate(${rotation}deg)`;
             topCard.style.opacity = 0;
 
-            // Envia a ação para a API
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/match`, {
                     method: 'POST',
@@ -180,7 +198,8 @@
             setTimeout(() => {
                 topCard.remove();
                 if (currentIndex >= candidates.length) {
-                    noMoreCards.style.display = 'flex';
+                    loadingOrEmptyState.innerHTML = '<i class="fas fa-users-slash"></i><p>Você viu todos! Volte mais tarde para ver novos perfis.</p>';
+                    loadingOrEmptyState.style.display = 'flex';
                 }
             }, 300);
         }
@@ -196,7 +215,38 @@
             document.getElementById('matchPopup').classList.remove('show');
         }
 
-        // Inicia o carregamento
+        const filterPopup = document.getElementById('filterPopup');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        let selectedGender = localStorage.getItem('wodpulse_gender_filter') || 'all';
+
+        // Marca o botão de filtro ativo com base no que está salvo
+        document.querySelector(`.filter-btn[data-gender="${selectedGender}"]`).classList.add('active');
+
+
+        function openFilterPopup() {
+            filterPopup.classList.add('show');
+        }
+
+        function closeFilterPopup() {
+            filterPopup.classList.remove('show');
+        }
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectedGender = button.getAttribute('data-gender');
+            });
+        });
+
+        function applyFilters() {
+            closeFilterPopup();
+            localStorage.setItem('wodpulse_gender_filter', selectedGender);
+            // AVISO: A rota da API precisa ser ajustada para que o filtro funcione de verdade.
+            alert(`Filtro aplicado. A API precisa ser atualizada para buscar apenas perfis do gênero: ${selectedGender}.`);
+            loadCandidates();
+        }
+
         async function init() {
             await loadSelfProfile();
             await loadCandidates();

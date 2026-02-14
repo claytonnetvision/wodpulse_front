@@ -531,3 +531,76 @@ body {
     color: var(--text-secondary);
     text-transform: uppercase;
 }
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA PÁGINA DE BUSCA */
+/* =================================== */
+
+.search-content {
+    padding: 15px;
+}
+
+.search-bar-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-bar-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.search-bar-wrapper input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border-radius: 10px;
+    border: none;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 16px;
+    outline: none;
+}
+
+.search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.search-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 20px;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s;
+}
+.search-result-item:hover {
+    background-color: var(--card-bg);
+}
+
+.search-result-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.search-result-item .user-name {
+    font-weight: 600;
+}
+
+.search-result-item .user-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
