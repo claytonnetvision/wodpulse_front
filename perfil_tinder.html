@@ -23,10 +23,21 @@
                 <div class="profile-info-v2">
                     <h1 id="profileName">Carregando...</h1>
                     <p id="profileBio">Buscando informações...</p>
+                    
+                    <!-- Botões que aparecem no perfil de OUTRAS pessoas -->
                     <div id="otherUserActions" class="profile-action-buttons" style="display: none;">
                         <a id="challengeButton" href="#" class="btn-profile-action challenge">🏆 Desafiar</a>
                         <a id="chatButton" href="#" class="btn-profile-action chat">💬 Conversar</a>
                     </div>
+
+                    <!-- ================================================== -->
+                    <!-- NOVO BLOCO DE BOTÕES PARA O PRÓPRIO PERFIL -->
+                    <!-- ================================================== -->
+                    <div id="selfUserActions" class="profile-action-buttons" style="display: none;">
+                        <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Meus Desafios</a>
+                        <a href="#" class="btn-profile-action chat">⚙️ Editar Perfil</a>
+                    </div>
+
                 </div>
             </section>
 
@@ -412,11 +423,15 @@
             }
         }
 
+        // ==================================================
+        // FUNÇÃO initializeProfile ATUALIZADA
+        // ==================================================
         async function initializeProfile() {
             if (isOwnProfile) {
                 document.getElementById('addPhotoButton').style.display = 'block';
                 document.getElementById('addPhotoButton').addEventListener('click', () => document.getElementById('photoUploadInput').click());
                 document.getElementById('photoUploadInput').addEventListener('change', handlePhotoUpload);
+                document.getElementById('selfUserActions').style.display = 'flex'; // MOSTRA O BOTÃO "MEUS DESAFIOS"
                 loadMessageNotifications();
             } else {
                 document.getElementById('otherUserActions').style.display = 'flex';
