@@ -19,25 +19,25 @@
 
         <main class="profile-content">
             <section class="profile-details-v2">
-                <img id="profileMainPhoto" src="https://i.imgur.com/3g7A8vW.png" alt="Foto do perfil" class="profile-main-photo">
+                <div class="profile-photo-container">
+                    <img id="profileMainPhoto" src="https://i.imgur.com/3g7A8vW.png" alt="Foto do perfil" class="profile-main-photo">
+                    <button id="editPhotoButton" class="btn-edit-photo" style="display: none;"><i class="fas fa-camera"></i></button>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+                </div>
+
                 <div class="profile-info-v2">
                     <h1 id="profileName">Carregando...</h1>
                     <p id="profileBio">Buscando informações...</p>
                     
-                    <!-- Botões que aparecem no perfil de OUTRAS pessoas -->
                     <div id="otherUserActions" class="profile-action-buttons" style="display: none;">
                         <a id="challengeButton" href="#" class="btn-profile-action challenge">🏆 Desafiar</a>
                         <a id="chatButton" href="#" class="btn-profile-action chat">💬 Conversar</a>
                     </div>
 
-                    <!-- ================================================== -->
-                    <!-- NOVO BLOCO DE BOTÕES PARA O PRÓPRIO PERFIL -->
-                    <!-- ================================================== -->
                     <div id="selfUserActions" class="profile-action-buttons" style="display: none;">
                         <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Meus Desafios</a>
                         <a href="#" class="btn-profile-action chat">⚙️ Editar Perfil</a>
                     </div>
-
                 </div>
             </section>
 
@@ -123,12 +123,11 @@
 
         async function loadParticipantData() {
             console.log(`[DEBUG] 1. Buscando dados básicos do participante ID: ${targetId}`);
-            const endpoint = `/api/public/participants/${targetId}`;
+            const endpoint = isOwnProfile ? '/api/social/profile' : `/api/public-profile/${targetId}`;
             try {
-                const res = await fetch(`${API_BASE_URL}${endpoint}`);
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados do participante.`);
-                const data = await res.json();
-                const user = data.participant;
+                const user = await res.json();
                 
                 console.log('[DEBUG] 1.1. Dados básicos recebidos:', user);
 
@@ -423,15 +422,52 @@
             }
         }
 
-        // ==================================================
-        // FUNÇÃO initializeProfile ATUALIZADA
-        // ==================================================
+        async function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const photoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+
+            console.log('[DEBUG] Enviando nova foto de perfil para a API...');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/participants/${selfId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photoBase64 })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Falha ao atualizar a foto de perfil.');
+                }
+                
+                console.log('[DEBUG] Foto de perfil atualizada com sucesso.');
+                alert('Foto de perfil atualizada! A página será recarregada.');
+                window.location.reload();
+
+            } catch (err) {
+                console.error('[DEBUG] Erro ao atualizar foto de perfil:', err);
+                alert(`Erro ao atualizar a foto: ${err.message}`);
+            }
+        }
+
         async function initializeProfile() {
             if (isOwnProfile) {
                 document.getElementById('addPhotoButton').style.display = 'block';
+                document.getElementById('editPhotoButton').style.display = 'block';
+
                 document.getElementById('addPhotoButton').addEventListener('click', () => document.getElementById('photoUploadInput').click());
                 document.getElementById('photoUploadInput').addEventListener('change', handlePhotoUpload);
-                document.getElementById('selfUserActions').style.display = 'flex'; // MOSTRA O BOTÃO "MEUS DESAFIOS"
+                
+                document.getElementById('editPhotoButton').addEventListener('click', () => document.getElementById('profilePhotoInput').click());
+                document.getElementById('profilePhotoInput').addEventListener('change', handleProfilePhotoUpload);
+
+                document.getElementById('selfUserActions').style.display = 'flex';
                 loadMessageNotifications();
             } else {
                 document.getElementById('otherUserActions').style.display = 'flex';
