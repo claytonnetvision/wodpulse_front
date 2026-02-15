@@ -42,8 +42,11 @@
                 <img id="matchUser2" src="" alt="">
             </div>
             <p>Você e <strong id="matchName">...</strong> deram like um no outro.</p>
-            <button class="btn-popup btn-challenge">🏆 Enviar um Desafio</button>
-            <button class="btn-popup btn-chat">💬 Enviar Mensagem</button>
+            
+            <!-- BOTÕES DE AÇÃO DO POP-UP -->
+            <a href="#" id="popupProfileButton" class="btn-popup btn-view-profile">👤 Ver Perfil</a>
+            <a href="#" id="popupChallengeButton" class="btn-popup btn-challenge">🏆 Enviar um Desafio</a>
+            <a href="#" id="popupChatButton" class="btn-popup btn-chat">💬 Enviar Mensagem</a>
             <button class="btn-popup btn-close" onclick="closeMatchPopup()">Continuar Descobrindo</button>
         </div>
     </div>
@@ -101,37 +104,22 @@
             }
         }
 
-        // ==================================================
-        // FUNÇÃO loadCandidates CORRIGIDA
-        // ==================================================
         async function loadCandidates( ) {
-            // 1. Pega o filtro salvo no localStorage. Se não houver, usa 'all'.
             const genderFilter = localStorage.getItem('wodpulse_gender_filter') || 'all';
-            
-            // 2. Monta a URL base da API.
             let apiUrl = `${API_BASE_URL}/api/social/candidates`;
-
-            // 3. Se o filtro NÃO for 'all', adiciona o parâmetro ?gender= na URL.
             if (genderFilter !== 'all') {
                 apiUrl += `?gender=${genderFilter}`;
             }
-
             console.log(`[DEBUG] Buscando candidatos com a URL: ${apiUrl}`);
-
             loadingOrEmptyState.innerHTML = '<div class="spinner"></div><p>Buscando atletas...</p>';
             loadingOrEmptyState.style.display = 'flex';
             cardStack.innerHTML = '';
-
             try {
-                const res = await fetch(apiUrl, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Falha ao buscar candidatos.');
-                
                 candidates = await res.json();
                 currentIndex = 0;
                 renderCards();
-
             } catch (err) {
                 console.error(err);
                 loadingOrEmptyState.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Erro ao buscar atletas. Tente novamente.</p>';
@@ -144,9 +132,7 @@
                 loadingOrEmptyState.style.display = 'flex';
                 return;
             }
-            
             loadingOrEmptyState.style.display = 'none';
-
             candidates.slice().reverse().forEach((user, index) => {
                 const card = document.createElement('div');
                 card.className = 'profile-card';
@@ -164,12 +150,9 @@
 
         async function handleAction(action) {
             if (currentIndex >= candidates.length) return;
-
             const topCard = cardStack.querySelector('.profile-card:last-child');
             if (!topCard) return;
-
             const user = candidates[currentIndex];
-
             let rotation = (Math.random() - 0.5) * 30;
             let translateX = 0;
             if (action === 'like') {
@@ -181,39 +164,43 @@
             }
             topCard.style.transform = `translateX(${translateX}) rotate(${rotation}deg)`;
             topCard.style.opacity = 0;
-
             try {
                 const res = await fetch(`${API_BASE_URL}/api/social/match`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ targetId: user.id, action: action })
                 });
                 const data = await res.json();
-
                 if (data.mutualMatch) {
                     showMatchPopup(user);
                 }
-
             } catch (err) {
                 console.error('Erro ao registrar ação:', err);
             }
-
             currentIndex++;
             setTimeout(() => {
                 topCard.remove();
                 if (currentIndex >= candidates.length) {
-                    loadCandidates(); // CORREÇÃO: Recarrega os candidatos quando acabam.
+                    loadCandidates();
                 }
             }, 300);
         }
 
+        // ==================================================
+        // FUNÇÃO showMatchPopup ATUALIZADA
+        // ==================================================
         function showMatchPopup(matchedUser) {
+            // 1. Preenche as informações visuais
             document.getElementById('matchUser1').src = selfPhoto;
             document.getElementById('matchUser2').src = formatPhoto(matchedUser.photo);
             document.getElementById('matchName').textContent = matchedUser.name.split(' ')[0];
+
+            // 2. ATUALIZA OS LINKS (href) DOS BOTÕES com o ID do usuário que deu match
+            document.getElementById('popupProfileButton').href = `perfil_tinder.html?id=${matchedUser.id}`; // <-- NOVO LINK
+            document.getElementById('popupChallengeButton').href = `criar_desafio.html?opponentId=${matchedUser.id}`;
+            document.getElementById('popupChatButton').href = `chat_tinder.html?id=${matchedUser.id}`;
+            
+            // 3. Mostra o pop-up
             document.getElementById('matchPopup').classList.add('show');
         }
 
@@ -225,7 +212,6 @@
         const filterButtons = document.querySelectorAll('.filter-btn');
         let selectedGender = localStorage.getItem('wodpulse_gender_filter') || 'all';
 
-        // Garante que o botão correto esteja ativo ao carregar a página
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`.filter-btn[data-gender="${selectedGender}"]`).classList.add('active');
 
@@ -245,16 +231,9 @@
             });
         });
 
-        // ==================================================
-        // FUNÇÃO applyFilters CORRIGIDA
-        // ==================================================
         function applyFilters() {
             closeFilterPopup();
-            // 1. Salva a nova preferência no localStorage.
             localStorage.setItem('wodpulse_gender_filter', selectedGender);
-            
-            // 2. Remove o alert e chama diretamente a função para recarregar os candidatos.
-            // A função loadCandidates agora lerá o valor salvo e montará a URL correta.
             console.log(`Filtro aplicado: ${selectedGender}. Recarregando candidatos...`);
             loadCandidates();
         }
