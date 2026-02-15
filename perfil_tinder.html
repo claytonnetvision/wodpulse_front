@@ -115,7 +115,16 @@
             <button class="btn-popup btn-close" onclick="closeSettingsModal()">Cancelar</button>
         </div>
     </div>
-
+<!-- NOVO MODAL PARA EXIBIR QUEM CURTIU SEU PERFIL -->
+<div id="likesReceivedModal" class="match-popup-overlay">
+    <div class="match-popup-content">
+        <h2>Curtiram seu Perfil</h2>
+        <div id="likesReceivedList" class="likes-received-list">
+          <p class="loading-text">Carregando...</p>
+        </div>
+        <button class="btn-popup btn-close" onclick="closeLikesReceivedModal()">Fechar</button>
+    </div>
+</div>
     <script>
         // ==================================================
         // SCRIPT COMPLETO E CORRIGIDO PARA perfil_tinder.html
@@ -677,16 +686,7 @@ function closeLikesReceivedModal() {
         window.addEventListener('resize', setRealViewportHeight);
         setRealViewportHeight();
         initializeProfile();
-<!-- NOVO MODAL PARA EXIBIR QUEM CURTIU SEU PERFIL -->
-<div id="likesReceivedModal" class="match-popup-overlay">
-    <div class="match-popup-content">
-        <h2>Curtiram seu Perfil</h2>
-        <div id="likesReceivedList" class="likes-received-list">
-          <p class="loading-text">Carregando...</p>
-        </div>
-        <button class="btn-popup btn-close" onclick="closeLikesReceivedModal()">Fechar</button>
-    </div>
-</div>
+
 
     </script>
 </body>
