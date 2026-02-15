@@ -37,9 +37,13 @@
 </div>
 
 
-                    <div id="selfUserActions" class="profile-action-buttons" style="display: none;">
-                        <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Meus Desafios</a>
-                    </div>
+                    <!-- BOTÕES DO PRÓPRIO USUÁRIO ATUALIZADOS -->
+<div id="selfUserActions" class="profile-action-buttons" style="display: none;">
+    <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Desafios</a>
+    <a href="conversas_tinder.html" class="btn-profile-action chat">💬 Conversas</a>
+    <button id="likesReceivedButton" class="btn-profile-action like"><i class="fas fa-heart"></i> Curtidas</button>
+</div>
+
                 </div>
             </section>
 
@@ -495,33 +499,49 @@
             }
         }
 
-        async function loadLikesReceived() {
-            if (!isOwnProfile) return;
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/profile/likes`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const likes = await res.json();
-                if (likes.length > 0) {
-                    const notificationsSection = document.getElementById('notificationsSection');
-                    const notificationsContainer = document.getElementById('notificationsContainer');
-                    notificationsSection.style.display = 'block';
-                    
-                    let likesHtml = '<h4 class="section-subtitle">Curtiram seu Perfil</h4>';
-                    likesHtml += likes.map(like => `
-                        <a href="perfil_tinder.html?id=${like.id}" class="notification-item">
-                            <img src="${formatPhoto(like.photo)}" alt="${like.name}" class="notification-user-photo">
-                            <div class="notification-text">
-                                <strong>${like.name}</strong> curtiu seu perfil.
-                            </div>
-                            <span class="notification-badge" style="background-color: var(--accent-pass);"><i class="fas fa-heart"></i></span>
-                        </a>
-                    `).join('');
-                    
-                    notificationsContainer.innerHTML += likesHtml; // Adiciona o HTML de likes ao container
+        // FUNÇÃO loadLikesReceived ATUALIZADA
+async function loadLikesReceived(isForModal = false) {
+    if (!isOwnProfile) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/profile/likes`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const likes = await res.json();
+
+        if (likes.length > 0) {
+            const likesHtml = likes.map(like => `
+                <a href="perfil_tinder.html?id=${like.id}" class="notification-item">
+                    <img src="${formatPhoto(like.photo)}" alt="${like.name}" class="notification-user-photo">
+                    <div class="notification-text">
+                        <strong>${like.name}</strong> curtiu seu perfil.
+                    </div>
+                    <span class="notification-badge" style="background-color: var(--accent-pass);"><i class="fas fa-heart"></i></span>
+                </a>
+            `).join('');
+
+            if (isForModal) {
+                // Se for para o modal, preenche a lista do modal
+                document.getElementById('likesReceivedList').innerHTML = likesHtml;
+            } else {
+                // Se não, adiciona na seção de notificações como antes
+                const notificationsSection = document.getElementById('notificationsSection');
+                const notificationsContainer = document.getElementById('notificationsContainer');
+                notificationsSection.style.display = 'block';
+                
+                let currentHtml = notificationsContainer.innerHTML;
+                if (!currentHtml.includes('Curtiram seu Perfil')) {
+                     notificationsContainer.innerHTML += '<h4 class="section-subtitle">Curtiram seu Perfil</h4>' + likesHtml;
                 }
-            } catch (err) {
-                console.error('Erro ao carregar likes recebidos:', err);
             }
+        } else if (isForModal) {
+            document.getElementById('likesReceivedList').innerHTML = '<p class="loading-text">Ninguém curtiu seu perfil ainda.</p>';
         }
+    } catch (err) {
+        console.error('Erro ao carregar likes recebidos:', err);
+        if (isForModal) {
+            document.getElementById('likesReceivedList').innerHTML = '<p class="loading-text" style="color:red;">Erro ao carregar.</p>';
+        }
+    }
+}
+
 
         function openSettingsModal() {
             document.getElementById('settingsModal').classList.add('show');
@@ -605,6 +625,21 @@ async function checkLikeStatus() {
         console.error('Erro ao verificar status do like:', err);
     }
 }
+// NOVAS FUNÇÕES PARA O MODAL DE CURTIDAS
+function openLikesReceivedModal() {
+    const modal = document.getElementById('likesReceivedModal');
+    const listContainer = document.getElementById('likesReceivedList');
+    listContainer.innerHTML = '<p class="loading-text">Carregando...</p>';
+    modal.classList.add('show');
+
+    // Chama a mesma função que já carrega os likes na notificação
+    loadLikesReceived(true); // Passa true para indicar que é para o modal
+}
+
+function closeLikesReceivedModal() {
+    document.getElementById('likesReceivedModal').classList.remove('show');
+}
+
         async function initializeProfile() {
             if (isOwnProfile) {
                 document.getElementById('addPhotoButton').style.display = 'block';
@@ -619,10 +654,11 @@ async function checkLikeStatus() {
 
                 document.getElementById('selfUserActions').style.display = 'flex';
                 document.getElementById('editProfileButton').addEventListener('click', openSettingsModal);
-                
+                document.getElementById('likesReceivedButton').addEventListener('click', openLikesReceivedModal);
+
 
                 await loadMessageNotifications();
-                await loadLikesReceived();
+                await loadLikesReceived(false);
                 
             } else {
                 document.getElementById('otherUserActions').style.display = 'flex';
@@ -641,6 +677,17 @@ async function checkLikeStatus() {
         window.addEventListener('resize', setRealViewportHeight);
         setRealViewportHeight();
         initializeProfile();
+<!-- NOVO MODAL PARA EXIBIR QUEM CURTIU SEU PERFIL -->
+<div id="likesReceivedModal" class="match-popup-overlay">
+    <div class="match-popup-content">
+        <h2>Curtiram seu Perfil</h2>
+        <div id="likesReceivedList" class="likes-received-list">
+            <!-- A lista de usuários será inserida aqui pelo JS -->
+            <p class="loading-text">Carregando...</p>
+        </div>
+        <button class="btn-popup btn-close" onclick="closeLikesReceivedModal()">Fechar</button>
+    </div>
+</div>
 
     </script>
 </body>

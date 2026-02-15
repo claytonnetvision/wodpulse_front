@@ -1311,3 +1311,12 @@ body {
     background-color: var(--accent-pass); /* Cor de fundo quando curtido */
     color: white; /* Cor do ícone quando curtido */
 }
+/* ESTILOS PARA O MODAL DE CURTIDAS */
+.likes-received-list {
+    max-height: 400px; /* Altura máxima para a lista */
+    overflow-y: auto;  /* Adiciona rolagem se a lista for longa */
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
