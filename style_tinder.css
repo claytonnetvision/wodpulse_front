@@ -1162,7 +1162,7 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* 100% da altura da viewport */
+    height: calc(var(--vh, 1vh) * 100); /* 100% da altura da viewport */
     max-height: -webkit-fill-available; /* Correção para iOS Safari */
 }
 
