@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Painel de Desafios - WODPulse</title>
+    <link rel="stylesheet" href="style_tinder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <a href="perfil_tinder.html" class="header-btn"><i class="fas fa-arrow-left"></i></a>
+            <div class="logo-tinder">Meus Desafios</div>
+            <a href="criar_desafio.html" class="header-btn"><i class="fas fa-plus"></i></a>
+        </header>
+
+        <main class="challenges-container">
+            <!-- Seção do Ranking Geral -->
+            <section class="ranking-section">
+                <h3><i class="fas fa-fire"></i> Top 5 - Queima de Calorias (Últimos 7 dias )</h3>
+                <div id="generalRankingList" class="ranking-list">
+                    <p class="loading-text">Carregando ranking geral...</p>
+                </div>
+            </section>
+
+            <!-- Seção dos Meus Desafios -->
+            <section class="my-challenges-section">
+                <h3>Meus Desafios Atuais</h3>
+                <div id="myChallengesList" class="challenges-list">
+                    <p class="loading-text">Carregando seus desafios...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Sessão não encontrada. Faça login.');
+            window.location.href = 'login_tinder.html';
+        }
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://i.imgur.com/3g7A8vW.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        function timeLeft(endDate) {
+            const diff = new Date(endDate) - new Date();
+            if (diff <= 0) return 'Finalizado';
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            return `${days}d restantes`;
+        }
+
+        async function loadGeneralRanking() {
+            const rankingContainer = document.getElementById('generalRankingList');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/top-calories?days=7`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const ranking = await res.json();
+
+                if (ranking.length === 0) {
+                    rankingContainer.innerHTML = '<p class="loading-text">Nenhum dado de ranking ainda.</p>';
+                    return;
+                }
+
+                rankingContainer.innerHTML = ranking.map((player, index) => `
+                    <div class="ranking-item">
+                        <span class="ranking-position">${index + 1}</span>
+                        <img src="${formatPhoto(player.photo)}" alt="${player.name}">
+                        <span class="ranking-name">${player.name}</span>
+                        <span class="ranking-score">${Math.round(player.total_calories)} kcal</span>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error('Erro ao carregar ranking geral:', err);
+                rankingContainer.innerHTML = '<p class="loading-text" style="color:red;">Erro ao carregar ranking.</p>';
+            }
+        }
+
+        async function loadMyChallenges() {
+            const challengesContainer = document.getElementById('myChallengesList');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/my-challenges`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const challenges = await res.json();
+
+                if (challenges.length === 0) {
+                    challengesContainer.innerHTML = '<p class="loading-text">Você ainda não participa de nenhum desafio. <a href="criar_desafio.html">Crie um!</a></p>';
+                    return;
+                }
+
+                let html = '';
+                for (const challenge of challenges) {
+                    html += await renderChallengeCard(challenge);
+                }
+                challengesContainer.innerHTML = html;
+
+            } catch (err) {
+                console.error('Erro ao carregar meus desafios:', err);
+                challengesContainer.innerHTML = '<p class="loading-text" style="color:red;">Erro ao carregar desafios.</p>';
+            }
+        }
+
+        async function renderChallengeCard(challenge) {
+            let content = '';
+            if (challenge.my_status === 'invited') {
+                content = `
+                    <div class="challenge-invitation">
+                        <p>Você foi convidado para o desafio <strong>"${challenge.title}"</strong>.</p>
+                        <div class="challenge-actions">
+                            <button class="btn-action-small accept" onclick="respondToChallenge(${challenge.id}, 'accepted')">Aceitar</button>
+                            <button class="btn-action-small decline" onclick="respondToChallenge(${challenge.id}, 'declined')">Recusar</button>
+                        </div>
+                    </div>
+                `;
+            } else if (challenge.status === 'pending' && challenge.my_status === 'accepted') {
+                 content = `<p class="challenge-status-text">Aguardando início pelo criador...</p>`;
+            } else {
+                // Se o desafio está ativo ou finalizado, busca o ranking dele
+                const rankingRes = await fetch(`${API_BASE_URL}/api/challenges/${challenge.id}/ranking`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const rankingData = await rankingRes.json();
+                content = `
+                    <div class="ranking-list mini">
+                        ${rankingData.ranking.slice(0, 3).map((p, i) => `
+                            <div class="ranking-item">
+                                <span class="ranking-position">${i + 1}</span>
+                                <img src="${formatPhoto(p.photo)}" alt="${p.name}">
+                                <span class="ranking-name">${p.name.split(' ')[0]}</span>
+                                <span class="ranking-score">${Math.round(p.total_calories)} kcal</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <h4>${challenge.title}</h4>
+                        <span class="challenge-status ${challenge.status}">${challenge.status === 'active' ? timeLeft(challenge.end_date) : challenge.status}</span>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        }
+
+        async function respondToChallenge(challengeId, response) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: response })
+                });
+                if (!res.ok) throw new Error('Falha ao responder ao convite.');
+                alert(`Desafio ${response === 'accepted' ? 'aceito' : 'recusado'}!`);
+                loadMyChallenges(); // Recarrega a lista de desafios
+            } catch (err) {
+                console.error('Erro ao responder desafio:', err);
+                alert('Erro ao responder ao desafio.');
+            }
+        }
+
+        async function init() {
+            await loadGeneralRanking();
+            await loadMyChallenges();
+        }
+
+        init();
+    </script>
+</body>
+</html>

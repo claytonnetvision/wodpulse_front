@@ -942,3 +942,186 @@ body {
     align-items: center;
     justify-content: center;
 }
+/* ESTILOS PARA PÁGINA DE FORMULÁRIO (CRIAR DESAFIO) */
+.form-container {
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.form-group-row {
+    display: flex;
+    gap: 15px;
+}
+.form-group-row .form-group {
+    flex: 1;
+}
+.form-container label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #ccc;
+}
+.form-container input, .form-container select {
+    width: 100%;
+    padding: 12px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+}
+.friends-list-container {
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 10px;
+}
+.friend-item-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+}
+.friend-item-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+}
+.friend-item-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+.friend-item-checkbox img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.btn-action-primary {
+    background-color: var(--accent-like);
+    color: #111;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+/* ESTILOS PARA PÁGINA DE DESAFIOS */
+.challenges-container {
+    padding: 15px;
+}
+.ranking-section, .my-challenges-section {
+    background-color: #222;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.ranking-section h3, .my-challenges-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #eee;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #333;
+    padding: 8px;
+    border-radius: 8px;
+}
+.ranking-position {
+    font-weight: bold;
+    color: #FFC107;
+    width: 20px;
+    text-align: center;
+}
+.ranking-item img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.ranking-name {
+    flex-grow: 1;
+    font-weight: 500;
+    color: #ddd;
+}
+.ranking-score {
+    font-weight: bold;
+    color: var(--accent-like);
+}
+.challenges-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.challenge-card {
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid var(--accent-like);
+}
+.challenge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.challenge-header h4 {
+    margin: 0;
+    font-size: 15px;
+}
+.challenge-status {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+.challenge-status.pending { background-color: #ffc107; color: #333; }
+.challenge-status.active { background-color: #4caf50; color: white; }
+.challenge-status.finished { background-color: #555; color: #ccc; }
+.challenge-invitation {
+    padding: 10px 0;
+}
+.challenge-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.btn-action-small {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.btn-action-small.accept { background-color: var(--accent-like); color: #111; }
+.btn-action-small.decline { background-color: #444; color: #eee; }
+.ranking-list.mini .ranking-item {
+    background: none;
+    padding: 4px 0;
+}
+.challenge-status-text {
+    font-style: italic;
+    color: #888;
+    padding: 10px 0;
+}
