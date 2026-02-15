@@ -1154,3 +1154,43 @@ body {
 .btn-edit-photo:hover {
     transform: scale(1.1);
 }
+/* ================================================== */
+/* CORREÇÃO DE LAYOUT E ROLAGEM PARA TODAS AS PÁGINAS */
+/* ================================================== */
+
+/* Garante que o container principal ocupe toda a altura da tela */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* 100% da altura da viewport */
+    max-height: -webkit-fill-available; /* Correção para iOS Safari */
+}
+
+/* Faz com que o <main> (conteúdo) cresça e permita rolagem interna */
+.profile-content,
+.conversations-content,
+.form-container,
+.challenges-container,
+.chat-messages-body {
+    flex-grow: 1; /* Permite que o elemento cresça */
+    overflow-y: auto; /* Adiciona a barra de rolagem vertical QUANDO NECESSÁRIO */
+    -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
+}
+
+/* Ajuste específico para o layout do chat */
+.chat-container {
+    height: 100vh;
+    max-height: -webkit-fill-available;
+}
+
+.chat-header {
+    flex-shrink: 0; /* Impede que o cabeçalho encolha */
+}
+
+.chat-messages-body {
+    padding-bottom: 20px; /* Espaço extra no final da lista de mensagens */
+}
+
+.chat-input-footer {
+    flex-shrink: 0; /* Impede que o rodapé encolha */
+}
