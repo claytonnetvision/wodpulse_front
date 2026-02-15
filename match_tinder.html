@@ -32,7 +32,6 @@
             <button class="action-btn btn-like" onclick="handleAction('like')"><i class="fas fa-heart"></i></button>
         </footer>
     </div>
-<a href="busca_tinder.html" class="action-btn btn-search"><i class="fas fa-search"></i></a>
 
     <!-- POP-UP DE MATCH MÚTUO -->
     <div id="matchPopup" class="match-popup-overlay">
@@ -102,9 +101,22 @@
             }
         }
 
+        // ==================================================
+        // FUNÇÃO loadCandidates CORRIGIDA
+        // ==================================================
         async function loadCandidates( ) {
+            // 1. Pega o filtro salvo no localStorage. Se não houver, usa 'all'.
             const genderFilter = localStorage.getItem('wodpulse_gender_filter') || 'all';
-            const apiUrl = `${API_BASE_URL}/api/social/candidates`;
+            
+            // 2. Monta a URL base da API.
+            let apiUrl = `${API_BASE_URL}/api/social/candidates`;
+
+            // 3. Se o filtro NÃO for 'all', adiciona o parâmetro ?gender= na URL.
+            if (genderFilter !== 'all') {
+                apiUrl += `?gender=${genderFilter}`;
+            }
+
+            console.log(`[DEBUG] Buscando candidatos com a URL: ${apiUrl}`);
 
             loadingOrEmptyState.innerHTML = '<div class="spinner"></div><p>Buscando atletas...</p>';
             loadingOrEmptyState.style.display = 'flex';
@@ -128,7 +140,7 @@
 
         function renderCards() {
             if (candidates.length === 0) {
-                loadingOrEmptyState.innerHTML = '<i class="fas fa-users-slash"></i><p>Não há novos atletas por perto. Volte mais tarde!</p>';
+                loadingOrEmptyState.innerHTML = '<i class="fas fa-users-slash"></i><p>Não há novos atletas com este filtro. Tente outro!</p>';
                 loadingOrEmptyState.style.display = 'flex';
                 return;
             }
@@ -193,8 +205,7 @@
             setTimeout(() => {
                 topCard.remove();
                 if (currentIndex >= candidates.length) {
-                    loadingOrEmptyState.innerHTML = '<i class="fas fa-users-slash"></i><p>Você viu todos! Volte mais tarde para ver novos perfis.</p>';
-                    loadingOrEmptyState.style.display = 'flex';
+                    loadCandidates(); // CORREÇÃO: Recarrega os candidatos quando acabam.
                 }
             }, 300);
         }
@@ -214,6 +225,8 @@
         const filterButtons = document.querySelectorAll('.filter-btn');
         let selectedGender = localStorage.getItem('wodpulse_gender_filter') || 'all';
 
+        // Garante que o botão correto esteja ativo ao carregar a página
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`.filter-btn[data-gender="${selectedGender}"]`).classList.add('active');
 
         function openFilterPopup() {
@@ -232,10 +245,17 @@
             });
         });
 
+        // ==================================================
+        // FUNÇÃO applyFilters CORRIGIDA
+        // ==================================================
         function applyFilters() {
             closeFilterPopup();
+            // 1. Salva a nova preferência no localStorage.
             localStorage.setItem('wodpulse_gender_filter', selectedGender);
-            alert(`Filtro aplicado. A API precisa ser atualizada para buscar apenas perfis do gênero: ${selectedGender}.`);
+            
+            // 2. Remove o alert e chama diretamente a função para recarregar os candidatos.
+            // A função loadCandidates agora lerá o valor salvo e montará a URL correta.
+            console.log(`Filtro aplicado: ${selectedGender}. Recarregando candidatos...`);
             loadCandidates();
         }
 
