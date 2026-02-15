@@ -21,13 +21,6 @@
                 <input type="text" id="challengeTitle" value="Queima de Calorias Semanal">
             </div>
 
-            <div class="form-group">
-                <label for="challengeType">Tipo de Desafio:</label>
-                <select id="challengeType">
-                    <option value="calories" selected>Queima de Calorias</option>
-                </select>
-            </div>
-
             <div class="form-group-row">
                 <div class="form-group">
                     <label for="startDate">Data de Início:</label>
@@ -40,9 +33,11 @@
             </div>
 
             <div class="form-group">
-                <label>Convidar Amigos:</label>
+                <label>Convidar Participantes:</label>
+                <!-- CAMPO DE BUSCA ADICIONADO -->
+                <input type="text" id="userSearchInput" placeholder="Buscar por nome..." onkeyup="filterUsers()">
                 <div id="friendsList" class="friends-list-container">
-                    <p class="loading-text">Carregando amigos...</p>
+                    <p class="loading-text">Carregando participantes...</p>
                 </div>
             </div>
 
@@ -67,75 +62,79 @@
         document.getElementById('startDate').value = today.toISOString().split('T')[0];
         document.getElementById('endDate').value = nextWeek.toISOString().split('T')[0];
 
-        async function loadFriends() {
-            const friendsContainer = document.getElementById('friendsList');
+        let allUsers = []; // Armazena todos os usuários para o filtro
+
+        async function loadAllUsers() {
+            const usersContainer = document.getElementById('friendsList');
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/friends`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                const friends = data.confirmedFriends || [];
-
-                if (friends.length === 0) {
-                    friendsContainer.innerHTML = '<p class="loading-text">Você não tem amigos para desafiar ainda.</p>';
-                    return;
-                }
-
-                friendsContainer.innerHTML = friends.map(friend => {
-                    const isPreselected = String(friend.id) === String(preselectedOpponentId);
-                    return `
-                        <div class="friend-item-checkbox">
-                            <input type="checkbox" id="friend-${friend.id}" value="${friend.id}" ${isPreselected ? 'checked' : ''}>
-                            <label for="friend-${friend.id}">
-                                <img src="${friend.photo ? `data:image/jpeg;base64,${friend.photo}` : 'https://i.imgur.com/3g7A8vW.png'}" alt="${friend.name}">
-                                <span>${friend.name}</span>
-                            </label>
-                        </div>
-                    `;
-                } ).join('');
+                // USA A NOVA ROTA /all-users
+                const res = await fetch(`${API_BASE_URL}/api/social/all-users`, { headers: { 'Authorization': `Bearer ${token}` } });
+                allUsers = await res.json();
+                renderUserList(allUsers);
             } catch (err) {
-                console.error('Erro ao carregar amigos:', err);
-                friendsContainer.innerHTML = '<p class="loading-text" style="color:red;">Erro ao carregar amigos.</p>';
+                console.error('Erro ao carregar usuários:', err);
+                usersContainer.innerHTML = '<p class="loading-text" style="color:red;">Erro ao carregar usuários.</p>';
             }
+        }
+
+        function renderUserList(users) {
+            const usersContainer = document.getElementById('friendsList');
+            if (users.length === 0) {
+                usersContainer.innerHTML = '<p class="loading-text">Nenhum usuário encontrado.</p>';
+                return;
+            }
+            usersContainer.innerHTML = users.map(user => {
+                const isPreselected = String(user.id) === String(preselectedOpponentId);
+                return `
+                    <div class="friend-item-checkbox">
+                        <input type="checkbox" id="friend-${user.id}" value="${user.id}" ${isPreselected ? 'checked' : ''}>
+                        <label for="friend-${user.id}">
+                            <img src="${user.photo ? `data:image/jpeg;base64,${user.photo}` : 'https://i.imgur.com/3g7A8vW.png'}" alt="${user.name}">
+                            <span>${user.name}</span>
+                        </label>
+                    </div>
+                `;
+            } ).join('');
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearchInput').value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => user.name.toLowerCase().includes(searchTerm));
+            renderUserList(filteredUsers);
         }
 
         document.getElementById('createChallengeButton').addEventListener('click', async () => {
             const title = document.getElementById('challengeTitle').value;
-            const type = document.getElementById('challengeType').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            
             const selectedFriends = document.querySelectorAll('#friendsList input[type="checkbox"]:checked');
             const invitedParticipants = Array.from(selectedFriends).map(cb => cb.value);
 
             if (!title || !startDate || !endDate || invitedParticipants.length === 0) {
-                alert('Por favor, preencha todos os campos e selecione pelo menos um amigo.');
+                alert('Por favor, preencha todos os campos e selecione pelo menos um participante.');
                 return;
             }
 
             try {
-                // CHAMADA REAL PARA A API
                 const res = await fetch(`${API_BASE_URL}/api/challenges/create`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, startDate, endDate, invitedParticipants })
                 });
-
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || 'Falha ao criar desafio.');
                 }
-
                 const result = await res.json();
-                alert('Desafio criado com sucesso! Você será redirecionado para o painel.');
-                // Redireciona para a futura página do painel do desafio
-                // window.location.href = `desafio_painel.html?id=${result.challengeId}`;
-                
+                alert('Desafio criado com sucesso! Você será redirecionado para o painel de desafios.');
+                window.location.href = `desafio_painel.html`;
             } catch (err) {
                 console.error('Erro ao criar desafio:', err);
                 alert(`Erro ao criar desafio: ${err.message}`);
             }
         });
 
-        loadFriends();
+        loadAllUsers();
     </script>
 </body>
 </html>
