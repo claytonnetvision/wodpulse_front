@@ -30,9 +30,12 @@
                     <p id="profileBio">Buscando informações...</p>
                     
                     <div id="otherUserActions" class="profile-action-buttons" style="display: none;">
-                        <a id="challengeButton" href="#" class="btn-profile-action challenge">🏆 Desafiar</a>
-                        <a id="chatButton" href="#" class="btn-profile-action chat">💬 Conversar</a>
-                    </div>
+    <a id="challengeButton" href="#" class="btn-profile-action challenge">🏆 Desafiar</a>
+    <a id="chatButton" href="#" class="btn-profile-action chat">💬 Conversar</a>
+    <!-- BOTÃO DE LIKE ADICIONADO -->
+    <button id="likeButton" class="btn-profile-action like"><i class="fas fa-heart"></i></button>
+</div>
+
 
                     <div id="selfUserActions" class="profile-action-buttons" style="display: none;">
                         <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Meus Desafios</a>
@@ -546,7 +549,36 @@
                 alert(`Erro: ${err.message}`);
             }
         }
+// ADICIONE ESTA FUNÇÃO AO SCRIPT DE perfil_tinder.html
+async function handleLikeFromProfile() {
+    const likeButton = document.getElementById('likeButton');
+    likeButton.disabled = true; // Desabilita para evitar cliques duplos
 
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/match`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetId: targetId, action: 'like' })
+        });
+        const data = await res.json();
+
+        if (data.action === 'liked') {
+            likeButton.classList.add('liked');
+        } else if (data.action === 'unliked') {
+            likeButton.classList.remove('liked');
+        }
+
+        if (data.mutualMatch) {
+            alert('É UM MATCH! Vocês se curtiram.');
+        }
+
+    } catch (err) {
+        console.error('Erro ao curtir/descurtir do perfil:', err);
+        alert('Ocorreu um erro. Tente novamente.');
+    } finally {
+        likeButton.disabled = false; // Reabilita o botão
+    }
+}
         async function initializeProfile() {
             if (isOwnProfile) {
                 document.getElementById('addPhotoButton').style.display = 'block';
@@ -561,7 +593,8 @@
 
                 document.getElementById('selfUserActions').style.display = 'flex';
                 document.getElementById('editProfileButton').addEventListener('click', openSettingsModal);
-                
+                document.getElementById('likeButton').addEventListener('click', handleLikeFromProfile); // <-- ADICIONE ESTA LINHA
+
                 await loadMessageNotifications();
                 await loadLikesReceived();
             } else {

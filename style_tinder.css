@@ -1300,3 +1300,14 @@ body {
     margin: 15px 0 10px 5px;
     font-weight: 600;
 }
+.btn-profile-action.like {
+    background-color: var(--card-bg);
+    color: var(--accent-pass); /* Cor inicial (não curtido) */
+    font-size: 18px;
+    padding: 8px 12px; /* Ajuste para ficar mais quadrado */
+    flex-grow: 0; /* Para não esticar */
+}
+.btn-profile-action.like.liked {
+    background-color: var(--accent-pass); /* Cor de fundo quando curtido */
+    color: white; /* Cor do ícone quando curtido */
+}
