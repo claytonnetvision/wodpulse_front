@@ -681,3 +681,211 @@ body {
     margin-top: 15px;
     height: 300px; /* Altura fixa para os gráficos */
 }
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA PERFIL v2 */
+/* =================================== */
+
+.profile-details-v2 {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.profile-main-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--card-bg);
+    flex-shrink: 0;
+}
+
+.profile-action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-profile-action {
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+}
+.btn-profile-action.challenge {
+    background-color: var(--accent-superlike);
+    color: white;
+}
+.btn-profile-action.chat {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.photo-panel-section {
+    padding: 0 15px 20px 15px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.panel-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.btn-add-photo {
+    background: none;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.photo-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.photo-panel-item {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* Truque do aspect-ratio 1:1 */
+}
+
+.photo-panel-item img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.btn-delete-photo {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA MODAL DE FOTO */
+/* =================================== */
+
+.photo-panel-item {
+    cursor: pointer;
+}
+
+.photo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    display: none; /* Começa oculto */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.photo-modal-content {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    max-width: 500px;
+    height: 90vh;
+    max-height: 800px;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 36px;
+    color: white;
+    cursor: pointer;
+    z-index: 1;
+}
+
+#modalPhotoImage {
+    width: 100%;
+    height: 60%;
+    object-fit: cover;
+}
+
+.photo-comments-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.comments-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.comment-item {
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+.comment-item strong {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.comment-item p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-left: 5px;
+    display: inline;
+}
+
+.comment-input-area {
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #333;
+    padding-top: 15px;
+}
+.comment-input-area input {
+    flex-grow: 1;
+    background-color: #3a3a3a;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 15px;
+    color: white;
+}
+.comment-input-area button {
+    background-color: var(--accent-like);
+    color: #111;
+    border: none;
+    border-radius: 8px;
+    padding: 0 15px;
+    font-weight: 600;
+    cursor: pointer;
+}

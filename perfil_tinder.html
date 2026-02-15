@@ -65,6 +65,23 @@
         </main>
     </div>
 
+    <!-- MODAL PARA VISUALIZAR FOTO E COMENTÁRIOS -->
+    <div id="photoModal" class="photo-modal-overlay">
+        <div class="photo-modal-content">
+            <span class="close-modal-btn" onclick="closePhotoModal( )">&times;</span>
+            <img id="modalPhotoImage" src="" alt="Foto ampliada">
+            <div class="photo-comments-section">
+                <div id="modalCommentsContainer" class="comments-container">
+                    <!-- Comentários serão carregados aqui -->
+                </div>
+                <div class="comment-input-area">
+                    <input type="text" id="commentInput" placeholder="Adicione um comentário...">
+                    <button onclick="postComment()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
@@ -73,6 +90,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const targetId = urlParams.get('id') || selfId;
         const isOwnProfile = (targetId === selfId);
+
+        let currentOpenPhotoId = null;
 
         console.log(`[DEBUG] Iniciando perfil. É o próprio perfil? ${isOwnProfile}. ID do Alvo: ${targetId}`);
 
@@ -105,12 +124,9 @@
                 document.getElementById('profileBio').textContent = user.bio || 'Atleta WODPulse | Adicione sua bio!';
                 document.getElementById('profileMainPhoto').src = formatPhoto(user.photo);
                 
-                return user.photo;
-
             } catch (err) {
                 document.getElementById('profileName').textContent = 'Erro ao carregar perfil.';
                 console.error(err);
-                return null;
             }
         }
 
@@ -122,21 +138,17 @@
                 const photos = await res.json();
                 console.log(`[DEBUG] 2.1. Fotos recebidas: ${photos.length}`);
 
-                if (photos.length === 0 && !isOwnProfile) {
-                    panelGrid.innerHTML = '<p class="loading-text">Nenhuma foto no painel.</p>';
+                if (photos.length === 0) {
+                    panelGrid.innerHTML = isOwnProfile ? '' : '<p class="loading-text">Nenhuma foto no painel.</p>';
                     return;
                 }
                 
-                panelGrid.innerHTML = ''; // Limpa antes de adicionar
-
-                photos.forEach(photo => {
-                    panelGrid.innerHTML += `
-                        <div class="photo-panel-item">
-                            <img src="${formatPhoto(photo.photo_data)}" alt="Foto do painel">
-                            ${isOwnProfile ? `<button class="btn-delete-photo" onclick="deletePhoto(${photo.id})"><i class="fas fa-times"></i></button>` : ''}
-                        </div>
-                    `;
-                });
+                panelGrid.innerHTML = photos.map(photo => `
+                    <div class="photo-panel-item" onclick="openPhotoModal(${photo.id}, '${formatPhoto(photo.photo_data)}')">
+                        <img src="${formatPhoto(photo.photo_data)}" alt="Foto do painel">
+                        ${isOwnProfile ? `<button class="btn-delete-photo" onclick="event.stopPropagation(); deletePhoto(${photo.id});"><i class="fas fa-times"></i></button>` : ''}
+                    </div>
+                `).join('');
 
             } catch (err) {
                 console.error('[DEBUG] 2.2. Erro ao buscar fotos.', err);
@@ -257,6 +269,33 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff', boxWidth: 15 } } } }
             });
+        }
+
+        function openPhotoModal(photoId, photoUrl) {
+            currentOpenPhotoId = photoId;
+            document.getElementById('modalPhotoImage').src = photoUrl;
+            document.getElementById('photoModal').style.display = 'flex';
+            loadPhotoComments(photoId);
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').style.display = 'none';
+            currentOpenPhotoId = null;
+        }
+
+        async function loadPhotoComments(photoId) {
+            const commentsContainer = document.getElementById('modalCommentsContainer');
+            commentsContainer.innerHTML = '<p class="loading-text">Carregando comentários...</p>';
+            console.log(`[DEBUG] 6. Buscando comentários para a foto ID: ${photoId}`);
+            commentsContainer.innerHTML = `<p class="loading-text">Funcionalidade de comentários pendente de API.</p>`;
+        }
+
+        async function postComment() {
+            const input = document.getElementById('commentInput');
+            const content = input.value.trim();
+            if (!content || !currentOpenPhotoId) return;
+            console.log(`[DEBUG] 7. Postando comentário "${content}" na foto ID: ${currentOpenPhotoId}`);
+            alert('Funcionalidade de postar comentário pendente de implementação na API.');
         }
 
         async function initializeProfile() {

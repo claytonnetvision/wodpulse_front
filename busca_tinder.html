@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Buscar Atletas - WODPulse</title>
+    <link rel="stylesheet" href="style_tinder.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <a href="match_tinder.html" class="header-btn"><i class="fas fa-arrow-left"></i></a>
+            <div class="logo-tinder">Buscar</div>
+            <div class="header-btn" style="width: 22px;"></div>
+        </header>
+
+        <main class="search-content">
+            <div class="search-bar-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Digite o nome do atleta...">
+            </div>
+
+            <div id="resultsContainer" class="search-results-container">
+                <div class="spinner"></div>
+                <p class="search-placeholder">Buscando atletas...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://wodpulse-back.onrender.com';
+        const token = localStorage.getItem('wodpulse_social_token' );
+
+        if (!token) {
+            alert('Token não encontrado. Faça login.');
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        let searchTimeout;
+
+        function formatPhoto(photo) {
+            if (!photo) return 'https://i.imgur.com/3g7A8vW.png';
+            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            return `data:image/jpeg;base64,${photo}`;
+        }
+
+        async function searchUsers(query = "") { // Agora aceita uma query vazia
+            resultsContainer.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                // Se a query for vazia, busca os candidatos gerais. Se não, busca pelo nome.
+                const endpoint = query ? `/api/social/search-users?q=${encodeURIComponent(query)}` : '/api/social/candidates';
+                
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Erro na busca.');
+
+                // A rota /search-users retorna { users: [...] }, a /candidates retorna [...]
+                const data = await res.json();
+                const users = data.users || data; // Adapta para os dois formatos de resposta
+
+                if (users.length === 0) {
+                    resultsContainer.innerHTML = '<p class="search-placeholder">Nenhum atleta encontrado.</p>';
+                    return;
+                }
+
+                resultsContainer.innerHTML = users.map(user => `
+                    <a href="perfil_tinder.html?id=${user.id}" class="search-result-item">
+                        <img src="${formatPhoto(user.photo)}" alt="${user.name}">
+                        <div class="user-info">
+                            <span class="user-name">${user.name}</span>
+                            <span class="user-detail">Box: ${user.box_id || 'N/A'}</span>
+                        </div>
+                    </a>
+                `).join('');
+
+            } catch (err) {
+                resultsContainer.innerHTML = `<p class="search-placeholder" style="color: var(--accent-pass);">${err.message}</p>`;
+                console.error(err);
+            }
+        }
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            const query = searchInput.value.trim();
+            searchTimeout = setTimeout(() => {
+                searchUsers(query);
+            }, 500);
+        });
+
+        // CHAMA A FUNÇÃO DE BUSCA ASSIM QUE A PÁGINA CARREGA
+        document.addEventListener('DOMContentLoaded', () => {
+            searchUsers(); // Busca inicial sem texto
+        });
+    </script>
+
+</body>
+</html>
