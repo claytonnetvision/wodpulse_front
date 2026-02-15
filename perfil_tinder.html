@@ -14,8 +14,7 @@
         <header class="app-header">
             <a href="match_tinder.html" class="header-btn"><i class="fas fa-arrow-left"></i></a>
             <div id="headerUsername" class="logo-tinder">Perfil</div>
-            <a href="#" id="editProfileButton" class="header-btn"><i class="fas fa-cog"></i></a>
-
+            <a href="#" id="editProfileButton" class="header-btn" style="display: none;"><i class="fas fa-cog"></i></a>
         </header>
 
         <main class="profile-content">
@@ -37,19 +36,16 @@
 
                     <div id="selfUserActions" class="profile-action-buttons" style="display: none;">
                         <a href="desafio_painel.html" class="btn-profile-action challenge">⚔️ Meus Desafios</a>
-                        <a href="#" class="btn-profile-action chat">⚙️ Editar Perfil</a>
                     </div>
                 </div>
             </section>
 
             <section id="notificationsSection" class="notifications-section" style="display: none;">
-                <div class="panel-header">
-                    <h3>Novas Mensagens</h3>
-                </div>
+                <!-- O conteúdo das notificações será inserido aqui pelo JS -->
                 <div id="notificationsContainer"></div>
             </section>
 
-            <section class="photo-panel-section">
+            <section id="photoPanelSection" class="photo-panel-section">
                 <div class="panel-header">
                     <h3>Minhas Fotos</h3>
                     <button id="addPhotoButton" class="btn-add-photo" style="display: none;"><i class="fas fa-plus"></i> Adicionar</button>
@@ -82,6 +78,7 @@
         </main>
     </div>
 
+    <!-- MODAL PARA VISUALIZAÇÃO DE FOTO -->
     <div id="photoModal" class="photo-modal-overlay">
         <div class="photo-modal-content">
             <span class="close-modal-btn" onclick="closePhotoModal( )">&times;</span>
@@ -96,7 +93,27 @@
         </div>
     </div>
 
+    <!-- MODAL PARA CONFIGURAÇÕES -->
+    <div id="settingsModal" class="match-popup-overlay">
+        <div class="match-popup-content">
+            <h2>Configurações</h2>
+            <div class="filter-group">
+                <label>Privacidade do Perfil</label>
+                <select id="privacySelect" class="form-control-select">
+                    <option value="public">Público (Todos podem ver seu perfil e te desafiar)</option>
+                    <option value="private">Privado (Apenas você vê seus detalhes)</option>
+                </select>
+            </div>
+            <button class="btn-popup btn-chat" onclick="saveSettings()">Salvar</button>
+            <button class="btn-popup btn-close" onclick="closeSettingsModal()">Cancelar</button>
+        </div>
+    </div>
+
     <script>
+        // ==================================================
+        // SCRIPT COMPLETO E CORRIGIDO PARA perfil_tinder.html
+        // ==================================================
+
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
         const selfId = localStorage.getItem('wodpulse_aluno_id');
@@ -111,26 +128,42 @@
 
         if (!token || !targetId) {
             alert('Token ou ID do alvo não encontrado. Faça login novamente.');
-            console.error(`[DEBUG] Token: ${token}, Target ID: ${targetId}`);
         }
 
         document.getElementById('fullProgressButton').href = `meu-progresso.html?id=${targetId}`;
 
+        function setRealViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
         function formatPhoto(photo) {
             if (!photo) return 'https://i.imgur.com/3g7A8vW.png';
-            if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
+            if (photo.startsWith('data:image' )) return photo;
             return `data:image/jpeg;base64,${photo}`;
         }
 
         async function loadParticipantData() {
             console.log(`[DEBUG] 1. Buscando dados básicos do participante ID: ${targetId}`);
-        const endpoint = isOwnProfile ? '/api/social/profile' : `/api/social/public-profile/${targetId}`;
+            const endpoint = isOwnProfile ? '/api/social/profile' : `/api/social/public-profile/${targetId}`;
             try {
                 const res = await fetch(`${API_BASE_URL}${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error(`Erro ${res.status} ao buscar dados do participante.`);
                 const user = await res.json();
                 
                 console.log('[DEBUG] 1.1. Dados básicos recebidos:', user);
+
+                if (user.is_private) {
+                    document.getElementById('headerUsername').textContent = user.name.split(' ')[0];
+                    document.getElementById('profileName').textContent = user.name;
+                    document.getElementById('profileBio').textContent = 'Este perfil é privado.';
+                    document.getElementById('profileMainPhoto').src = formatPhoto(user.photo);
+                    document.getElementById('photoPanelSection').style.display = 'none';
+                    document.getElementById('performanceStatsSection').style.display = 'none';
+                    document.getElementById('chartsSection').style.display = 'none';
+                    document.getElementById('otherUserActions').style.display = 'none';
+                    return;
+                }
 
                 document.getElementById('headerUsername').textContent = user.name.split(' ')[0];
                 document.getElementById('profileName').textContent = `${user.name}, ${user.age || 'N/A'}`;
@@ -215,6 +248,37 @@
             } catch (err) {
                 console.error('[DEBUG] 5.2. Erro ao deletar foto:', err);
                 alert(`Erro: ${err.message}`);
+            }
+        }
+
+        async function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const photoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+
+            console.log('[DEBUG] Enviando nova foto de perfil para a API...');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile/photo`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: photoBase64 })
+                });
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Falha ao atualizar a foto de perfil.');
+                }
+                console.log('[DEBUG] Foto de perfil atualizada com sucesso.');
+                alert('Foto de perfil atualizada! A página será recarregada.');
+                window.location.reload();
+            } catch (err) {
+                console.error('[DEBUG] Erro ao atualizar foto de perfil:', err);
+                alert(`Erro ao atualizar a foto: ${err.message}`);
             }
         }
 
@@ -403,70 +467,91 @@
                 if (!res.ok) throw new Error('Falha ao buscar notificações.');
                 const notifications = await res.json();
                 console.log(`[DEBUG] 8.1. Notificações recebidas: ${notifications.length}`);
-                if (notifications.length === 0) {
-                    notificationsSection.style.display = 'none';
-                    return;
+                
+                let hasMessages = notifications.length > 0;
+                let html = '';
+
+                if (hasMessages) {
+                    html += '<h4 class="section-subtitle">Novas Mensagens</h4>';
+                    html += notifications.map(notif => `
+                        <a href="chat_tinder.html?id=${notif.sender_id}" class="notification-item">
+                            <img src="${formatPhoto(notif.sender_photo)}" alt="${notif.sender_name}" class="notification-user-photo">
+                            <div class="notification-text">
+                                <strong>${notif.sender_name}</strong> te enviou uma nova mensagem.
+                            </div>
+                            <span class="notification-badge">${notif.unread_count}</span>
+                        </a>
+                    `).join('');
                 }
-                notificationsSection.style.display = 'block';
-                notificationsContainer.innerHTML = notifications.map(notif => `
-                    <a href="chat_tinder.html?id=${notif.sender_id}" class="notification-item">
-                        <img src="${formatPhoto(notif.sender_photo)}" alt="${notif.sender_name}" class="notification-user-photo">
-                        <div class="notification-text">
-                            <strong>${notif.sender_name}</strong> te enviou uma nova mensagem.
-                        </div>
-                        <span class="notification-badge">${notif.unread_count}</span>
-                    </a>
-                `).join('');
+                
+                notificationsContainer.innerHTML = html; // Limpa e adiciona o conteúdo de mensagens
+                if (hasMessages) notificationsSection.style.display = 'block';
+
             } catch (err) {
                 console.error('[DEBUG] 8.2. Erro ao buscar notificações:', err);
-                notificationsSection.style.display = 'none';
             }
         }
-function setRealViewportHeight() {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-}
-        // SUBSTITUA A FUNÇÃO ANTIGA PELA NOVA NO SCRIPT DE perfil_tinder.html
-async function handleProfilePhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
 
-    const photoBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-
-    console.log('[DEBUG] Enviando nova foto de perfil para a API...');
-    try {
-        // USA A NOVA ROTA, MAIS SEGURA E ESPECÍFICA
-        const res = await fetch(`${API_BASE_URL}/api/social/profile/photo`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photo: photoBase64 })
-        });
-
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || 'Falha ao atualizar a foto de perfil.');
+        async function loadLikesReceived() {
+            if (!isOwnProfile) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile/likes`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const likes = await res.json();
+                if (likes.length > 0) {
+                    const notificationsSection = document.getElementById('notificationsSection');
+                    const notificationsContainer = document.getElementById('notificationsContainer');
+                    notificationsSection.style.display = 'block';
+                    
+                    let likesHtml = '<h4 class="section-subtitle">Curtiram seu Perfil</h4>';
+                    likesHtml += likes.map(like => `
+                        <a href="perfil_tinder.html?id=${like.id}" class="notification-item">
+                            <img src="${formatPhoto(like.photo)}" alt="${like.name}" class="notification-user-photo">
+                            <div class="notification-text">
+                                <strong>${like.name}</strong> curtiu seu perfil.
+                            </div>
+                            <span class="notification-badge" style="background-color: var(--accent-pass);"><i class="fas fa-heart"></i></span>
+                        </a>
+                    `).join('');
+                    
+                    notificationsContainer.innerHTML += likesHtml; // Adiciona o HTML de likes ao container
+                }
+            } catch (err) {
+                console.error('Erro ao carregar likes recebidos:', err);
+            }
         }
-        
-        console.log('[DEBUG] Foto de perfil atualizada com sucesso.');
-        alert('Foto de perfil atualizada! A página será recarregada.');
-        window.location.reload();
 
-    } catch (err) {
-        console.error('[DEBUG] Erro ao atualizar foto de perfil:', err);
-        alert(`Erro ao atualizar a foto: ${err.message}`);
-    }
-}
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
 
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        async function saveSettings() {
+            const newPrivacy = document.getElementById('privacySelect').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/profile/privacy`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ privacy: newPrivacy })
+                });
+                if (!res.ok) throw new Error('Falha ao salvar as configurações.');
+                
+                alert('Configurações salvas com sucesso!');
+                closeSettingsModal();
+                window.location.reload();
+
+            } catch (err) {
+                alert(`Erro: ${err.message}`);
+            }
+        }
 
         async function initializeProfile() {
             if (isOwnProfile) {
                 document.getElementById('addPhotoButton').style.display = 'block';
                 document.getElementById('editPhotoButton').style.display = 'block';
+                document.getElementById('editProfileButton').style.display = 'block';
 
                 document.getElementById('addPhotoButton').addEventListener('click', () => document.getElementById('photoUploadInput').click());
                 document.getElementById('photoUploadInput').addEventListener('change', handlePhotoUpload);
@@ -475,108 +560,25 @@ async function handleProfilePhotoUpload(event) {
                 document.getElementById('profilePhotoInput').addEventListener('change', handleProfilePhotoUpload);
 
                 document.getElementById('selfUserActions').style.display = 'flex';
-                loadMessageNotifications();
-                loadLikesReceived();
+                document.getElementById('editProfileButton').addEventListener('click', openSettingsModal);
+                
+                await loadMessageNotifications();
+                await loadLikesReceived();
             } else {
                 document.getElementById('otherUserActions').style.display = 'flex';
                 document.getElementById('challengeButton').href = `criar_desafio.html?opponentId=${targetId}`;
                 document.getElementById('chatButton').href = `chat_tinder.html?id=${targetId}`;
             }
+            
             await loadParticipantData();
             await loadUserPhotos();
             await loadPerformanceData();
         }
 
+        // Inicia tudo
+        window.addEventListener('resize', setRealViewportHeight);
+        setRealViewportHeight();
         initializeProfile();
-        // ADICIONE ESTAS LINHAS AO FINAL DO <script> DE CADA ARQUIVO
-            // ADICIONE ESTAS FUNÇÕES AO SCRIPT DE perfil_tinder.html
-// ADICIONE ESTA FUNÇÃO AO SCRIPT DE perfil_tinder.html
-async function loadLikesReceived() {
-    if (!isOwnProfile) return;
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/social/profile/likes`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const likes = await res.json();
-        if (likes.length > 0) {
-            const notificationsSection = document.getElementById('notificationsSection');
-            notificationsSection.style.display = 'block';
-            // Adiciona um título para a nova seção
-            document.getElementById('notificationsContainer').innerHTML += '<h4 class="section-subtitle">Curtiram seu Perfil</h4>';
-            likes.forEach(like => {
-                document.getElementById('notificationsContainer').innerHTML += `
-                    <a href="perfil_tinder.html?id=${like.id}" class="notification-item">
-                        <img src="${formatPhoto(like.photo)}" alt="${like.name}" class="notification-user-photo">
-                        <div class="notification-text">
-                            <strong>${like.name}</strong> curtiu seu perfil.
-                        </div>
-                        <span class="notification-badge" style="background-color: var(--accent-pass);"><i class="fas fa-heart"></i></span>
-                    </a>
-                `;
-            });
-        }
-    } catch (err) {
-        console.error('Erro ao carregar likes recebidos:', err);
-    }
-}
-
-function openSettingsModal() {
-    // Busca a configuração atual do usuário para pré-selecionar a opção
-    // (Esta é uma simplificação, o ideal seria buscar da API, mas funciona)
-    const currentPrivacy = document.getElementById('profileBio').textContent.includes('Privado') ? 'private' : 'public';
-    document.getElementById('privacySelect').value = currentPrivacy;
-    document.getElementById('settingsModal').classList.add('show');
-}
-
-function closeSettingsModal() {
-    document.getElementById('settingsModal').classList.remove('show');
-}
-
-async function saveSettings() {
-    const newPrivacy = document.getElementById('privacySelect').value;
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/social/profile/privacy`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ privacy: newPrivacy })
-        });
-        if (!res.ok) throw new Error('Falha ao salvar as configurações.');
-        
-        alert('Configurações salvas com sucesso!');
-        closeSettingsModal();
-        window.location.reload(); // Recarrega a página para refletir as mudanças
-
-    } catch (err) {
-        alert(`Erro: ${err.message}`);
-    }
-}
-
-// E ajuste a função initializeProfile para ligar o botão de editar
-async function initializeProfile() {
-    if (isOwnProfile) {
-        
-        document.getElementById('editProfileButton').addEventListener('click', openSettingsModal); // <-- ADICIONE ESTA LINHA
-    }
-    // ... (resto da função)
-}
-
-<!-- ADICIONE ESTE MODAL AO SEU perfil_tinder.html -->
-<div id="settingsModal" class="match-popup-overlay">
-    <div class="match-popup-content">
-        <h2>Configurações</h2>
-        <div class="filter-group">
-            <label>Privacidade do Perfil</label>
-            <select id="privacySelect" class="form-control-select">
-                <option value="public">Público (Todos podem ver seu perfil e te desafiar)</option>
-                <option value="private">Privado (Apenas você vê seus detalhes)</option>
-            </select>
-        </div>
-        <button class="btn-popup btn-chat" onclick="saveSettings()">Salvar</button>
-        <button class="btn-popup btn-close" onclick="closeSettingsModal()">Cancelar</button>
-    </div>
-</div>
-
-// Ajusta a altura da viewport ao carregar e ao redimensionar
-window.addEventListener('resize', setRealViewportHeight);
-setRealViewportHeight(); // Chama a função uma vez no carregamento inicial
 
     </script>
 </body>
