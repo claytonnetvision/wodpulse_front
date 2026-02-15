@@ -422,39 +422,42 @@
             }
         }
 
-        async function handleProfilePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        // SUBSTITUA A FUNÇÃO ANTIGA PELA NOVA NO SCRIPT DE perfil_tinder.html
+async function handleProfilePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-            const photoBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+    const photoBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 
-            console.log('[DEBUG] Enviando nova foto de perfil para a API...');
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/participants/${selfId}`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ photo: photoBase64 })
-                });
+    console.log('[DEBUG] Enviando nova foto de perfil para a API...');
+    try {
+        // USA A NOVA ROTA, MAIS SEGURA E ESPECÍFICA
+        const res = await fetch(`${API_BASE_URL}/api/social/profile/photo`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photo: photoBase64 })
+        });
 
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || 'Falha ao atualizar a foto de perfil.');
-                }
-                
-                console.log('[DEBUG] Foto de perfil atualizada com sucesso.');
-                alert('Foto de perfil atualizada! A página será recarregada.');
-                window.location.reload();
-
-            } catch (err) {
-                console.error('[DEBUG] Erro ao atualizar foto de perfil:', err);
-                alert(`Erro ao atualizar a foto: ${err.message}`);
-            }
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Falha ao atualizar a foto de perfil.');
         }
+        
+        console.log('[DEBUG] Foto de perfil atualizada com sucesso.');
+        alert('Foto de perfil atualizada! A página será recarregada.');
+        window.location.reload();
+
+    } catch (err) {
+        console.error('[DEBUG] Erro ao atualizar foto de perfil:', err);
+        alert(`Erro ao atualizar a foto: ${err.message}`);
+    }
+}
+
 
         async function initializeProfile() {
             if (isOwnProfile) {

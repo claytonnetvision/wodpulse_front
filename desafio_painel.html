@@ -37,6 +37,8 @@
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
+        // Adicionamos a busca do ID do usuário logado para a lógica de exclusão
+        const selfId = localStorage.getItem('wodpulse_aluno_id');
 
         if (!token) {
             alert('Sessão não encontrada. Faça login.');
@@ -105,8 +107,14 @@
             }
         }
 
+        // ==================================================
+        // FUNÇÃO renderChallengeCard ATUALIZADA
+        // ==================================================
         async function renderChallengeCard(challenge) {
+            // Verifica se o usuário logado é o criador do desafio
+            const isCreator = String(challenge.creator_id) === String(selfId);
             let content = '';
+
             if (challenge.my_status === 'invited') {
                 content = `
                     <div class="challenge-invitation">
@@ -121,27 +129,35 @@
                  content = `<p class="challenge-status-text">Aguardando início pelo criador...</p>`;
             } else {
                 // Se o desafio está ativo ou finalizado, busca o ranking dele
-                const rankingRes = await fetch(`${API_BASE_URL}/api/challenges/${challenge.id}/ranking`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const rankingData = await rankingRes.json();
-                content = `
-                    <div class="ranking-list mini">
-                        ${rankingData.ranking.slice(0, 3).map((p, i) => `
-                            <div class="ranking-item">
-                                <span class="ranking-position">${i + 1}</span>
-                                <img src="${formatPhoto(p.photo)}" alt="${p.name}">
-                                <span class="ranking-name">${p.name.split(' ')[0]}</span>
-                                <span class="ranking-score">${Math.round(p.total_calories)} kcal</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+                try {
+                    const rankingRes = await fetch(`${API_BASE_URL}/api/challenges/${challenge.id}/ranking`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    const rankingData = await rankingRes.json();
+                    content = `
+                        <div class="ranking-list mini">
+                            ${rankingData.ranking.slice(0, 3).map((p, i) => `
+                                <div class="ranking-item">
+                                    <span class="ranking-position">${i + 1}</span>
+                                    <img src="${formatPhoto(p.photo)}" alt="${p.name}">
+                                    <span class="ranking-name">${p.name.split(' ')[0]}</span>
+                                    <span class="ranking-score">${Math.round(p.total_calories)} kcal</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } catch (e) {
+                    content = `<p class="loading-text" style="color:red;">Erro ao carregar ranking do desafio.</p>`;
+                }
             }
 
+            // O HTML do card agora inclui o botão de exclusão condicional
             return `
                 <div class="challenge-card">
                     <div class="challenge-header">
                         <h4>${challenge.title}</h4>
-                        <span class="challenge-status ${challenge.status}">${challenge.status === 'active' ? timeLeft(challenge.end_date) : challenge.status}</span>
+                        <div class="challenge-header-right">
+                            <span class="challenge-status ${challenge.status}">${challenge.status === 'active' ? timeLeft(challenge.end_date) : challenge.status}</span>
+                            ${isCreator ? `<button class="btn-delete-challenge" onclick="deleteChallenge(${challenge.id})"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
                     </div>
                     ${content}
                 </div>
@@ -161,6 +177,32 @@
             } catch (err) {
                 console.error('Erro ao responder desafio:', err);
                 alert('Erro ao responder ao desafio.');
+            }
+        }
+
+        // ==================================================
+        // NOVA FUNÇÃO PARA DELETAR O DESAFIO
+        // ==================================================
+        async function deleteChallenge(challengeId) {
+            if (!confirm('Tem certeza que deseja excluir este desafio? Esta ação não pode ser desfeita.')) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/challenges/${challengeId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Falha ao excluir o desafio.');
+                }
+
+                alert('Desafio excluído com sucesso!');
+                loadMyChallenges(); // Recarrega a lista para remover o card excluído
+
+            } catch (err) {
+                console.error('Erro ao excluir desafio:', err);
+                alert(`Erro: ${err.message}`);
             }
         }
 
