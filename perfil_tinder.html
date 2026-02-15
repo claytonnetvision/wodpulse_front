@@ -550,9 +550,11 @@
             }
         }
 // ADICIONE ESTA FUNÇÃO AO SCRIPT DE perfil_tinder.html
+// SUBSTITUA A FUNÇÃO ANTIGA PELA NOVA VERSÃO COMPLETA
+
 async function handleLikeFromProfile() {
     const likeButton = document.getElementById('likeButton');
-    likeButton.disabled = true; // Desabilita para evitar cliques duplos
+    likeButton.disabled = true;
 
     try {
         const res = await fetch(`${API_BASE_URL}/api/social/match`, {
@@ -562,10 +564,13 @@ async function handleLikeFromProfile() {
         });
         const data = await res.json();
 
+        // ATUALIZAÇÃO VISUAL PRECISA
         if (data.action === 'liked') {
             likeButton.classList.add('liked');
+            console.log('[LIKE DEBUG] Ação: LIKE. Botão agora está MARCADO.');
         } else if (data.action === 'unliked') {
             likeButton.classList.remove('liked');
+            console.log('[LIKE DEBUG] Ação: UNLIKE. Botão agora está DESMARCADO.');
         }
 
         if (data.mutualMatch) {
@@ -576,7 +581,28 @@ async function handleLikeFromProfile() {
         console.error('Erro ao curtir/descurtir do perfil:', err);
         alert('Ocorreu um erro. Tente novamente.');
     } finally {
-        likeButton.disabled = false; // Reabilita o botão
+        likeButton.disabled = false;
+    }
+}
+
+// ADICIONE ESTA NOVA FUNÇÃO AO SEU SCRIPT
+async function checkLikeStatus() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/match-status/${targetId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const likeButton = document.getElementById('likeButton');
+
+        if (data.status === 'matched' || data.status === 'mutual_match') {
+            likeButton.classList.add('liked');
+            console.log('[LIKE DEBUG] Status inicial: JÁ CURTIDO. Marcando o botão.');
+        } else {
+            likeButton.classList.remove('liked');
+            console.log('[LIKE DEBUG] Status inicial: NÃO CURTIDO. Desmarcando o botão.');
+        }
+    } catch (err) {
+        console.error('Erro ao verificar status do like:', err);
     }
 }
         async function initializeProfile() {
@@ -593,14 +619,17 @@ async function handleLikeFromProfile() {
 
                 document.getElementById('selfUserActions').style.display = 'flex';
                 document.getElementById('editProfileButton').addEventListener('click', openSettingsModal);
-                document.getElementById('likeButton').addEventListener('click', handleLikeFromProfile); // <-- ADICIONE ESTA LINHA
+                
 
                 await loadMessageNotifications();
                 await loadLikesReceived();
+                
             } else {
                 document.getElementById('otherUserActions').style.display = 'flex';
                 document.getElementById('challengeButton').href = `criar_desafio.html?opponentId=${targetId}`;
                 document.getElementById('chatButton').href = `chat_tinder.html?id=${targetId}`;
+                document.getElementById('likeButton').addEventListener('click', handleLikeFromProfile); // <-- ADICIONE ESTA LINHA
+                await checkLikeStatus();
             }
             
             await loadParticipantData();
