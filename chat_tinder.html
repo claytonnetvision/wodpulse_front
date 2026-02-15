@@ -17,7 +17,8 @@
                 <img id="chatUserPhoto" src="https://i.imgur.com/3g7A8vW.png" alt="Foto do usuário" class="chat-user-photo">
                 <span id="chatUserName">Carregando...</span>
             </a>
-            <a href="#" class="header-btn"><i class="fas fa-shield-alt"></i></a>
+            <button onclick="clearChatHistory()" class="header-btn" title="Limpar histórico"><i class="fas fa-trash-alt"></i></button>
+
         </header>
 
         <!-- CORPO DAS MENSAGENS -->
@@ -189,6 +190,32 @@
         // Eventos para garantir que o layout se ajuste
         window.addEventListener('resize', adjustChatLayout);
         document.addEventListener('DOMContentLoaded', init);
+// ADICIONE ESTA NOVA FUNÇÃO AO SCRIPT DE chat_tinder.html
+
+async function clearChatHistory() {
+    if (!confirm('Tem certeza que deseja apagar todo o histórico desta conversa? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+
+    console.log(`[CHAT DEBUG] Solicitando exclusão do histórico com o amigo ID: ${friendId}`);
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/messages/${friendId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+            throw new Error('Falha ao limpar o histórico na API.');
+        }
+
+        alert('Histórico da conversa foi limpo com sucesso!');
+        loadMessages(); // Recarrega a área de mensagens, que agora mostrará que não há mensagens.
+
+    } catch (err) {
+        console.error('[CHAT DEBUG] Erro ao limpar histórico:', err);
+        alert('Não foi possível limpar o histórico. Tente novamente.');
+    }
+}
 
     </script>
 

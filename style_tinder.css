@@ -1284,3 +1284,19 @@ body {
 .send-btn {
     color: var(--accent-like);
 }
+.form-control-select {
+    width: 100%;
+    padding: 12px;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+}
+.section-subtitle {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 15px 0 10px 5px;
+    font-weight: 600;
+}
