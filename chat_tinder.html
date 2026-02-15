@@ -127,6 +127,26 @@ async function loadMessages() {
         chatBody.innerHTML = `<p class="loading-text" style="color: var(--accent-pass);">${err.message}</p>`;
     }
 }
+// Dentro do <script> do chat_tinder.html
+
+/**
+ * NOVA FUNÇÃO: Informa ao backend que as mensagens deste chat foram lidas.
+ */
+async function markMessagesAsRead() {
+    console.log(`[CHAT DEBUG] Marcando mensagens do amigo ID ${friendId} como lidas.`);
+    try {
+        await fetch(`${API_BASE_URL}/api/social/messages/mark-as-read`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friendId: friendId })
+        });
+    } catch (err) {
+        console.error('[CHAT DEBUG] Erro ao marcar mensagens como lidas:', err);
+    }
+}
+
+
+
 
 // SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
 async function sendMessage() {
@@ -155,10 +175,10 @@ async function sendMessage() {
     }
 }
 
-// No final do script, altere a inicialização para chamar a função de carregar mensagens
+// No final do seu script, chame a nova função junto com as outras:
 loadFriendInfo();
 loadMessages();
-// Adicione um timer para recarregar as mensagens a cada 10 segundos (polling simples)
+markMessagesAsRead(); // <-- ADICIONE ESTA LINHA
 setInterval(loadMessages, 10000);
 
 
