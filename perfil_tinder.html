@@ -283,20 +283,65 @@
             currentOpenPhotoId = null;
         }
 
-        async function loadPhotoComments(photoId) {
-            const commentsContainer = document.getElementById('modalCommentsContainer');
-            commentsContainer.innerHTML = '<p class="loading-text">Carregando comentários...</p>';
-            console.log(`[DEBUG] 6. Buscando comentários para a foto ID: ${photoId}`);
-            commentsContainer.innerHTML = `<p class="loading-text">Funcionalidade de comentários pendente de API.</p>`;
+        // Dentro do <script> do perfil_tinder.html
+
+// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
+async function loadPhotoComments(photoId) {
+    const commentsContainer = document.getElementById('modalCommentsContainer');
+    commentsContainer.innerHTML = '<p class="loading-text">Carregando comentários...</p>';
+    console.log(`[DEBUG] 6. Buscando comentários para a foto ID: ${photoId}`);
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}/comments`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Falha ao carregar comentários.');
+        const comments = await res.json();
+        
+        if (comments.length === 0) {
+            commentsContainer.innerHTML = '<p class="loading-text">Nenhum comentário ainda. Seja o primeiro!</p>';
+            return;
         }
 
-        async function postComment() {
-            const input = document.getElementById('commentInput');
-            const content = input.value.trim();
-            if (!content || !currentOpenPhotoId) return;
-            console.log(`[DEBUG] 7. Postando comentário "${content}" na foto ID: ${currentOpenPhotoId}`);
-            alert('Funcionalidade de postar comentário pendente de implementação na API.');
-        }
+        commentsContainer.innerHTML = comments.map(comment => `
+            <div class="comment-item">
+                <img src="${formatPhoto(comment.user_photo)}" class="comment-user-photo" alt="${comment.user_name}">
+                <div>
+                    <strong>${comment.user_name}</strong>
+                    <p>${comment.content}</p>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error(err);
+        commentsContainer.innerHTML = `<p class="loading-text" style="color: red;">${err.message}</p>`;
+    }
+}
+
+// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
+async function postComment() {
+    const input = document.getElementById('commentInput');
+    const content = input.value.trim();
+    if (!content || !currentOpenPhotoId) return;
+
+    console.log(`[DEBUG] 7. Postando comentário "${content}" na foto ID: ${currentOpenPhotoId}`);
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/photos/${currentOpenPhotoId}/comments`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: content })
+        });
+        if (!res.ok) throw new Error('Falha ao postar comentário.');
+        
+        input.value = '';
+        loadPhotoComments(currentOpenPhotoId); // Recarrega os comentários para mostrar o novo
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao enviar comentário.');
+    }
+}
+
 
         async function initializeProfile() {
             if (isOwnProfile) {

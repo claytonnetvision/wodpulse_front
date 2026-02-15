@@ -92,79 +92,75 @@
          * [FUNÇÃO DE ESQUELETO] Carrega o histórico de mensagens.
          * Esta função precisará ser implementada quando a rota da API de mensagens existir.
          */
-        async function loadMessages() {
-            console.log(`[CHAT DEBUG] Buscando mensagens para o amigo ID: ${friendId}`);
-            const chatBody = document.getElementById('chatMessages');
-            chatBody.innerHTML = '<p class="loading-text">Carregando mensagens...</p>';
+        // Dentro do <script> do chat_tinder.html
 
-            // QUANDO A ROTA ESTIVER PRONTA, DESCOMENTE E AJUSTE O CÓDIGO ABAIXO
-            /*
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/messages/${friendId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) throw new Error('Falha ao carregar mensagens.');
-                
-                const messages = await res.json();
-                const selfId = localStorage.getItem('wodpulse_aluno_id');
-                
-                chatBody.innerHTML = messages.map(msg => `
-                    <div class="message-bubble-wrapper ${msg.sender_id == selfId ? 'self' : 'other'}">
-                        <div class="message-bubble ${msg.sender_id == selfId ? 'self' : 'other'}">
-                            ${msg.content}
-                        </div>
-                    </div>
-                `).join('');
+// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
+async function loadMessages() {
+    console.log(`[CHAT DEBUG] Buscando mensagens para o amigo ID: ${friendId}`);
+    const chatBody = document.getElementById('chatMessages');
+    chatBody.innerHTML = '<p class="loading-text">Carregando mensagens...</p>';
 
-                // Rola para a última mensagem
-                chatBody.scrollTop = chatBody.scrollHeight;
-
-            } catch (err) {
-                console.error('[CHAT DEBUG] Erro ao carregar mensagens:', err);
-                chatBody.innerHTML = `<p class="loading-text" style="color: var(--accent-pass);">${err.message}</p>`;
-            }
-            */
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/messages/${friendId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) throw new Error('Falha ao carregar mensagens.');
+        
+        const messages = await res.json();
+        const selfId = localStorage.getItem('wodpulse_aluno_id');
+        
+        if (messages.length === 0) {
+            chatBody.innerHTML = '<p class="loading-text">Nenhuma mensagem ainda. Comece a conversa!</p>';
+            return;
         }
 
-        /**
-         * [FUNÇÃO DE ESQUELETO] Envia uma nova mensagem.
-         * Esta função precisará ser implementada quando a rota da API de mensagens existir.
-         */
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const messageContent = input.value.trim();
-
-            if (messageContent === '') return;
-
-            console.log(`[CHAT DEBUG] Enviando mensagem: "${messageContent}" para o amigo ID: ${friendId}`);
-            
-            // Simula o envio da mensagem na tela instantaneamente para melhor UX
-            const chatBody = document.getElementById('chatMessages');
-            chatBody.innerHTML += `
-                <div class="message-bubble-wrapper self">
-                    <div class="message-bubble self">
-                        ${messageContent}
-                    </div>
+        chatBody.innerHTML = messages.map(msg => `
+            <div class="message-bubble-wrapper ${msg.sender_id == selfId ? 'self' : 'other'}">
+                <div class="message-bubble ${msg.sender_id == selfId ? 'self' : 'other'}">
+                    ${msg.content}
                 </div>
-            `;
-            chatBody.scrollTop = chatBody.scrollHeight;
-            input.value = '';
+            </div>
+        `).join('');
 
-            // QUANDO A ROTA ESTIVER PRONTA, DESCOMENTE O CÓDIGO ABAIXO
-            /*
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/social/messages/send`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ receiverId: friendId, content: messageContent })
-                });
-                if (!res.ok) {
-                    // Se falhar, pode adicionar um indicador de erro na mensagem enviada
-                    console.error('Falha ao enviar mensagem para a API.');
-                }
-            } catch (err) {
-                console.error('Erro de rede ao enviar mensagem:', err);
-            }
-            */
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+    } catch (err) {
+        console.error('[CHAT DEBUG] Erro ao carregar mensagens:', err);
+        chatBody.innerHTML = `<p class="loading-text" style="color: var(--accent-pass);">${err.message}</p>`;
+    }
+}
+
+// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const messageContent = input.value.trim();
+    if (messageContent === '') return;
+
+    // Remove a simulação visual, pois a API agora vai cuidar disso
+    input.value = ''; 
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/messages/send`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ receiverId: friendId, content: messageContent })
+        });
+        if (!res.ok) {
+            throw new Error('Falha ao enviar mensagem para a API.');
         }
+        // Após enviar com sucesso, recarrega as mensagens para mostrar a nova
+        loadMessages();
+    } catch (err) {
+        console.error('Erro de rede ao enviar mensagem:', err);
+        alert('Não foi possível enviar a mensagem.');
+        input.value = messageContent; // Devolve o texto ao input se falhar
+    }
+}
+
+// No final do script, altere a inicialização para chamar a função de carregar mensagens
+loadFriendInfo();
+loadMessages();
+// Adicione um timer para recarregar as mensagens a cada 10 segundos (polling simples)
+setInterval(loadMessages, 10000);
+
 
         // Adiciona os eventos aos botões
         document.getElementById('sendButton').addEventListener('click', sendMessage);
