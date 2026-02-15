@@ -1155,10 +1155,10 @@ body {
     transform: scale(1.1);
 }
 /* ================================================== */
-/* CORREÇÃO DE LAYOUT E ROLAGEM PARA TODAS AS PÁGINAS */
+/* CORREÇÃO DE LAYOUT E ROLAGEM (VERSÃO FINAL E COMPLETA) */
 /* ================================================== */
 
-/* Garante que o container principal ocupe toda a altura da tela */
+/* Garante que o container principal ocupe toda a altura da tela e seja flexível */
 .app-container {
     display: flex;
     flex-direction: column;
@@ -1166,31 +1166,50 @@ body {
     max-height: -webkit-fill-available; /* Correção para iOS Safari */
 }
 
-/* Faz com que o <main> (conteúdo) cresça e permita rolagem interna */
+/* Faz com que a área de conteúdo principal cresça e permita rolagem interna */
 .profile-content,
 .conversations-content,
 .form-container,
-.challenges-container,
-.chat-messages-body {
+.challenges-container {
     flex-grow: 1; /* Permite que o elemento cresça */
     overflow-y: auto; /* Adiciona a barra de rolagem vertical QUANDO NECESSÁRIO */
     -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
 }
 
-/* Ajuste específico para o layout do chat */
+/* ================================================== */
+/* AJUSTES ESPECÍFICOS PARA A TELA DE MATCH (PRINCIPAL) */
+/* ================================================== */
+.card-stack-container {
+    flex-grow: 1; /* Faz a área dos cards ocupar o espaço disponível */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0; /* Essencial para o flex-grow funcionar corretamente em alguns navegadores */
+}
+
+.actions-footer {
+    flex-shrink: 0; /* Impede que o rodapé com os botões de like/pass encolha */
+}
+
+/* ================================================== */
+/* AJUSTES ESPECÍFICOS PARA A TELA DE CHAT */
+/* ================================================== */
 .chat-container {
     height: 100vh;
     max-height: -webkit-fill-available;
 }
 
 .chat-header {
-    flex-shrink: 0; /* Impede que o cabeçalho encolha */
+    flex-shrink: 0; /* Impede que o cabeçalho do chat encolha */
 }
 
 .chat-messages-body {
+    flex-grow: 1; /* Faz a área de mensagens crescer */
+    overflow-y: auto; /* Adiciona rolagem interna */
+    -webkit-overflow-scrolling: touch;
     padding-bottom: 20px; /* Espaço extra no final da lista de mensagens */
 }
 
 .chat-input-footer {
-    flex-shrink: 0; /* Impede que o rodapé encolha */
+    flex-shrink: 0; /* Impede que a área de digitação encolha */
 }
