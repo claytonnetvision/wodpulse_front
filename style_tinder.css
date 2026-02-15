@@ -29,7 +29,7 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(var(--vh, 1vh) * 100);
     max-width: 420px; /* Largura típica de celular */
     margin: 0 auto;
     background: #181818;
@@ -1158,19 +1158,13 @@ body {
 /* CORREÇÃO DE LAYOUT E ROLAGEM (VERSÃO FINAL E COMPLETA) */
 /* ================================================== */
 
-/* Garante que o container principal ocupe toda a altura da tela e seja flexível */
-.app-container {
-    display: flex;
-    flex-direction: column;
-    height: calc(var(--vh, 1vh) * 100); /* 100% da altura da viewport */
-    max-height: -webkit-fill-available; /* Correção para iOS Safari */
-}
 
 /* Faz com que a área de conteúdo principal cresça e permita rolagem interna */
 .profile-content,
 .conversations-content,
 .form-container,
-.challenges-container {
+.challenges-container, 
+.search-content {
     flex-grow: 1; /* Permite que o elemento cresça */
     overflow-y: auto; /* Adiciona a barra de rolagem vertical QUANDO NECESSÁRIO */
     -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem em iOS */
@@ -1208,6 +1202,7 @@ body {
     overflow-y: auto; /* Adiciona rolagem interna */
     -webkit-overflow-scrolling: touch;
     padding-bottom: 20px; /* Espaço extra no final da lista de mensagens */
+    min-height: 0;
 }
 
 .chat-input-footer {
