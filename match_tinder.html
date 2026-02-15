@@ -247,6 +247,13 @@ function setRealViewportHeight() {
         }
 
         init();
+
+        // ADICIONE ESTAS LINHAS AO FINAL DO <script> DE CADA ARQUIVO
+
+// Ajusta a altura da viewport ao carregar e ao redimensionar
+window.addEventListener('resize', setRealViewportHeight);
+setRealViewportHeight(); // Chama a função uma vez no carregamento inicial
+
     </script>
 </body>
 </html>

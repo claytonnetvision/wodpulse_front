@@ -196,6 +196,11 @@ setInterval(loadMessages, 10000);
         // Inicia o carregamento da página
         loadFriendInfo();
         // loadMessages(); // Chamada para a função de esqueleto (descomente para testar)
+// ADICIONE ESTAS LINHAS AO FINAL DO <script> DE CADA ARQUIVO
+
+// Ajusta a altura da viewport ao carregar e ao redimensionar
+window.addEventListener('resize', setRealViewportHeight);
+setRealViewportHeight(); // Chama a função uma vez no carregamento inicial
 
     </script>
 
