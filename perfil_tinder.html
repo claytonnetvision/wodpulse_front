@@ -421,7 +421,10 @@
                 notificationsSection.style.display = 'none';
             }
         }
-
+function setRealViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
         // SUBSTITUA A FUNÇÃO ANTIGA PELA NOVA NO SCRIPT DE perfil_tinder.html
 async function handleProfilePhotoUpload(event) {
     const file = event.target.files[0];

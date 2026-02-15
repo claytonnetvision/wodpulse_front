@@ -146,7 +146,10 @@ async function markMessagesAsRead() {
 }
 
 
-
+function setRealViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
 
 // SUBSTITUA A FUNÇÃO ANTIGA POR ESTA:
 async function sendMessage() {
