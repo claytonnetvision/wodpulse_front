@@ -604,3 +604,80 @@ body {
     font-size: 13px;
     color: var(--text-secondary);
 }
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA FILTROS */
+/* =================================== */
+.btn-search {
+    color: var(--accent-superlike);
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+}
+
+.filter-group {
+    margin: 20px 0;
+    text-align: left;
+}
+.filter-group label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    display: block;
+}
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.filter-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--card-bg);
+    background: none;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.filter-btn.active {
+    background-color: var(--accent-like);
+    color: #111;
+    border-color: var(--accent-like);
+    font-weight: 700;
+}
+/* =================================== */
+/* ESTILOS ADICIONAIS PARA PERFIL MELHORADO */
+/* =================================== */
+
+.btn-full-progress {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.btn-full-progress:hover {
+    background-color: #3a3a3a;
+}
+
+.charts-section {
+    padding: 0 15px 20px 15px;
+}
+
+.chart-container {
+    background-color: var(--card-bg);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    height: 300px; /* Altura fixa para os gráficos */
+}

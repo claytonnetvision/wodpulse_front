@@ -6,6 +6,8 @@
     <title>Perfil - WODPulse</title>
     <link rel="stylesheet" href="style_tinder.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Importa a biblioteca Chart.js para os gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -18,23 +20,33 @@
 
         <main class="profile-content">
             <section id="photoGallery" class="photo-gallery">
-                <div class="photo-grid-item main-photo" style="background-image: url('https://via.placeholder.com/400' );"></div>
-                <div class="photo-grid-item" style="background-image: url('https://via.placeholder.com/400' );"></div>
-                <div class="photo-grid-item" style="background-image: url('https://via.placeholder.com/400' );"></div>
-                <div id="addPhotoButton" class="photo-grid-item add-photo-btn">
-                    <i class="fas fa-plus"></i>
-                </div>
+                <!-- Fotos carregadas via JS -->
             </section>
 
             <section class="profile-details">
                 <h1 id="profileName">Carregando...</h1>
                 <p id="profileBio">Buscando informações do perfil...</p>
+                <!-- NOVO BOTÃO DE PROGRESSO COMPLETO -->
+                <a id="fullProgressButton" href="#" class="btn-full-progress">
+                    <i class="fas fa-chart-line"></i> Ver Progresso Completo
+                </a>
             </section>
 
             <section id="performanceStatsSection" class="performance-stats-section">
                 <h3 class="section-title">Resumo de Performance</h3>
                 <div id="performanceStatsGrid" class="performance-stats-grid">
                     <p class="loading-text">Carregando estatísticas...</p>
+                </div>
+            </section>
+
+            <!-- NOVA SEÇÃO DE GRÁFICOS -->
+            <section id="chartsSection" class="charts-section">
+                <h3 class="section-title">Análise de Performance</h3>
+                <div class="chart-container">
+                    <canvas id="chartCalorias"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chartPizzaZonas"></canvas>
                 </div>
             </section>
         </main>
@@ -57,8 +69,11 @@
 
         if (!token) { alert('Token não encontrado. Faça login.'); }
 
+        // Configura o link do botão de progresso completo
+        document.getElementById('fullProgressButton').href = `meu-progresso.html?id=${targetId}`;
+
         function formatPhoto(photo) {
-            if (!photo) return 'https://www.infrapower.com.br/logo-v6.png';
+            if (!photo) return 'https://i.imgur.com/3g7A8vW.png';
             if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
             return `data:image/jpeg;base64,${photo}`;
         }
@@ -66,19 +81,13 @@
         async function loadProfileData() {
             const endpoint = isOwnProfile ? '/api/social/profile' : `/api/social/public-profile/${targetId}`;
             try {
-                const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Perfil não encontrado.');
-                
                 const user = await res.json();
-
                 document.getElementById('headerUsername').textContent = user.name.split(' ')[0];
                 document.getElementById('profileName').textContent = `${user.name}, ${user.age || 25}`;
                 document.getElementById('profileBio').textContent = user.bio || 'Atleta WODPulse | Adicione sua bio!';
-
                 loadUserPhotos(user.photo);
-
             } catch (err) {
                 document.getElementById('profileName').textContent = 'Erro ao carregar perfil.';
                 console.error(err);
@@ -88,24 +97,17 @@
         async function loadUserPhotos(mainPhoto) {
             const gallery = document.getElementById('photoGallery');
             try {
-                const res = await fetch(`${API_BASE_URL}/api/social/photos/${targetId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/${targetId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const photos = await res.json();
-
                 gallery.innerHTML = '';
-                
                 const mainPhotoUrl = photos.length > 0 ? formatPhoto(photos[0].photo_data) : formatPhoto(mainPhoto);
                 gallery.innerHTML += `<div class="photo-grid-item main-photo" style="background-image: url('${mainPhotoUrl}');"></div>`;
-
                 photos.slice(1).forEach(p => {
                     gallery.innerHTML += `<div class="photo-grid-item" style="background-image: url('${formatPhoto(p.photo_data)}');"></div>`;
                 });
-
                 if (isOwnProfile) {
                     gallery.innerHTML += `<div id="addPhotoButton" class="photo-grid-item add-photo-btn"><i class="fas fa-plus"></i></div>`;
                 }
-
             } catch (err) {
                 gallery.innerHTML = `<div class="photo-grid-item main-photo" style="background-image: url('${formatPhoto(mainPhoto)}');"></div>`;
                 if (isOwnProfile) {
@@ -114,76 +116,101 @@
             }
         }
 
-        // ==================================================
-        // FUNÇÃO CORRIGIDA
-        // ==================================================
-        async function loadPerformanceStats() {
-            // A rota /user-history funciona para o próprio usuário (sem query param)
-            // e para outros (com ?alunoId=...).
-            const endpoint = isOwnProfile ? '/api/social/user-history' : `/api/social/user-history?alunoId=${targetId}`;
+        async function loadPerformanceData() {
+            const endpoint = `/api/social/user-history?alunoId=${targetId}`;
             const statsGrid = document.getElementById('performanceStatsGrid');
+            const chartsSection = document.getElementById('chartsSection');
 
             try {
-                const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error('Não foi possível carregar o histórico de treinos.');
-
                 const historico = await res.json();
 
                 if (historico.length === 0) {
                     statsGrid.innerHTML = '<p class="loading-text">Nenhum treino registrado ainda.</p>';
+                    chartsSection.style.display = 'none';
                     return;
                 }
 
-                // Calcula os totais a partir do histórico (lógica do seu 'meu-progresso.html')
+                // Calcula os totais
                 const totalSessions = historico.length;
-                const totalCalories = historico.reduce((sum, treino) => sum + (parseFloat(treino.calories_total) || 0), 0);
+                const totalCalories = historico.reduce((sum, t) => sum + (parseFloat(t.calories_total) || 0), 0);
                 const avgCalories = totalSessions > 0 ? Math.round(totalCalories / totalSessions) : 0;
-                const maxHr = Math.max(...historico.map(treino => parseFloat(treino.max_hr_reached) || 0));
-                const totalVo2Seconds = historico.reduce((sum, treino) => sum + (parseFloat(treino.vo2_time_seconds) || 0), 0);
-                const totalVo2Minutes = Math.round(totalVo2Seconds / 60);
+                const maxHr = Math.max(...historico.map(t => parseFloat(t.max_hr_reached) || 0));
+                const totalVo2Minutes = Math.round(historico.reduce((sum, t) => sum + (parseFloat(t.vo2_time_seconds) || 0), 0) / 60);
 
                 // Renderiza os cards de estatísticas
                 statsGrid.innerHTML = `
-                    <div class="stat-card">
-                        <span class="stat-value">${totalSessions}</span>
-                        <span class="stat-label">Aulas Totais</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value">${Math.round(totalCalories)}</span>
-                        <span class="stat-label">Kcal Totais</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value">${avgCalories}</span>
-                        <span class="stat-label">Média Kcal/Aula</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value">${maxHr}</span>
-                        <span class="stat-label">FC Máxima</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value">${totalVo2Minutes}</span>
-                        <span class="stat-label">Minutos em VO₂</span>
-                    </div>
-                `;
+                    <div class="stat-card"><span class="stat-value">${totalSessions}</span><span class="stat-label">Aulas</span></div>
+                    <div class="stat-card"><span class="stat-value">${Math.round(totalCalories)}</span><span class="stat-label">Kcal Totais</span></div>
+                    <div class="stat-card"><span class="stat-value">${avgCalories}</span><span class="stat-label">Média/Aula</span></div>
+                    <div class="stat-card"><span class="stat-value">${maxHr}</span><span class="stat-label">FC Máx</span></div>
+                    <div class="stat-card"><span class="stat-value">${totalVo2Minutes}</span><span class="stat-label">Min em VO₂</span></div>`;
+
+                // Renderiza os gráficos
+                renderChartCalorias(historico);
+                renderChartPizzaZonas(historico);
+
             } catch (err) {
                 statsGrid.innerHTML = `<p class="loading-text" style="color: var(--accent-pass);">${err.message}</p>`;
-                console.error("Erro ao carregar stats de performance:", err);
+                chartsSection.style.display = 'none';
+                console.error("Erro ao carregar dados de performance:", err);
             }
         }
 
+        function renderChartCalorias(historico) {
+            const ctx = document.getElementById('chartCalorias').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historico.slice(0, 10).map(h => new Date(h.date_start).toLocaleDateString('pt-BR')).reverse(),
+                    datasets: [{
+                        label: 'Calorias por Aula (Últimos 10)',
+                        data: historico.slice(0, 10).map(h => Math.round(h.calories_total || 0)).reverse(),
+                        borderColor: 'rgba(45, 225, 156, 0.8)',
+                        backgroundColor: 'rgba(45, 225, 156, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } } }
+            });
+        }
+
+        function renderChartPizzaZonas(historico) {
+            const totalZ2 = historico.reduce((s, h) => s + (h.min_zone2 || 0), 0);
+            const totalZ3 = historico.reduce((s, h) => s + (h.min_zone3 || 0), 0);
+            const totalZ4 = historico.reduce((s, h) => s + (h.min_zone4 || 0), 0);
+            const totalZ5 = historico.reduce((s, h) => s + (h.min_zone5 || 0), 0);
+            const totalRed = historico.reduce((s, h) => s + (h.min_red || 0), 0);
+
+            const ctx = document.getElementById('chartPizzaZonas').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Zona 2 (Leve)', 'Zona 3 (Moderado)', 'Zona 4 (Intenso)', 'Zona 5 (Máximo)', 'Vermelha'],
+                    datasets: [{
+                        label: 'Minutos nas Zonas',
+                        data: [totalZ2, totalZ3, totalZ4, totalZ5, totalRed],
+                        backgroundColor: ['#4CAF50', '#8BC34A', '#FFC107', '#FF5722', '#F44336'],
+                        borderColor: '#222',
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff', boxWidth: 15 } } } }
+            });
+        }
+
         function setupUI() {
-            if (isOwnProfile) {
-                document.getElementById('profileActionFooter').style.display = 'none';
-            } else {
+            if (!isOwnProfile) {
                 document.getElementById('profileActionFooter').style.display = 'flex';
             }
         }
 
         setupUI();
         loadProfileData();
-        loadPerformanceStats();
+        loadPerformanceData();
     </script>
 </body>
 </html>
