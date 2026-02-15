@@ -193,11 +193,37 @@
             }
         }
         
-        async function deletePhoto(photoId) {
-            if (!confirm('Tem certeza que deseja excluir esta foto?')) return;
-            console.log(`[DEBUG] 5. Tentando deletar foto ID: ${photoId}`);
-            alert('Funcionalidade de exclusão pendente de implementação na API (DELETE /api/social/photos/:id).');
+        // Dentro do <script> do perfil_tinder.html
+
+// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA VERSÃO FUNCIONAL:
+async function deletePhoto(photoId) {
+    if (!confirm('Tem certeza que deseja excluir esta foto?')) return;
+    
+    console.log(`[DEBUG] 5. Tentando deletar foto ID: ${photoId}`);
+    
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || `Erro ${res.status} ao excluir a foto.`);
         }
+
+        console.log(`[DEBUG] 5.1. Foto ${photoId} deletada com sucesso.`);
+        alert('Foto excluída com sucesso!');
+        
+        // Recarrega o painel de fotos para refletir a exclusão
+        loadUserPhotos();
+
+    } catch (err) {
+        console.error('[DEBUG] 5.2. Erro ao deletar foto:', err);
+        alert(`Erro: ${err.message}`);
+    }
+}
+
 
         async function loadPerformanceData() {
             console.log(`[DEBUG] 3. Buscando histórico de treinos para o ID: ${targetId}`);
