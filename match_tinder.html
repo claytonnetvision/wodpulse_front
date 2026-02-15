@@ -19,7 +19,6 @@
         <main class="card-stack-container">
             <div id="cardStack" class="card-stack">
                 <!-- O JavaScript vai inserir os cards aqui. -->
-                <!-- Enquanto carrega, o spinner do CSS será mostrado no placeholder abaixo. -->
             </div>
             <div id="loadingOrEmptyState" class="card-placeholder">
                 <div class="spinner"></div>
@@ -66,9 +65,6 @@
         </div>
     </div>
 
-    <!-- =================================== -->
-    <!-- SCRIPT DE INTEGRAÇÃO -->
-    <!-- =================================== -->
     <script>
         const API_BASE_URL = 'https://wodpulse-back.onrender.com';
         const token = localStorage.getItem('wodpulse_social_token' );
@@ -87,7 +83,7 @@
         }
 
         function formatPhoto(photo) {
-            if (!photo) return 'https://i.imgur.com/3g7A8vW.png'; // Uma imagem genérica de fallback
+            if (!photo) return 'https://i.imgur.com/3g7A8vW.png';
             if (photo.startsWith('data:image' ) || photo.startsWith('http' )) return photo;
             return `data:image/jpeg;base64,${photo}`;
         }
@@ -101,14 +97,12 @@
                 selfPhoto = formatPhoto(userData.photo);
             } catch (err) {
                 console.error('Erro ao carregar perfil próprio:', err);
-                selfPhoto = 'https://i.imgur.com/3g7A8vW.png'; // Fallback
+                selfPhoto = 'https://i.imgur.com/3g7A8vW.png';
             }
         }
 
         async function loadCandidates( ) {
             const genderFilter = localStorage.getItem('wodpulse_gender_filter') || 'all';
-            // AVISO: A rota da API precisará ser ajustada para usar este filtro.
-            // Ex: const apiUrl = `${API_BASE_URL}/api/social/candidates?gender=${genderFilter}`;
             const apiUrl = `${API_BASE_URL}/api/social/candidates`;
 
             loadingOrEmptyState.innerHTML = '<div class="spinner"></div><p>Buscando atletas...</p>';
@@ -219,9 +213,7 @@
         const filterButtons = document.querySelectorAll('.filter-btn');
         let selectedGender = localStorage.getItem('wodpulse_gender_filter') || 'all';
 
-        // Marca o botão de filtro ativo com base no que está salvo
         document.querySelector(`.filter-btn[data-gender="${selectedGender}"]`).classList.add('active');
-
 
         function openFilterPopup() {
             filterPopup.classList.add('show');
@@ -242,7 +234,6 @@
         function applyFilters() {
             closeFilterPopup();
             localStorage.setItem('wodpulse_gender_filter', selectedGender);
-            // AVISO: A rota da API precisa ser ajustada para que o filtro funcione de verdade.
             alert(`Filtro aplicado. A API precisa ser atualizada para buscar apenas perfis do gênero: ${selectedGender}.`);
             loadCandidates();
         }
