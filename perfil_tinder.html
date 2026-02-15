@@ -30,17 +30,13 @@
                 </div>
             </section>
 
-            <!-- SEÇÃO DE NOTIFICAÇÕES (SÓ APARECE NO PERFIL PRÓPRIO ) -->
             <section id="notificationsSection" class="notifications-section" style="display: none;">
                 <div class="panel-header">
                     <h3>Novas Mensagens</h3>
                 </div>
-                <div id="notificationsContainer">
-                    <!-- Notificações serão inseridas aqui -->
-                </div>
+                <div id="notificationsContainer"></div>
             </section>
 
-            <!-- PAINEL DE FOTOS -->
             <section class="photo-panel-section">
                 <div class="panel-header">
                     <h3>Minhas Fotos</h3>
@@ -74,15 +70,12 @@
         </main>
     </div>
 
-    <!-- MODAL PARA VISUALIZAR FOTO E COMENTÁRIOS -->
     <div id="photoModal" class="photo-modal-overlay">
         <div class="photo-modal-content">
-            <span class="close-modal-btn" onclick="closePhotoModal()">&times;</span>
+            <span class="close-modal-btn" onclick="closePhotoModal( )">&times;</span>
             <img id="modalPhotoImage" src="" alt="Foto ampliada">
             <div class="photo-comments-section">
-                <div id="modalCommentsContainer" class="comments-container">
-                    <!-- Comentários serão carregados aqui -->
-                </div>
+                <div id="modalCommentsContainer" class="comments-container"></div>
                 <div class="comment-input-area">
                     <input type="text" id="commentInput" placeholder="Adicione um comentário...">
                     <button onclick="postComment()">Enviar</button>
@@ -153,7 +146,7 @@
                 }
                 
                 panelGrid.innerHTML = photos.map(photo => `
-                    <div class="photo-panel-item" onclick="openPhotoModal(${photo.id}, '${formatPhoto(photo.photo_data)}')">
+                    <div id="photo-item-${photo.id}" class="photo-panel-item" data-owner-id="${photo.user_id}" onclick="openPhotoModal(${photo.id}, '${formatPhoto(photo.photo_data)}')">
                         <img src="${formatPhoto(photo.photo_data)}" alt="Foto do painel">
                         ${isOwnProfile ? `<button class="btn-delete-photo" onclick="event.stopPropagation(); deletePhoto(${photo.id});"><i class="fas fa-times"></i></button>` : ''}
                     </div>
@@ -193,37 +186,26 @@
             }
         }
         
-        // Dentro do <script> do perfil_tinder.html
-
-// SUBSTITUA A FUNÇÃO ANTIGA POR ESTA VERSÃO FUNCIONAL:
-async function deletePhoto(photoId) {
-    if (!confirm('Tem certeza que deseja excluir esta foto?')) return;
-    
-    console.log(`[DEBUG] 5. Tentando deletar foto ID: ${photoId}`);
-    
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || `Erro ${res.status} ao excluir a foto.`);
+        async function deletePhoto(photoId) {
+            if (!confirm('Tem certeza que deseja excluir esta foto?')) return;
+            console.log(`[DEBUG] 5. Tentando deletar foto ID: ${photoId}`);
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/photos/${photoId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || `Erro ${res.status} ao excluir a foto.`);
+                }
+                console.log(`[DEBUG] 5.1. Foto ${photoId} deletada com sucesso.`);
+                alert('Foto excluída com sucesso!');
+                loadUserPhotos();
+            } catch (err) {
+                console.error('[DEBUG] 5.2. Erro ao deletar foto:', err);
+                alert(`Erro: ${err.message}`);
+            }
         }
-
-        console.log(`[DEBUG] 5.1. Foto ${photoId} deletada com sucesso.`);
-        alert('Foto excluída com sucesso!');
-        
-        // Recarrega o painel de fotos para refletir a exclusão
-        loadUserPhotos();
-
-    } catch (err) {
-        console.error('[DEBUG] 5.2. Erro ao deletar foto:', err);
-        alert(`Erro: ${err.message}`);
-    }
-}
-
 
         async function loadPerformanceData() {
             console.log(`[DEBUG] 3. Buscando histórico de treinos para o ID: ${targetId}`);
@@ -328,20 +310,26 @@ async function deletePhoto(photoId) {
                 if (!res.ok) throw new Error('Falha ao carregar comentários.');
                 const comments = await res.json();
                 
+                const photoOwnerId = document.getElementById(`photo-item-${photoId}`)?.dataset.ownerId;
+
                 if (comments.length === 0) {
                     commentsContainer.innerHTML = '<p class="loading-text">Nenhum comentário ainda. Seja o primeiro!</p>';
                     return;
                 }
 
-                commentsContainer.innerHTML = comments.map(comment => `
-                    <div class="comment-item">
-                        <img src="${formatPhoto(comment.user_photo)}" class="comment-user-photo" alt="${comment.user_name}">
-                        <div>
-                            <strong>${comment.user_name}</strong>
-                            <p>${comment.content}</p>
+                commentsContainer.innerHTML = comments.map(comment => {
+                    const canDelete = (String(selfId) === String(comment.user_id)) || (String(selfId) === String(photoOwnerId));
+                    return `
+                        <div class="comment-item">
+                            <img src="${formatPhoto(comment.user_photo)}" class="comment-user-photo" alt="${comment.user_name}">
+                            <div class="comment-content">
+                                <strong>${comment.user_name}</strong>
+                                <p>${comment.content}</p>
+                            </div>
+                            ${canDelete ? `<button class="btn-delete-comment" onclick="deleteComment(${comment.id})"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
             } catch (err) {
                 console.error(err);
@@ -370,6 +358,27 @@ async function deletePhoto(photoId) {
             } catch (err) {
                 console.error(err);
                 alert('Erro ao enviar comentário.');
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (!confirm('Tem certeza que deseja excluir este comentário?')) return;
+
+            console.log(`[DEBUG] 9. Tentando deletar comentário ID: ${commentId}`);
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/social/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Falha ao excluir comentário.');
+                }
+                console.log(`[DEBUG] 9.1. Comentário ${commentId} deletado. Recarregando.`);
+                loadPhotoComments(currentOpenPhotoId);
+            } catch (err) {
+                console.error('[DEBUG] 9.2. Erro ao deletar comentário:', err);
+                alert(`Erro: ${err.message}`);
             }
         }
 
